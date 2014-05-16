@@ -46,9 +46,15 @@
 ,com.fasterxml.jackson.databind.ser.std
     </osgi.import>
     <osgi.export>${project.groupId}.jsr310.*;version=${project.version}</osgi.export>
+    <threetenbp.version>0.9</threetenbp.version>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.threeten</groupId>
+      <artifactId>threetenbp</artifactId>
+      <version>${threetenbp.version}</version>
+    </dependency>
     <!-- Extends Jackson mapper, 2.x -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
