@@ -18,7 +18,7 @@ public class DateTimeUtils {
      */
     public static ZoneId timeZoneToZoneId(final TimeZone timeZone) {
         final String id = timeZone.getID();
-        if (ZoneInfoFile.useOldMapping() && id.length() == 3) {
+        if (id.length() == 3) {
             if ("EST".equals(id))
                 return ZoneId.of("America/New_York");
             if ("MST".equals(id))
