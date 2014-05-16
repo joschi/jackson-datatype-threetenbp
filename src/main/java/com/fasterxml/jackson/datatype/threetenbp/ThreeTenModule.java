@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.DurationDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.InstantDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.JSR310StringParsableDeserializer;
+import com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalTimeDeserializer;
@@ -34,20 +34,20 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.LocalTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.OffsetTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.YearSerializer;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.MonthDay;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Period;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import org.threeten.bp.Duration;
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.LocalTime;
+import org.threeten.bp.MonthDay;
+import org.threeten.bp.OffsetDateTime;
+import org.threeten.bp.OffsetTime;
+import org.threeten.bp.Period;
+import org.threeten.bp.Year;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZoneOffset;
+import org.threeten.bp.ZonedDateTime;
 
 /**
  * Class that registers this module with the Jackson core.<br>
@@ -110,15 +110,15 @@ public final class ThreeTenModule extends SimpleModule
         addDeserializer(LocalDateTime.class, LocalDateTimeDeserializer.INSTANCE);
         addDeserializer(LocalDate.class, LocalDateDeserializer.INSTANCE);
         addDeserializer(LocalTime.class, LocalTimeDeserializer.INSTANCE);
-        addDeserializer(MonthDay.class, JSR310StringParsableDeserializer.MONTH_DAY);
+        addDeserializer(MonthDay.class, ThreeTenStringParsableDeserializer.MONTH_DAY);
         addDeserializer(OffsetDateTime.class, InstantDeserializer.OFFSET_DATE_TIME);
         addDeserializer(OffsetTime.class, OffsetTimeDeserializer.INSTANCE);
-        addDeserializer(Period.class, JSR310StringParsableDeserializer.PERIOD);
+        addDeserializer(Period.class, ThreeTenStringParsableDeserializer.PERIOD);
         addDeserializer(Year.class, YearDeserializer.INSTANCE);
-        addDeserializer(YearMonth.class, JSR310StringParsableDeserializer.YEAR_MONTH);
+        addDeserializer(YearMonth.class, ThreeTenStringParsableDeserializer.YEAR_MONTH);
         addDeserializer(ZonedDateTime.class, InstantDeserializer.ZONED_DATE_TIME);
-        addDeserializer(ZoneId.class, JSR310StringParsableDeserializer.ZONE_ID);
-        addDeserializer(ZoneOffset.class, JSR310StringParsableDeserializer.ZONE_OFFSET);
+        addDeserializer(ZoneId.class, ThreeTenStringParsableDeserializer.ZONE_ID);
+        addDeserializer(ZoneOffset.class, ThreeTenStringParsableDeserializer.ZONE_OFFSET);
 
         // then serializers:
         addSerializer(Duration.class, DurationSerializer.INSTANCE);

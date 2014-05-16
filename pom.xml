@@ -23,8 +23,8 @@
   <properties>
     <version.jackson.core>2.4.0-rc3</version.jackson.core>
     <!-- Generate PackageVersion.java into this directory. -->
-    <packageVersion.dir>com/fasterxml/jackson/datatype/jsr310</packageVersion.dir>
-    <packageVersion.package>${project.groupId}.jsr310</packageVersion.package>
+    <packageVersion.dir>com/fasterxml/jackson/datatype/threetenbp</packageVersion.dir>
+    <packageVersion.package>${project.groupId}.threetenbp</packageVersion.package>
     <javac.src.version>1.7</javac.src.version>
     <javac.target.version>1.7</javac.target.version>
     <!-- Configuration properties for the OSGi maven-bundle-plugin -->
@@ -37,7 +37,7 @@
 ,com.fasterxml.jackson.databind.node
 ,com.fasterxml.jackson.databind.ser.std
     </osgi.import>
-    <osgi.export>${project.groupId}.jsr310.*;version=${project.version}</osgi.export>
+    <osgi.export>${project.groupId}.threetenbp.*;version=${project.version}</osgi.export>
     <threetenbp.version>0.9</threetenbp.version>
   </properties>
 

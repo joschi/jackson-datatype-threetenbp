@@ -29,9 +29,9 @@ import java.lang.reflect.Type;
  * @author Nick Williams
  * @since 2.2.0
  */
-abstract class JSR310ArraySerializerBase<T> extends JSR310SerializerBase<T>
+abstract class ThreeTenArraySerializerBase<T> extends ThreeTenSerializerBase<T>
 {
-    protected JSR310ArraySerializerBase(Class<T> supportedType)
+    protected ThreeTenArraySerializerBase(Class<T> supportedType)
     {
         super(supportedType);
     }

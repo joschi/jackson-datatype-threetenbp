@@ -24,16 +24,16 @@ import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import java.io.IOException;
 
 /**
- * Base class that indicates that all JSR310 datatypes are deserialized from scalar JSON types.
+ * Base class that indicates that all JSR-310 datatypes are deserialized from scalar JSON types.
  *
  * @author Nick Williams
  * @since 2.2.0
  */
-abstract class JSR310DeserializerBase<T> extends StdScalarDeserializer<T>
+abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
 {
     private static final long serialVersionUID = 1L;
 
-    protected JSR310DeserializerBase(Class<T> supportedType)
+    protected ThreeTenDeserializerBase(Class<T> supportedType)
     {
         super(supportedType);
     }

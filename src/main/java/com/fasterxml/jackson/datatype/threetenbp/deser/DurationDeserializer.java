@@ -20,10 +20,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
+import org.threeten.bp.Duration;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.Duration;
 
 /**
  * Deserializer for Java 8 temporal {@link Duration}s.
@@ -31,7 +31,7 @@ import java.time.Duration;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class DurationDeserializer extends JSR310DeserializerBase<Duration>
+public class DurationDeserializer extends ThreeTenDeserializerBase<Duration>
 {
     private static final long serialVersionUID = 1L;
 

@@ -21,9 +21,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.Month;
-import java.time.YearMonth;
-import java.time.temporal.Temporal;
+import org.threeten.bp.Month;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.temporal.Temporal;
 
 import static org.junit.Assert.*;
 

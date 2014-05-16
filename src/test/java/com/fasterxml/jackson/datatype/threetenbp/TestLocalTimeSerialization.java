@@ -23,8 +23,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.LocalTime;
-import java.time.temporal.Temporal;
+import org.threeten.bp.LocalTime;
+import org.threeten.bp.temporal.Temporal;
 
 import static org.junit.Assert.*;
 

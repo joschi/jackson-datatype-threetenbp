@@ -19,10 +19,10 @@ package com.fasterxml.jackson.datatype.threetenbp.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import org.threeten.bp.LocalTime;
+import org.threeten.bp.temporal.ChronoField;
 
 import java.io.IOException;
-import java.time.LocalTime;
-import java.time.temporal.ChronoField;
 
 /**
  * Serializer for Java 8 temporal {@link LocalTime}s.
@@ -30,7 +30,7 @@ import java.time.temporal.ChronoField;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class LocalTimeSerializer extends JSR310ArraySerializerBase<LocalTime>
+public class LocalTimeSerializer extends ThreeTenArraySerializerBase<LocalTime>
 {
     public static final LocalTimeSerializer INSTANCE = new LocalTimeSerializer();
 

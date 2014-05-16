@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 
 import java.io.IOException;
-import java.time.LocalDate;
+import org.threeten.bp.LocalDate;
 
 /**
  * Deserializer for Java 8 temporal {@link LocalDate}s.
@@ -29,7 +29,7 @@ import java.time.LocalDate;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class LocalDateDeserializer extends JSR310DeserializerBase<LocalDate>
+public class LocalDateDeserializer extends ThreeTenDeserializerBase<LocalDate>
 {
     private static final long serialVersionUID = 1L;
 

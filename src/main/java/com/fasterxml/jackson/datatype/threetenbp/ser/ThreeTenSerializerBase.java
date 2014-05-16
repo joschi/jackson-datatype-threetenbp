@@ -13,9 +13,9 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2.0
  */
-abstract class JSR310SerializerBase<T> extends StdSerializer<T>
+abstract class ThreeTenSerializerBase<T> extends StdSerializer<T>
 {
-    protected JSR310SerializerBase(Class<T> supportedType)
+    protected ThreeTenSerializerBase(Class<T> supportedType)
     {
         super(supportedType);
     }

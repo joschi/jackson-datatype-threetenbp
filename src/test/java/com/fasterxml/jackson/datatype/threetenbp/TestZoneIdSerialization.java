@@ -21,7 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.ZoneId;
+import org.threeten.bp.ZoneId;
 
 import static org.junit.Assert.*;
 
@@ -73,7 +73,7 @@ public class TestZoneIdSerialization
         String value = this.mapper.writeValueAsString(id);
 
         assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", "[\"java.time.ZoneRegion\",\"America/Denver\"]", value);
+        assertEquals("The value is not correct.", "[\"org.threeten.bp.ZoneRegion\",\"America/Denver\"]", value);
     }
 
     @Test

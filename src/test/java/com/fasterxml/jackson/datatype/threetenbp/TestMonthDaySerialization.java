@@ -21,9 +21,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.Month;
-import java.time.MonthDay;
-import java.time.temporal.TemporalAccessor;
+import org.threeten.bp.Month;
+import org.threeten.bp.MonthDay;
+import org.threeten.bp.temporal.TemporalAccessor;
 
 import static org.junit.Assert.*;
 

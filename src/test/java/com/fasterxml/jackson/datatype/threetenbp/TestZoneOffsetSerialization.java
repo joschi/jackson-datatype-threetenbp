@@ -21,8 +21,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZoneOffset;
 
 import static org.junit.Assert.*;
 

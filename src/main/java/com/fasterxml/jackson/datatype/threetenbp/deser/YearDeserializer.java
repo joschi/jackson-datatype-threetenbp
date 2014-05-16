@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 
 import java.io.IOException;
-import java.time.Year;
+import org.threeten.bp.Year;
 
 /**
  * Deserializer for Java 8 temporal {@link Year}s.
@@ -28,7 +28,7 @@ import java.time.Year;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class YearDeserializer extends JSR310DeserializerBase<Year>
+public class YearDeserializer extends ThreeTenDeserializerBase<Year>
 {
     private static final long serialVersionUID = 1L;
 

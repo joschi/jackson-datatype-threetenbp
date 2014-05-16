@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
-import java.time.LocalDate;
+import org.threeten.bp.LocalDate;
 
 /**
  * Serializer for Java 8 temporal {@link LocalDate}s.
@@ -29,7 +29,7 @@ import java.time.LocalDate;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class LocalDateSerializer extends JSR310ArraySerializerBase<LocalDate>
+public class LocalDateSerializer extends ThreeTenArraySerializerBase<LocalDate>
 {
     public static final LocalDateSerializer INSTANCE = new LocalDateSerializer();
 

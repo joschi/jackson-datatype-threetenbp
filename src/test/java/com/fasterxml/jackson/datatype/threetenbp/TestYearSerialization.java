@@ -21,8 +21,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.Year;
-import java.time.temporal.Temporal;
+import org.threeten.bp.Year;
+import org.threeten.bp.temporal.Temporal;
 
 import static org.junit.Assert.*;
 

@@ -20,9 +20,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
+import org.threeten.bp.Duration;
 
 import java.io.IOException;
-import java.time.Duration;
 
 /**
  * Serializer for Java 8 temporal {@link Duration}s.
@@ -30,7 +30,7 @@ import java.time.Duration;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class DurationSerializer extends JSR310SerializerBase<Duration>
+public class DurationSerializer extends ThreeTenSerializerBase<Duration>
 {
     public static final DurationSerializer INSTANCE = new DurationSerializer();
 

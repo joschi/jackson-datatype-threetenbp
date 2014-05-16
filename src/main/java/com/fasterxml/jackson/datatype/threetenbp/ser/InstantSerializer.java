@@ -20,14 +20,14 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
+import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
+import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
+import org.threeten.bp.Instant;
+import org.threeten.bp.OffsetDateTime;
+import org.threeten.bp.ZonedDateTime;
+import org.threeten.bp.temporal.Temporal;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
-import java.time.temporal.Temporal;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
 
 /**
  * Serializer for Java 8 temporal {@link Instant}s, {@link OffsetDateTime}, and {@link ZonedDateTime}s.
@@ -35,18 +35,70 @@ import java.util.function.ToLongFunction;
  * @author Nick Williams
  * @since 2.2.0
  */
-public final class InstantSerializer<T extends Temporal> extends JSR310SerializerBase<T>
+public final class InstantSerializer<T extends Temporal> extends ThreeTenSerializerBase<T>
 {
-    public static final InstantSerializer<Instant> INSTANT =
-            new InstantSerializer<>(Instant.class, Instant::toEpochMilli, Instant::getEpochSecond, Instant::getNano);
+    public static final InstantSerializer<Instant> INSTANT = new InstantSerializer<>(
+            Instant.class,
+            new ToLongFunction<Instant>() {
+                @Override
+                public long applyAsLong(Instant instant) {
+                    return instant.toEpochMilli();
+                }
+            },
+            new ToLongFunction<Instant>() {
+                @Override
+                public long applyAsLong(Instant instant) {
+                    return instant.getEpochSecond();
+                }
+            },
+            new ToIntFunction<Instant>() {
+                @Override
+                public int applyAsInt(Instant instant) {
+                    return instant.getNano();
+                }
+            });
 
-    public static final InstantSerializer<OffsetDateTime> OFFSET_DATE_TIME =
-            new InstantSerializer<>(OffsetDateTime.class, dt -> dt.toInstant().toEpochMilli(),
-                    OffsetDateTime::toEpochSecond, OffsetDateTime::getNano);
+    public static final InstantSerializer<OffsetDateTime> OFFSET_DATE_TIME = new InstantSerializer<>(
+            OffsetDateTime.class,
+            new ToLongFunction<OffsetDateTime>() {
+                @Override
+                public long applyAsLong(OffsetDateTime dt) {
+                    return dt.toInstant().toEpochMilli();
+                }
+            },
+            new ToLongFunction<OffsetDateTime>() {
+                @Override
+                public long applyAsLong(OffsetDateTime dt) {
+                    return dt.toEpochSecond();
+                }
+            },
+            new ToIntFunction<OffsetDateTime>() {
+                @Override
+                public int applyAsInt(OffsetDateTime dt) {
+                    return dt.getNano();
+                }
+            });
 
-    public static final InstantSerializer<ZonedDateTime> ZONED_DATE_TIME =
-            new InstantSerializer<>(ZonedDateTime.class, dt -> dt.toInstant().toEpochMilli(),
-                    ZonedDateTime::toEpochSecond, ZonedDateTime::getNano);
+    public static final InstantSerializer<ZonedDateTime> ZONED_DATE_TIME = new InstantSerializer<>(
+            ZonedDateTime.class,
+            new ToLongFunction<ZonedDateTime>() {
+                @Override
+                public long applyAsLong(ZonedDateTime dt) {
+                    return dt.toInstant().toEpochMilli();
+                }
+            },
+            new ToLongFunction<ZonedDateTime>() {
+                @Override
+                public long applyAsLong(ZonedDateTime dt) {
+                    return dt.toEpochSecond();
+                }
+            },
+            new ToIntFunction<ZonedDateTime>() {
+                @Override
+                public int applyAsInt(ZonedDateTime dt) {
+                    return dt.getNano();
+                }
+            });
 
     private final ToLongFunction<T> getEpochMillis;
 

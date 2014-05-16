@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 
 import java.io.IOException;
-import java.time.OffsetTime;
-import java.time.ZoneOffset;
+import org.threeten.bp.OffsetTime;
+import org.threeten.bp.ZoneOffset;
 
 /**
  * Deserializer for Java 8 temporal {@link OffsetTime}s.
@@ -31,7 +31,7 @@ import java.time.ZoneOffset;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class OffsetTimeDeserializer extends JSR310DeserializerBase<OffsetTime>
+public class OffsetTimeDeserializer extends ThreeTenDeserializerBase<OffsetTime>
 {
     private static final long serialVersionUID = 1L;
 

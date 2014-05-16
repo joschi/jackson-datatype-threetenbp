@@ -7,8 +7,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.Duration;
-import java.time.temporal.TemporalAmount;
+import org.threeten.bp.Duration;
+import org.threeten.bp.temporal.TemporalAmount;
 
 import static org.junit.Assert.*;
 
