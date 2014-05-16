@@ -7,24 +7,16 @@
     <version>2.4</version>
   </parent>
   <groupId>com.fasterxml.jackson.datatype</groupId>
-  <artifactId>jackson-datatype-jsr310</artifactId>
+  <artifactId>jackson-datatype-threetenbp</artifactId>
   <version>2.4.0-rc4-SNAPSHOT</version>
-  <name>Jackson-Datatype-JSR310</name>
+  <name>Jackson-Datatype-ThreeTenBackport</name>
   <packaging>bundle</packaging>
-  <description>Add-on module to support JSR-310 (Java 8 Date &amp; Time API) data types.</description>
+  <description>Add-on module to support JSR-310 (Java 8 Date &amp; Time API) data types with Java 7 (using the ThreeTen backport).</description>
   <url>http://wiki.fasterxml.com/JacksonModuleJSR310</url>
-  <developers>
-    <developer>
-      <id>beamerblvd</id>
-      <name>Nick Williams</name>
-      <email>nicholas@nicholaswilliams.net</email>
-      <timezone>-6</timezone>
-    </developer>
-  </developers>
   <scm>
-    <connection>scm:git:git@github.com:FasterXML/jackson-datatype-jsr310.git</connection>
-    <developerConnection>scm:git:git@github.com:FasterXML/jackson-datatype-jsr310.git</developerConnection>
-    <url>http://github.com/FasterXML/jackson-datatype-jsr310</url>    
+    <connection>scm:git:git@github.com:joschi/jackson-datatype-threetenbp.git</connection>
+    <developerConnection>scm:git:git@github.com:joschi/jackson-datatype-threetenbp.git</developerConnection>
+    <url>http://github.com/joschi/jackson-datatype-threetenbp</url>
     <tag>HEAD</tag>
   </scm>
 
@@ -33,8 +25,8 @@
     <!-- Generate PackageVersion.java into this directory. -->
     <packageVersion.dir>com/fasterxml/jackson/datatype/jsr310</packageVersion.dir>
     <packageVersion.package>${project.groupId}.jsr310</packageVersion.package>
-    <javac.src.version>1.8</javac.src.version>
-    <javac.target.version>1.8</javac.target.version>
+    <javac.src.version>1.7</javac.src.version>
+    <javac.target.version>1.7</javac.target.version>
     <!-- Configuration properties for the OSGi maven-bundle-plugin -->
     <osgi.import>com.fasterxml.jackson.core
 ,com.fasterxml.jackson.core.util
@@ -91,8 +83,8 @@
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <version>[1.8,)</version>
-                  <message>[ERROR] The currently supported version of Java is 1.8 or higher</message>
+                  <version>[1.7,)</version>
+                  <message>[ERROR] The currently supported version of Java is 1.7 or higher</message>
                 </requireJavaVersion>
                 <requireMavenVersion>
                   <version>[3.0,)</version>
