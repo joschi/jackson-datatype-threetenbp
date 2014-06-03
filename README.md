@@ -5,22 +5,22 @@ Datatype module to make [Jackson](http://wiki.fasterxml.com/JacksonHome) recogni
 
 [![Build Status](https://travis-ci.org/joschi/jackson-datatype-threetenbp.svg?branch=master)](https://travis-ci.org/joschi/jackson-datatype-threetenbp)
 
-Generally available as of Jackson 2.4.0-rc4 and Java 1.7.
+Generally available as of Jackson 2.4 and Java 1.7.
 
 
 ## Summary
 
 Most JSR-310 types are serialized as numbers (integers or decimals as appropriate) if the
-[`SerializationFeature#WRITE_DATES_AS_TIMESTAMPS`](http://fasterxml.github.com/jackson-databind/javadoc/2.3.0/com/fasterxml/jackson/databind/SerializationFeature.html#WRITE_DATES_AS_TIMESTAMPS)
+[`SerializationFeature#WRITE_DATES_AS_TIMESTAMPS`](http://fasterxml.github.com/jackson-databind/javadoc/2.4/com/fasterxml/jackson/databind/SerializationFeature.html#WRITE_DATES_AS_TIMESTAMPS)
 feature is enabled, and otherwise are serialized in standard [ISO-8601](http://en.wikipedia.org/wiki/ISO_8601)
 string representation. ISO-8601 specifies formats for representing offset dates and times, zoned dates and times,
 local dates and times, periods, durations, zones, and more. All JSR-310 types have built-in translation to and from
 ISO-8601 formats.
 
 Granularity of timestamps is controlled through the companion features
-[`SerializationFeature#WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS`](http://fasterxml.github.com/jackson-databind/javadoc/2.3.0/com/fasterxml/jackson/databind/SerializationFeature.html#WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+[`SerializationFeature#WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS`](http://fasterxml.github.com/jackson-databind/javadoc/2.4/com/fasterxml/jackson/databind/SerializationFeature.html#WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
 and
-[`DeserializationFeature#READ_DATE_TIMESTAMPS_AS_NANOSECONDS`](http://fasterxml.github.com/jackson-databind/javadoc/2.3.0/com/fasterxml/jackson/databind/DeserializationFeature.html#READ_DATE_TIMESTAMPS_AS_NANOSECONDS).
+[`DeserializationFeature#READ_DATE_TIMESTAMPS_AS_NANOSECONDS`](http://fasterxml.github.com/jackson-databind/javadoc/2.4/com/fasterxml/jackson/databind/DeserializationFeature.html#READ_DATE_TIMESTAMPS_AS_NANOSECONDS).
 For serialization, timestamps are written as fractional numbers (decimals), where the number is seconds and the decimal
 is fractional seconds, if `WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS` is enabled (it is by default), with resolution as fine
 as nanoseconds depending on the underlying JDK implementation. If `WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS` is disabled,
@@ -57,7 +57,7 @@ To use module on Maven-based projects, use following dependency:
 <dependency>
     <groupId>com.fasterxml.jackson.datatype</groupId>
     <artifactId>jackson-datatype-threetenbp</artifactId>
-    <version>2.4.0-rc4</version>
+    <version>2.4.0</version>
 </dependency>
 ```
 

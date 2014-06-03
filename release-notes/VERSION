@@ -1,28 +1,10 @@
-Project: jackson-datatype-jsr310
+Project: jackson-datatype-threetenbp
 Version: 2.4.0 (xx-xxx-2014)
-
-No changes since 2.3.
 
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
 
-2.3.3 (10-Apr-2014)
-2.3.2 (01-Mar-2014)
-2.3.1 (28-Dec-2013)
-2.3.0-rc1 (26-Oct-2013)
+2.4.0 (03-Jun-2014)
 
-No functional changes.
-
-2.2.2-beta4 (20-Aug-2013)
-
-- Re-built with 1.8.0-b102
-
-2.2.1-beta2 (03-May-2013)
-
-#2: ZonedDateTime tests fail with latest JDK 8 (1.8.0-ea-b88)
-#3: Service registration file mislocated
-
-2.2.0-beta1 (24-Apr-2013)
-
-First public beta version.
+First public version.
