@@ -4,6 +4,7 @@ Datatype module to make [Jackson](http://wiki.fasterxml.com/JacksonHome) recogni
 ## Status
 
 [![Build Status](https://travis-ci.org/joschi/jackson-datatype-threetenbp.svg?branch=master)](https://travis-ci.org/joschi/jackson-datatype-threetenbp)
+[![Coverage Status](https://img.shields.io/coveralls/joschi/jackson-datatype-threetenbp.svg)](https://coveralls.io/r/joschi/jackson-datatype-threetenbp)
 
 Generally available as of Jackson 2.4 and Java 1.7.
 
