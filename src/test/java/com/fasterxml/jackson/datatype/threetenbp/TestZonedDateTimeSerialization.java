@@ -19,19 +19,20 @@ package com.fasterxml.jackson.datatype.threetenbp;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.threeten.bp.Instant;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.temporal.ChronoField;
 import org.threeten.bp.temporal.ChronoUnit;
 import org.threeten.bp.temporal.Temporal;
+
 import java.util.TimeZone;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class TestZonedDateTimeSerialization
 {
@@ -50,12 +51,6 @@ public class TestZonedDateTimeSerialization
     {
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new ThreeTenModule());
-    }
-
-    @After
-    public void tearDown()
-    {
-
     }
 
     @Test

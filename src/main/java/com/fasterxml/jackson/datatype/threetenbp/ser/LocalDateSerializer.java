@@ -19,15 +19,15 @@ package com.fasterxml.jackson.datatype.threetenbp.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
-
-import java.io.IOException;
 import org.threeten.bp.LocalDate;
 
+import java.io.IOException;
+
 /**
- * Serializer for Java 8 temporal {@link LocalDate}s.
+ * Serializer for ThreeTen temporal {@link LocalDate}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public class LocalDateSerializer extends ThreeTenArraySerializerBase<LocalDate>
 {

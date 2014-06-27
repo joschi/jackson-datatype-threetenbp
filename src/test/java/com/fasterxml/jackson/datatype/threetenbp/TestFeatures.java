@@ -18,26 +18,12 @@ package com.fasterxml.jackson.datatype.threetenbp;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 public class TestFeatures
 {
-    @Before
-    public void startUp()
-    {
-
-    }
-
-    @After
-    public void cleanUp()
-    {
-
-    }
-
     @Test
     public void testWriteDateTimestampsAsNanosecondsSettingEnabledByDefault()
     {

@@ -28,11 +28,11 @@ import org.threeten.bp.ZoneOffset;
 import java.io.IOException;
 
 /**
- * Deserializer for all Java temporal {@link org.threeten.bp} types that cannot be represented with numbers and that have
- * parse functions that can take {@link String}s.
+ * Deserializer for all Java temporal {@code org.threeten.bp} types that cannot be represented with numbers
+ * and that have parse functions that can take {@link String}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeserializerBase<T>
 {

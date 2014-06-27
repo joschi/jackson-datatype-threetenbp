@@ -20,11 +20,11 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.DurationDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.InstantDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.OffsetTimeDeserializer;
+import com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.YearDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.DurationSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.InstantSerializer;
@@ -33,7 +33,6 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.LocalTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.OffsetTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.YearSerializer;
-
 import org.threeten.bp.Duration;
 import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDate;
@@ -82,19 +81,22 @@ import org.threeten.bp.ZonedDateTime;
  * <br>
  * Some exceptions to this standard serialization/deserialization rule:<br>
  * <ul>
- *     <li>{@link Period}, which always results in an ISO-8601 format because Periods must be represented in years,
- *     months, and/or days.</li>
+ *     <li>{@link Period}, which always results in an ISO-8601 format because Periods must be
+ *     represented in years, months, and/or days.</li>
  *     <li>{@link Year}, which only contains a year and cannot be represented with a timestamp.</li>
- *     <li>{@link YearMonth}, which only contains a year and a month and cannot be represented with a timestamp.</li>
- *     <li>{@link MonthDay}, which only contains a month and a day and cannot be represented with a timestamp.</li>
- *     <li>{@link ZoneId} and {@link ZoneOffset}, which do not actually store dates and times but are supported with
- *     this module nonetheless.</li>
- *     <li>{@link LocalDate}, {@link LocalTime}, {@link LocalDateTime}, and {@link OffsetTime}, which cannot portably be
+ *     <li>{@link YearMonth}, which only contains a year and a month and cannot be represented with a
+ *     timestamp.</li>
+ *     <li>{@link MonthDay}, which only contains a month and a day and cannot be represented with a
+ *     timestamp.</li>
+ *     <li>{@link ZoneId} and {@link ZoneOffset}, which do not actually store dates
+ *     and times but are supported with this module nonetheless.</li>
+ *     <li>{@link LocalDate}, {@link LocalTime}, {@link LocalDateTime},
+ *     and {@link OffsetTime}, which cannot portably be
  *     converted to timestamps and are instead represented as arrays when WRITE_DATES_AS_TIMESTAMPS is enabled.</li>
  * </ul>
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public final class ThreeTenModule extends SimpleModule
 {

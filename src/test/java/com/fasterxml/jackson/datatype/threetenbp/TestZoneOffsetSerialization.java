@@ -17,14 +17,14 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZoneOffset;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class TestZoneOffsetSerialization
 {
@@ -35,12 +35,6 @@ public class TestZoneOffsetSerialization
     {
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new ThreeTenModule());
-    }
-
-    @After
-    public void tearDown()
-    {
-
     }
 
     @Test

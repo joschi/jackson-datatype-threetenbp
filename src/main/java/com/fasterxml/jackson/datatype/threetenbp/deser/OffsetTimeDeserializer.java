@@ -20,16 +20,16 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-
-import java.io.IOException;
 import org.threeten.bp.OffsetTime;
 import org.threeten.bp.ZoneOffset;
 
+import java.io.IOException;
+
 /**
- * Deserializer for Java 8 temporal {@link OffsetTime}s.
+ * Deserializer for ThreeTen temporal {@link OffsetTime}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public class OffsetTimeDeserializer extends ThreeTenDeserializerBase<OffsetTime>
 {

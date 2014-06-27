@@ -19,15 +19,15 @@ package com.fasterxml.jackson.datatype.threetenbp.deser;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
-
-import java.io.IOException;
 import org.threeten.bp.LocalDate;
 
+import java.io.IOException;
+
 /**
- * Deserializer for Java 8 temporal {@link LocalDate}s.
+ * Deserializer for ThreeTen temporal {@link LocalDate}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public class LocalDateDeserializer extends ThreeTenDeserializerBase<LocalDate>
 {

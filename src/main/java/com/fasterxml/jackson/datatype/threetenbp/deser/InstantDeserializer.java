@@ -19,8 +19,8 @@ package com.fasterxml.jackson.datatype.threetenbp.deser;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
+import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
 import com.fasterxml.jackson.datatype.threetenbp.function.Function;
 import org.threeten.bp.Instant;
 import org.threeten.bp.OffsetDateTime;
@@ -34,10 +34,11 @@ import java.math.BigDecimal;
 import static com.fasterxml.jackson.datatype.threetenbp.DateTimeUtils.timeZoneToZoneId;
 
 /**
- * Deserializer for Java 8 temporal {@link Instant}s, {@link OffsetDateTime}, and {@link ZonedDateTime}s.
+ * Deserializer for ThreeTen temporal {@link Instant}s, {@link OffsetDateTime},
+ * and {@link ZonedDateTime}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public final class InstantDeserializer<T extends Temporal> extends ThreeTenDeserializerBase<T>
 {

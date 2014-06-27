@@ -22,7 +22,7 @@ import java.math.BigDecimal;
  * Utilities to aid in the translation of decimal types to/from multiple parts.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public final class DecimalUtils
 {

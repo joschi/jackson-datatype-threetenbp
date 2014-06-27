@@ -2,11 +2,8 @@ package com.fasterxml.jackson.datatype.threetenbp.function;
 
 /**
  * Represents a function that accepts two arguments and produces a result.
- * This is the two-arity specialization of {@link Function}.
- *
- * @param <T> the type of the first argument to the function
- * @param <U> the type of the second argument to the function
- * @param <R> the type of the result of the function
+ * This is the two-arity specialization of {@link Function} for representing
+ * functions f(T, U) &rarr; R.
  *
  * @see Function
  */

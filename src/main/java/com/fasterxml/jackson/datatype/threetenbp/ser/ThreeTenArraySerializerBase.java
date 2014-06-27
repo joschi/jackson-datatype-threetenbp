@@ -27,7 +27,7 @@ import java.lang.reflect.Type;
  * {@link SerializationFeature#WRITE_DATES_AS_TIMESTAMPS} is enabled.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 abstract class ThreeTenArraySerializerBase<T> extends ThreeTenSerializerBase<T>
 {

@@ -1,7 +1,6 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
 import org.threeten.bp.ZoneId;
-import sun.util.calendar.ZoneInfoFile;
 
 import java.util.TimeZone;
 
@@ -10,11 +9,10 @@ public class DateTimeUtils {
     }
 
     /**
-     * Converts this {@code TimeZone} object to a {@code ZoneId}.
+     * Converts this {@code TimeZone} object to a {@code org.threeten.bp.ZoneId}.
      *
-     * @return a {@code ZoneId} representing the same time zone as this
-     * {@code TimeZone}
-     * @since 1.8
+     * @return a {@code org.threeten.bp.ZoneId} representing the same time zone as this {@code TimeZone}
+     * @since 2.4.1
      */
     public static ZoneId timeZoneToZoneId(final TimeZone timeZone) {
         final String id = timeZone.getID();

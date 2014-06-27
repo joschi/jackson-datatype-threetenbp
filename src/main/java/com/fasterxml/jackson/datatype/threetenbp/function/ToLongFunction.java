@@ -1,11 +1,9 @@
 package com.fasterxml.jackson.datatype.threetenbp.function;
 
 /**
- * Represents a function that accepts one argument and produces a long result.
- * <p/>
- * Very simple and stupid interface for representing functions f(R) -> {@link Long}.
+ * Represents a function that accepts one argument and produces a {@code long} result.
  *
- * @param <T> the type of the input to the function
+ * Very simple and stupid interface for representing functions f(T) &rarr; {@code long}.
  */
 public interface ToLongFunction<T> {
 

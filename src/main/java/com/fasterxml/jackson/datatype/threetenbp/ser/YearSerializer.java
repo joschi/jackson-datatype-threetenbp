@@ -23,10 +23,10 @@ import org.threeten.bp.Year;
 import java.io.IOException;
 
 /**
- * Serializer for Java 8 temporal {@link Year}s.
+ * Serializer for ThreeTen temporal {@link Year}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public class YearSerializer extends ThreeTenSerializerBase<Year>
 {

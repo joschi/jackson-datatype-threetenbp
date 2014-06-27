@@ -25,10 +25,10 @@ import org.threeten.bp.temporal.ChronoField;
 import java.io.IOException;
 
 /**
- * Serializer for Java 8 temporal {@link OffsetTime}s.
+ * Serializer for ThreeTen temporal {@link OffsetTime}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public class OffsetTimeSerializer extends ThreeTenArraySerializerBase<OffsetTime>
 {

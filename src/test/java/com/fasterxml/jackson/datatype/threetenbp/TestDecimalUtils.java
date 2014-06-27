@@ -1,27 +1,13 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class TestDecimalUtils
 {
-    @Before
-    public void startUp()
-    {
-
-    }
-
-    @After
-    public void cleanUp()
-    {
-
-    }
-
     @Test
     public void testToDecimal01()
     {

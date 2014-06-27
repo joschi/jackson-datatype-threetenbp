@@ -1,11 +1,9 @@
 package com.fasterxml.jackson.datatype.threetenbp.function;
 
 /**
- * Represents a function that accepts one argument and produces an {@link Integer} result.
- * <p/>
- * Very simple and stupid interface for representing functions f(R) -> {@link Integer}.
+ * Represents a function that accepts one argument and produces an {@code int} result.
  *
- * @param <T> the type of the input to the function
+ * Very simple and stupid interface for representing functions f(T) &rarr; {@code int}.
  */
 public interface ToIntFunction<T> {
 

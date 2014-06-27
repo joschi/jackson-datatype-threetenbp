@@ -26,10 +26,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 /**
- * Deserializer for Java 8 temporal {@link Duration}s.
+ * Deserializer for ThreeTen temporal {@link Duration}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public class DurationDeserializer extends ThreeTenDeserializerBase<Duration>
 {

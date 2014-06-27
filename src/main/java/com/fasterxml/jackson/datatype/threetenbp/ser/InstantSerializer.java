@@ -30,10 +30,11 @@ import org.threeten.bp.temporal.Temporal;
 import java.io.IOException;
 
 /**
- * Serializer for Java 8 temporal {@link Instant}s, {@link OffsetDateTime}, and {@link ZonedDateTime}s.
+ * Serializer for ThreeTen temporal {@link Instant}s, {@link OffsetDateTime},
+ * and {@link ZonedDateTime}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.4.1
  */
 public final class InstantSerializer<T extends Temporal> extends ThreeTenSerializerBase<T>
 {
