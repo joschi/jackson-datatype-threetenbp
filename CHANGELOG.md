@@ -1,10 +1,5 @@
-Project: jackson-datatype-threetenbp
-Version: 2.4.0 (xx-xxx-2014)
+# History
 
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
+## 2.4.1 (27-Jun-2014)
 
-2.4.0 (03-Jun-2014)
-
-First public version.
+* First public version.
