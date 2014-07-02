@@ -17,7 +17,7 @@
     <packaging>bundle</packaging>
 
     <name>Jackson-Datatype-ThreeTenBackport</name>
-    <description>Add-on module to support JSR-310 (Java 8 Date &amp; Time API) data types with Java 7 (using the
+    <description>Add-on module to support JSR-310 (Java 8 Date &amp; Time API) data types with Java 6 (using the
         ThreeTen backport).
     </description>
     <url>https://github.com/joschi/jackson-datatype-threetenbp</url>
