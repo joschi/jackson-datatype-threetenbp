@@ -6,7 +6,7 @@ Datatype module to make [Jackson](http://wiki.fasterxml.com/JacksonHome) recogni
 [![Build Status](https://travis-ci.org/joschi/jackson-datatype-threetenbp.svg?branch=master)](https://travis-ci.org/joschi/jackson-datatype-threetenbp)
 [![Coverage Status](https://img.shields.io/coveralls/joschi/jackson-datatype-threetenbp.svg)](https://coveralls.io/r/joschi/jackson-datatype-threetenbp)
 
-Generally available as of Jackson 2.4 and Java 1.7.
+Generally available as of Jackson 2.4 and Java 1.6.
 
 
 ## Summary
@@ -58,7 +58,7 @@ To use module on Maven-based projects, use following dependency:
 <dependency>
     <groupId>com.github.joschi.jackson</groupId>
     <artifactId>jackson-datatype-threetenbp</artifactId>
-    <version>2.4.1</version>
+    <version>2.4.1.1</version>
 </dependency>
 ```
 
