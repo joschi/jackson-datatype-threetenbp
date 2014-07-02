@@ -44,7 +44,7 @@ public final class InstantDeserializer<T extends Temporal> extends ThreeTenDeser
 {
     private static final long serialVersionUID = 1L;
 
-    public static final InstantDeserializer<Instant> INSTANT = new InstantDeserializer<>(
+    public static final InstantDeserializer<Instant> INSTANT = new InstantDeserializer<Instant>(
             Instant.class,
             new Function<CharSequence, Instant>() {
                 @Override
@@ -67,7 +67,7 @@ public final class InstantDeserializer<T extends Temporal> extends ThreeTenDeser
             null
     );
 
-    public static final InstantDeserializer<OffsetDateTime> OFFSET_DATE_TIME = new InstantDeserializer<>(
+    public static final InstantDeserializer<OffsetDateTime> OFFSET_DATE_TIME = new InstantDeserializer<OffsetDateTime>(
             OffsetDateTime.class,
             new Function<CharSequence, OffsetDateTime>() {
                 @Override
@@ -95,7 +95,7 @@ public final class InstantDeserializer<T extends Temporal> extends ThreeTenDeser
             }
     );
 
-    public static final InstantDeserializer<ZonedDateTime> ZONED_DATE_TIME = new InstantDeserializer<>(
+    public static final InstantDeserializer<ZonedDateTime> ZONED_DATE_TIME = new InstantDeserializer<ZonedDateTime>(
             ZonedDateTime.class,
             new Function<CharSequence, ZonedDateTime>() {
                 @Override

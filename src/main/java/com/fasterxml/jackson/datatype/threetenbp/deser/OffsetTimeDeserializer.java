@@ -63,9 +63,9 @@ public class OffsetTimeDeserializer extends ThreeTenDeserializerBase<OffsetTime>
                     if(parser.nextToken() == JsonToken.VALUE_NUMBER_INT)
                     {
                         partialSecond = parser.getIntValue();
-                        if(partialSecond < 1_000 &&
+                        if(partialSecond < 1000 &&
                                 !context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS))
-                            partialSecond *= 1_000_000; // value is milliseconds, convert it to nanoseconds
+                            partialSecond *= 1000000; // value is milliseconds, convert it to nanoseconds
 
                         parser.nextToken();
                     }

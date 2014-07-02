@@ -26,8 +26,7 @@
         <connection>scm:git:git@github.com:joschi/jackson-datatype-threetenbp.git</connection>
         <developerConnection>scm:git:git@github.com:joschi/jackson-datatype-threetenbp.git</developerConnection>
         <url>https://github.com/joschi/jackson-datatype-threetenbp</url>
-      <tag>HEAD</tag>
-  </scm>
+    </scm>
 
     <ciManagement>
         <system>Travis CI</system>
@@ -59,8 +58,8 @@
         <!-- Generate PackageVersion.java into this directory. -->
         <packageVersion.dir>com/fasterxml/jackson/datatype/threetenbp</packageVersion.dir>
         <packageVersion.package>com.fasterxml.jackson.datatype.threetenbp</packageVersion.package>
-        <javac.src.version>1.7</javac.src.version>
-        <javac.target.version>1.7</javac.target.version>
+        <javac.src.version>1.6</javac.src.version>
+        <javac.target.version>1.6</javac.target.version>
         <!-- Configuration properties for the OSGi maven-bundle-plugin -->
         <osgi.import>com.fasterxml.jackson.core
             ,com.fasterxml.jackson.core.util
@@ -138,8 +137,8 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>[1.7,)</version>
-                                    <message>[ERROR] The currently supported version of Java is 1.7 or higher</message>
+                                    <version>[1.6,)</version>
+                                    <message>[ERROR] The currently supported version of Java is 1.6 or higher</message>
                                 </requireJavaVersion>
                                 <requireMavenVersion>
                                     <version>[3.0,)</version>

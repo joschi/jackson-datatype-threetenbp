@@ -38,7 +38,7 @@ public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeseria
 {
     private static final long serialVersionUID = 1L;
 
-    public static final ThreeTenStringParsableDeserializer<MonthDay> MONTH_DAY = new ThreeTenStringParsableDeserializer<>(
+    public static final ThreeTenStringParsableDeserializer<MonthDay> MONTH_DAY = new ThreeTenStringParsableDeserializer<MonthDay>(
             MonthDay.class,
             new Function<String, MonthDay>() {
                 @Override
@@ -47,7 +47,7 @@ public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeseria
                 }
             });
 
-    public static final ThreeTenStringParsableDeserializer<Period> PERIOD = new ThreeTenStringParsableDeserializer<>(
+    public static final ThreeTenStringParsableDeserializer<Period> PERIOD = new ThreeTenStringParsableDeserializer<Period>(
             Period.class,
             new Function<String, Period>() {
                 @Override
@@ -56,7 +56,7 @@ public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeseria
                 }
             });
 
-    public static final ThreeTenStringParsableDeserializer<YearMonth> YEAR_MONTH = new ThreeTenStringParsableDeserializer<>(
+    public static final ThreeTenStringParsableDeserializer<YearMonth> YEAR_MONTH = new ThreeTenStringParsableDeserializer<YearMonth>(
             YearMonth.class,
             new Function<String, YearMonth>() {
                 @Override
@@ -65,7 +65,7 @@ public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeseria
                 }
             });
 
-    public static final ThreeTenStringParsableDeserializer<ZoneId> ZONE_ID = new ThreeTenStringParsableDeserializer<>(
+    public static final ThreeTenStringParsableDeserializer<ZoneId> ZONE_ID = new ThreeTenStringParsableDeserializer<ZoneId>(
             ZoneId.class,
             new Function<String, ZoneId>() {
                 @Override
@@ -74,7 +74,7 @@ public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeseria
                 }
             });
 
-    public static final ThreeTenStringParsableDeserializer<ZoneOffset> ZONE_OFFSET = new ThreeTenStringParsableDeserializer<>(
+    public static final ThreeTenStringParsableDeserializer<ZoneOffset> ZONE_OFFSET = new ThreeTenStringParsableDeserializer<ZoneOffset>(
             ZoneOffset.class,
             new Function<String, ZoneOffset>() {
                 @Override

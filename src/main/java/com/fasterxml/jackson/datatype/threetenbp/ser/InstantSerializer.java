@@ -38,7 +38,7 @@ import java.io.IOException;
  */
 public final class InstantSerializer<T extends Temporal> extends ThreeTenSerializerBase<T>
 {
-    public static final InstantSerializer<Instant> INSTANT = new InstantSerializer<>(
+    public static final InstantSerializer<Instant> INSTANT = new InstantSerializer<Instant>(
             Instant.class,
             new ToLongFunction<Instant>() {
                 @Override
@@ -59,7 +59,7 @@ public final class InstantSerializer<T extends Temporal> extends ThreeTenSeriali
                 }
             });
 
-    public static final InstantSerializer<OffsetDateTime> OFFSET_DATE_TIME = new InstantSerializer<>(
+    public static final InstantSerializer<OffsetDateTime> OFFSET_DATE_TIME = new InstantSerializer<OffsetDateTime>(
             OffsetDateTime.class,
             new ToLongFunction<OffsetDateTime>() {
                 @Override
@@ -80,7 +80,7 @@ public final class InstantSerializer<T extends Temporal> extends ThreeTenSeriali
                 }
             });
 
-    public static final InstantSerializer<ZonedDateTime> ZONED_DATE_TIME = new InstantSerializer<>(
+    public static final InstantSerializer<ZonedDateTime> ZONED_DATE_TIME = new InstantSerializer<ZonedDateTime>(
             ZonedDateTime.class,
             new ToLongFunction<ZonedDateTime>() {
                 @Override

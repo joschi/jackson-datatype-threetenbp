@@ -28,7 +28,7 @@ public final class DecimalUtils
 {
     private static final char[] ZEROES = new char[] {'0', '0', '0', '0', '0', '0', '0', '0', '0'};
 
-    private static final BigDecimal ONE_BILLION = new BigDecimal(1_000_000_000L);
+    private static final BigDecimal ONE_BILLION = new BigDecimal(1000000000L);
 
     private DecimalUtils()
     {
