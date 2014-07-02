@@ -72,7 +72,7 @@
             ,com.fasterxml.jackson.databind.ser.std
         </osgi.import>
         <osgi.export>com.fasterxml.jackson.datatype.threetenbp.*;version=${project.version}</osgi.export>
-        <threetenbp.version>0.9</threetenbp.version>
+        <threetenbp.version>1.0</threetenbp.version>
     </properties>
 
     <dependencies>
