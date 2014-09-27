@@ -1,0 +1,858 @@
+<api>
+<package name="com.fasterxml.jackson.datatype.threetenbp"
+>
+<class name="DateTimeUtils"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="timeZoneToZoneId"
+ return="org.threeten.bp.ZoneId"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="timeZone" type="java.util.TimeZone">
+</parameter>
+</method>
+</class>
+<class name="DecimalUtils"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="extractNanosecondDecimal"
+ return="int"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="value" type="java.math.BigDecimal">
+</parameter>
+<parameter name="integer" type="long">
+</parameter>
+</method>
+<method name="toDecimal"
+ return="java.lang.String"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="true"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="seconds" type="long">
+</parameter>
+<parameter name="nanoseconds" type="int">
+</parameter>
+</method>
+</class>
+<class name="PackageVersion"
+ extends="java.lang.Object"
+ abstract="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="PackageVersion"
+ type="com.fasterxml.jackson.datatype.threetenbp.PackageVersion"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+<method name="version"
+ return="com.fasterxml.jackson.core.Version"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</method>
+<field name="VERSION"
+ type="com.fasterxml.jackson.core.Version"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="ThreeTenModule"
+ extends="com.fasterxml.jackson.databind.module.SimpleModule"
+ abstract="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="ThreeTenModule"
+ type="com.fasterxml.jackson.datatype.threetenbp.ThreeTenModule"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</constructor>
+</class>
+</package>
+<package name="com.fasterxml.jackson.datatype.threetenbp.deser"
+>
+<class name="DurationDeserializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenDeserializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="deserialize"
+ return="org.threeten.bp.Duration"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="parser" type="com.fasterxml.jackson.core.JsonParser">
+</parameter>
+<parameter name="context" type="com.fasterxml.jackson.databind.DeserializationContext">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.DurationDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="InstantDeserializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenDeserializerBase"
+ abstract="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="deserialize"
+ return="T"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="parser" type="com.fasterxml.jackson.core.JsonParser">
+</parameter>
+<parameter name="context" type="com.fasterxml.jackson.databind.DeserializationContext">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANT"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.InstantDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="OFFSET_DATE_TIME"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.InstantDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="ZONED_DATE_TIME"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.InstantDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="LocalDateDeserializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenDeserializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="deserialize"
+ return="org.threeten.bp.LocalDate"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="parser" type="com.fasterxml.jackson.core.JsonParser">
+</parameter>
+<parameter name="context" type="com.fasterxml.jackson.databind.DeserializationContext">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.LocalDateDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="LocalDateTimeDeserializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenDeserializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="deserialize"
+ return="org.threeten.bp.LocalDateTime"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="parser" type="com.fasterxml.jackson.core.JsonParser">
+</parameter>
+<parameter name="context" type="com.fasterxml.jackson.databind.DeserializationContext">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.LocalDateTimeDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="LocalTimeDeserializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenDeserializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="deserialize"
+ return="org.threeten.bp.LocalTime"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="parser" type="com.fasterxml.jackson.core.JsonParser">
+</parameter>
+<parameter name="context" type="com.fasterxml.jackson.databind.DeserializationContext">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.LocalTimeDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="OffsetTimeDeserializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenDeserializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="deserialize"
+ return="org.threeten.bp.OffsetTime"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="parser" type="com.fasterxml.jackson.core.JsonParser">
+</parameter>
+<parameter name="context" type="com.fasterxml.jackson.databind.DeserializationContext">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.OffsetTimeDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="ThreeTenStringParsableDeserializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenDeserializerBase"
+ abstract="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="deserialize"
+ return="T"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="parser" type="com.fasterxml.jackson.core.JsonParser">
+</parameter>
+<parameter name="context" type="com.fasterxml.jackson.databind.DeserializationContext">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="MONTH_DAY"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="PERIOD"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="YEAR_MONTH"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="ZONE_ID"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="ZONE_OFFSET"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="YearDeserializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenDeserializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="deserialize"
+ return="org.threeten.bp.Year"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="parser" type="com.fasterxml.jackson.core.JsonParser">
+</parameter>
+<parameter name="context" type="com.fasterxml.jackson.databind.DeserializationContext">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.deser.YearDeserializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+</package>
+<package name="com.fasterxml.jackson.datatype.threetenbp.function"
+>
+<interface name="BiFunction"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="apply"
+ return="R"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="T">
+</parameter>
+<parameter name="u" type="U">
+</parameter>
+</method>
+</interface>
+<interface name="Function"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="apply"
+ return="R"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="t" type="T">
+</parameter>
+</method>
+</interface>
+<interface name="ToIntFunction"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="applyAsInt"
+ return="int"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="value" type="T">
+</parameter>
+</method>
+</interface>
+<interface name="ToLongFunction"
+ abstract="true"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="applyAsLong"
+ return="long"
+ abstract="true"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="value" type="T">
+</parameter>
+</method>
+</interface>
+</package>
+<package name="com.fasterxml.jackson.datatype.threetenbp.ser"
+>
+<class name="DurationSerializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.ser.ThreeTenSerializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="serialize"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="duration" type="org.threeten.bp.Duration">
+</parameter>
+<parameter name="generator" type="com.fasterxml.jackson.core.JsonGenerator">
+</parameter>
+<parameter name="provider" type="com.fasterxml.jackson.databind.SerializerProvider">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.DurationSerializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="InstantSerializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.ser.ThreeTenSerializerBase"
+ abstract="false"
+ static="false"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="serialize"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="instant" type="T">
+</parameter>
+<parameter name="generator" type="com.fasterxml.jackson.core.JsonGenerator">
+</parameter>
+<parameter name="provider" type="com.fasterxml.jackson.databind.SerializerProvider">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANT"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.InstantSerializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="OFFSET_DATE_TIME"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.InstantSerializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+<field name="ZONED_DATE_TIME"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.InstantSerializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="LocalDateSerializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.ser.ThreeTenArraySerializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="serialize"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="date" type="org.threeten.bp.LocalDate">
+</parameter>
+<parameter name="generator" type="com.fasterxml.jackson.core.JsonGenerator">
+</parameter>
+<parameter name="provider" type="com.fasterxml.jackson.databind.SerializerProvider">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.LocalDateSerializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="LocalDateTimeSerializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.ser.ThreeTenArraySerializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="serialize"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="dateTime" type="org.threeten.bp.LocalDateTime">
+</parameter>
+<parameter name="generator" type="com.fasterxml.jackson.core.JsonGenerator">
+</parameter>
+<parameter name="provider" type="com.fasterxml.jackson.databind.SerializerProvider">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.LocalDateTimeSerializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="LocalTimeSerializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.ser.ThreeTenArraySerializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="serialize"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="time" type="org.threeten.bp.LocalTime">
+</parameter>
+<parameter name="generator" type="com.fasterxml.jackson.core.JsonGenerator">
+</parameter>
+<parameter name="provider" type="com.fasterxml.jackson.databind.SerializerProvider">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.LocalTimeSerializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="OffsetTimeSerializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.ser.ThreeTenArraySerializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<constructor name="OffsetTimeSerializer"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.OffsetTimeSerializer"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="protected"
+>
+</constructor>
+<method name="serialize"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="time" type="org.threeten.bp.OffsetTime">
+</parameter>
+<parameter name="generator" type="com.fasterxml.jackson.core.JsonGenerator">
+</parameter>
+<parameter name="provider" type="com.fasterxml.jackson.databind.SerializerProvider">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.OffsetTimeSerializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+<class name="YearSerializer"
+ extends="com.fasterxml.jackson.datatype.threetenbp.ser.ThreeTenSerializerBase"
+ abstract="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<method name="serialize"
+ return="void"
+ abstract="false"
+ native="false"
+ synchronized="false"
+ static="false"
+ final="false"
+ deprecated="not deprecated"
+ visibility="public"
+>
+<parameter name="year" type="org.threeten.bp.Year">
+</parameter>
+<parameter name="generator" type="com.fasterxml.jackson.core.JsonGenerator">
+</parameter>
+<parameter name="provider" type="com.fasterxml.jackson.databind.SerializerProvider">
+</parameter>
+<exception name="IOException" type="java.io.IOException">
+</exception>
+</method>
+<field name="INSTANCE"
+ type="com.fasterxml.jackson.datatype.threetenbp.ser.YearSerializer"
+ transient="false"
+ volatile="false"
+ static="true"
+ final="true"
+ deprecated="not deprecated"
+ visibility="public"
+>
+</field>
+</class>
+</package>
+</api>
