@@ -70,6 +70,8 @@
             ,com.fasterxml.jackson.databind.module
             ,com.fasterxml.jackson.databind.node
             ,com.fasterxml.jackson.databind.ser.std
+            ,org.threeten.bp
+            ,org.threeten.bp.temporal
         </osgi.import>
         <osgi.export>com.fasterxml.jackson.datatype.threetenbp.*;version=${project.version}</osgi.export>
         <threetenbp.version>1.0</threetenbp.version>
