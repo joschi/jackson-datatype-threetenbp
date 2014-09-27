@@ -54,8 +54,8 @@
     </developers>
 
     <properties>
-        <version.jackson.core>2.4.1</version.jackson.core>
-        <version.jackson.databind>2.4.1.1</version.jackson.databind>
+        <version.jackson.core>2.4.2</version.jackson.core>
+        <version.jackson.databind>2.4.2</version.jackson.databind>
         <!-- Generate PackageVersion.java into this directory. -->
         <packageVersion.dir>com/fasterxml/jackson/datatype/threetenbp</packageVersion.dir>
         <packageVersion.package>com.fasterxml.jackson.datatype.threetenbp</packageVersion.package>
