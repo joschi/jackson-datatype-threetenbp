@@ -112,15 +112,6 @@
                 <additionalparam>-Xdoclint:none</additionalparam>
             </properties>
         </profile>
-        <profile>
-            <id>java8-disable-maven-findbugs-plugin</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <properties>
-                <findbugs.skip>true</findbugs.skip>
-            </properties>
-        </profile>
     </profiles>
 
     <build>
@@ -265,7 +256,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
-                <version>2.5.4</version>
+                <version>3.0.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
