@@ -83,7 +83,7 @@ public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeseria
                 }
             });
 
-    private final Function<String, T> parse;
+    private transient final Function<String, T> parse;
 
     private ThreeTenStringParsableDeserializer(Class<T> supportedType, Function<String, T> parse)
     {

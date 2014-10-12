@@ -123,13 +123,13 @@ public final class InstantDeserializer<T extends Temporal> extends ThreeTenDeser
             }
     );
 
-    private final Function<FromIntegerArguments, T> fromMilliseconds;
+    private transient final Function<FromIntegerArguments, T> fromMilliseconds;
 
-    private final Function<FromDecimalArguments, T> fromNanoseconds;
+    private transient final Function<FromDecimalArguments, T> fromNanoseconds;
 
-    private final Function<CharSequence, T> parse;
+    private transient final Function<CharSequence, T> parse;
 
-    private final BiFunction<T, ZoneId, T> adjust;
+    private transient final BiFunction<T, ZoneId, T> adjust;
 
     private InstantDeserializer(Class<T> supportedType, Function<CharSequence, T> parse,
                                 Function<FromIntegerArguments, T> fromMilliseconds,
