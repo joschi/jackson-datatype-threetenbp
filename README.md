@@ -58,7 +58,7 @@ To use module on Maven-based projects, use following dependency:
 <dependency>
     <groupId>com.github.joschi.jackson</groupId>
     <artifactId>jackson-datatype-threetenbp</artifactId>
-    <version>2.4.1.1</version>
+    <version>2.4.4</version>
 </dependency>
 ```
 
