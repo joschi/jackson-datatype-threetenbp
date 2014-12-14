@@ -74,7 +74,7 @@
             ,org.threeten.bp.temporal
         </osgi.import>
         <osgi.export>com.fasterxml.jackson.datatype.threetenbp.*;version=${project.version}</osgi.export>
-        <threetenbp.version>1.0</threetenbp.version>
+        <threetenbp.version>1.2</threetenbp.version>
     </properties>
 
     <dependencies>
