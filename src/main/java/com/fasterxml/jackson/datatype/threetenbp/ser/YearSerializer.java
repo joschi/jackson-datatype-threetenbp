@@ -30,6 +30,8 @@ import java.io.IOException;
  */
 public class YearSerializer extends ThreeTenSerializerBase<Year>
 {
+    private static final long serialVersionUID = 1L;
+
     public static final YearSerializer INSTANCE = new YearSerializer();
 
     private YearSerializer()

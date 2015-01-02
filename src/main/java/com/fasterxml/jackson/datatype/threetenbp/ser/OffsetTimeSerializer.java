@@ -32,6 +32,8 @@ import java.io.IOException;
  */
 public class OffsetTimeSerializer extends ThreeTenArraySerializerBase<OffsetTime>
 {
+    private static final long serialVersionUID = 1L;
+
     public static final OffsetTimeSerializer INSTANCE = new OffsetTimeSerializer();
 
     protected OffsetTimeSerializer()

@@ -31,6 +31,8 @@ import java.lang.reflect.Type;
  */
 abstract class ThreeTenArraySerializerBase<T> extends ThreeTenSerializerBase<T>
 {
+    private static final long serialVersionUID = 1L;
+
     protected ThreeTenArraySerializerBase(Class<T> supportedType)
     {
         super(supportedType);

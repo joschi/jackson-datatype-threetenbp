@@ -32,6 +32,8 @@ import java.io.IOException;
  */
 public class LocalDateTimeSerializer extends ThreeTenArraySerializerBase<LocalDateTime>
 {
+    private static final long serialVersionUID = 1L;
+
     public static final LocalDateTimeSerializer INSTANCE = new LocalDateTimeSerializer();
 
     private LocalDateTimeSerializer()

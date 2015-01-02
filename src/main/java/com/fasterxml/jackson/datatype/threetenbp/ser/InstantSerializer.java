@@ -38,6 +38,8 @@ import java.io.IOException;
  */
 public final class InstantSerializer<T extends Temporal> extends ThreeTenSerializerBase<T>
 {
+    private static final long serialVersionUID = 1L;
+
     public static final InstantSerializer<Instant> INSTANT = new InstantSerializer<Instant>(
             Instant.class,
             new ToLongFunction<Instant>() {

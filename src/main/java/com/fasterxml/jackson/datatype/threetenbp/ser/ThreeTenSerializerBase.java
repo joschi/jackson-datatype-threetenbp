@@ -15,6 +15,8 @@ import java.io.IOException;
  */
 abstract class ThreeTenSerializerBase<T> extends StdSerializer<T>
 {
+    private static final long serialVersionUID = 1L;
+
     protected ThreeTenSerializerBase(Class<T> supportedType)
     {
         super(supportedType);
