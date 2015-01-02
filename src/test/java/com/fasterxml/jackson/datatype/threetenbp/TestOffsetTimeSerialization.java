@@ -159,7 +159,7 @@ public class TestOffsetTimeSerialization
 
         this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
         this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        this.mapper.addMixInAnnotations(Temporal.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
         String value = this.mapper.writeValueAsString(time);
 
         assertNotNull("The value should not be null.", value);
@@ -174,7 +174,7 @@ public class TestOffsetTimeSerialization
 
         this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
         this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        this.mapper.addMixInAnnotations(Temporal.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
         String value = this.mapper.writeValueAsString(time);
 
         assertNotNull("The value should not be null.", value);
@@ -188,7 +188,7 @@ public class TestOffsetTimeSerialization
         OffsetTime time = OffsetTime.of(22, 31, 5, 829837, ZoneOffset.of("+1100"));
 
         this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        this.mapper.addMixInAnnotations(Temporal.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
         String value = this.mapper.writeValueAsString(time);
 
         assertNotNull("The value should not be null.", value);
@@ -317,7 +317,7 @@ public class TestOffsetTimeSerialization
         OffsetTime time = OffsetTime.of(22, 31, 5, 829837, ZoneOffset.of("+1100"));
 
         this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        this.mapper.addMixInAnnotations(Temporal.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
         Temporal value = this.mapper.readValue(
                 "[\"" + OffsetTime.class.getName() + "\",[22,31,5,829837,\"+11:00\"]]", Temporal.class
         );
@@ -333,7 +333,7 @@ public class TestOffsetTimeSerialization
         OffsetTime time = OffsetTime.of(22, 31, 5, 422000000, ZoneOffset.of("+1100"));
 
         this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        this.mapper.addMixInAnnotations(Temporal.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
         Temporal value = this.mapper.readValue(
                 "[\"" + OffsetTime.class.getName() + "\",[22,31,5,422,\"+11:00\"]]", Temporal.class
         );
@@ -348,7 +348,7 @@ public class TestOffsetTimeSerialization
     {
         OffsetTime time = OffsetTime.of(22, 31, 5, 829837, ZoneOffset.of("+1100"));
 
-        this.mapper.addMixInAnnotations(Temporal.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
         Temporal value = this.mapper.readValue(
                 "[\"" + OffsetTime.class.getName() + "\",\"" + time.toString() + "\"]", Temporal.class
         );

@@ -65,7 +65,7 @@ public class TestMonthDaySerialization
     {
         MonthDay monthDay = MonthDay.of(Month.NOVEMBER, 5);
 
-        this.mapper.addMixInAnnotations(TemporalAccessor.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(TemporalAccessor.class, MockObjectConfiguration.class);
         String value = this.mapper.writeValueAsString(monthDay);
 
         assertNotNull("The value should not be null.", value);
@@ -99,7 +99,7 @@ public class TestMonthDaySerialization
     {
         MonthDay monthDay = MonthDay.of(Month.NOVEMBER, 5);
 
-        this.mapper.addMixInAnnotations(TemporalAccessor.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(TemporalAccessor.class, MockObjectConfiguration.class);
         TemporalAccessor value = this.mapper.readValue("[\"" + MonthDay.class.getName() + "\",\"--11-05\"]", TemporalAccessor.class);
 
         assertNotNull("The value should not be null.", value);

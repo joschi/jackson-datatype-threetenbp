@@ -65,7 +65,7 @@ public class TestYearMonthSerialization
     {
         YearMonth yearMonth = YearMonth.of(2005, Month.NOVEMBER);
 
-        this.mapper.addMixInAnnotations(Temporal.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
         String value = this.mapper.writeValueAsString(yearMonth);
 
         assertNotNull("The value should not be null.", value);
@@ -99,7 +99,7 @@ public class TestYearMonthSerialization
     {
         YearMonth yearMonth = YearMonth.of(2005, Month.NOVEMBER);
 
-        this.mapper.addMixInAnnotations(Temporal.class, MockObjectConfiguration.class);
+        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
         Temporal value = this.mapper.readValue("[\"" + YearMonth.class.getName() + "\",\"2005-11\"]", Temporal.class);
 
         assertNotNull("The value should not be null.", value);
