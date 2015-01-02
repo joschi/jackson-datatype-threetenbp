@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.threeten.bp.OffsetTime;
+import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.ChronoField;
 
 import java.io.IOException;
@@ -30,21 +31,29 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.4.1
  */
-public class OffsetTimeSerializer extends ThreeTenArraySerializerBase<OffsetTime>
+public class OffsetTimeSerializer extends ThreeTenFormattedSerializerBase<OffsetTime>
 {
     private static final long serialVersionUID = 1L;
 
     public static final OffsetTimeSerializer INSTANCE = new OffsetTimeSerializer();
 
-    protected OffsetTimeSerializer()
-    {
-        super(OffsetTime.class);
+    private OffsetTimeSerializer() {
+        this(null, null);
+    }
+
+    private OffsetTimeSerializer(Boolean useTimestamp, DateTimeFormatter dtf) {
+        super(OffsetTime.class, useTimestamp, dtf);
+    }
+
+    @Override
+    protected OffsetTimeSerializer withFormat(Boolean useTimestamp, DateTimeFormatter dtf) {
+        return new OffsetTimeSerializer(useTimestamp, dtf);
     }
 
     @Override
     public void serialize(OffsetTime time, JsonGenerator generator, SerializerProvider provider) throws IOException
     {
-        if(provider.isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS))
+        if(useTimestamp(provider))
         {
             generator.writeStartArray();
             generator.writeNumber(time.getHour());
@@ -65,7 +74,8 @@ public class OffsetTimeSerializer extends ThreeTenArraySerializerBase<OffsetTime
         }
         else
         {
-            generator.writeString(time.toString());
+            String str = (_formatter == null) ? time.toString() : time.format(_formatter);
+            generator.writeString(str);
         }
     }
 }

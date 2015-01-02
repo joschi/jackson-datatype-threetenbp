@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.threeten.bp.LocalDate;
+import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.IOException;
 
@@ -29,21 +30,29 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.4.1
  */
-public class LocalDateSerializer extends ThreeTenArraySerializerBase<LocalDate>
+public class LocalDateSerializer extends ThreeTenFormattedSerializerBase<LocalDate>
 {
     private static final long serialVersionUID = 1L;
 
     public static final LocalDateSerializer INSTANCE = new LocalDateSerializer();
 
-    private LocalDateSerializer()
-    {
-        super(LocalDate.class);
+    private LocalDateSerializer() {
+        this(null, null);
+    }
+
+    protected LocalDateSerializer(Boolean useTimestamp, DateTimeFormatter dtf) {
+        super(LocalDate.class, useTimestamp, dtf);
+    }
+
+    @Override
+    protected LocalDateSerializer withFormat(Boolean useTimestamp, DateTimeFormatter dtf) {
+        return new LocalDateSerializer(useTimestamp, dtf);
     }
 
     @Override
     public void serialize(LocalDate date, JsonGenerator generator, SerializerProvider provider) throws IOException
     {
-        if(provider.isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS))
+        if(useTimestamp(provider))
         {
             generator.writeStartArray();
             generator.writeNumber(date.getYear());
@@ -53,7 +62,8 @@ public class LocalDateSerializer extends ThreeTenArraySerializerBase<LocalDate>
         }
         else
         {
-            generator.writeString(date.toString());
+            String str = (_formatter == null) ? date.toString() : date.format(_formatter);
+            generator.writeString(str);
         }
     }
 }

@@ -3,7 +3,7 @@
 ## 2.5.0
 
 * Updated to Jackson 2.5.0
-
+* Support use of `@JsonFormat(pattern=...)` for LocalDateTime (FasterXML/jackson-datatype-jsr310#14)
 
 ## 2.4.4 (14-Dec-2014)
 

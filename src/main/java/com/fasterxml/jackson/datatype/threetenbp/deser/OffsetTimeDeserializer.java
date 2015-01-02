@@ -20,8 +20,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import org.threeten.bp.OffsetTime;
 import org.threeten.bp.ZoneOffset;
+import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.IOException;
 
@@ -31,15 +33,23 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.4.1
  */
-public class OffsetTimeDeserializer extends ThreeTenDeserializerBase<OffsetTime>
+public class OffsetTimeDeserializer extends ThreeTenDateTimeDeserializerBase<OffsetTime>
 {
     private static final long serialVersionUID = 1L;
 
     public static final OffsetTimeDeserializer INSTANCE = new OffsetTimeDeserializer();
 
-    private OffsetTimeDeserializer()
-    {
-        super(OffsetTime.class);
+    private OffsetTimeDeserializer() {
+        this(DateTimeFormatter.ISO_OFFSET_TIME);
+    }
+
+    protected OffsetTimeDeserializer(DateTimeFormatter dtf) {
+        super(OffsetTime.class, dtf);
+    }
+
+    @Override
+    protected JsonDeserializer<OffsetTime> withDateFormat(DateTimeFormatter dtf) {
+        return new OffsetTimeDeserializer(dtf);
     }
 
     @Override
@@ -71,15 +81,16 @@ public class OffsetTimeDeserializer extends ThreeTenDeserializerBase<OffsetTime>
                     }
                 }
 
-                if(parser.getCurrentToken() == JsonToken.VALUE_STRING)
+                if(parser.getCurrentToken() == JsonToken.VALUE_STRING) {
                     return OffsetTime.of(hour, minute, second, partialSecond, ZoneOffset.of(parser.getText()));
-                else
-                    throw context.wrongTokenException(parser, JsonToken.VALUE_STRING, "Expected string");
+                }
+                throw context.wrongTokenException(parser, JsonToken.VALUE_STRING, "Expected string");
 
             case VALUE_STRING:
                 String string = parser.getText().trim();
-                if(string.length() == 0)
+                if(string.length() == 0) {
                     return null;
+                }
                 return OffsetTime.parse(string);
         }
 

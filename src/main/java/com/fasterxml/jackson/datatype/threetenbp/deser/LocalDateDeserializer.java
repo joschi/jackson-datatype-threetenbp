@@ -19,7 +19,9 @@ package com.fasterxml.jackson.datatype.threetenbp.deser;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import org.threeten.bp.LocalDate;
+import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.IOException;
 
@@ -29,15 +31,23 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.4.1
  */
-public class LocalDateDeserializer extends ThreeTenDeserializerBase<LocalDate>
+public class LocalDateDeserializer extends ThreeTenDateTimeDeserializerBase<LocalDate>
 {
     private static final long serialVersionUID = 1L;
 
     public static final LocalDateDeserializer INSTANCE = new LocalDateDeserializer();
 
-    private LocalDateDeserializer()
-    {
-        super(LocalDate.class);
+    private LocalDateDeserializer() {
+        this(DateTimeFormatter.ISO_LOCAL_DATE);
+    }
+
+    protected LocalDateDeserializer(DateTimeFormatter dtf) {
+        super(LocalDate.class, dtf);
+    }
+
+    @Override
+    protected JsonDeserializer<LocalDate> withDateFormat(DateTimeFormatter dtf) {
+        return new LocalDateDeserializer(dtf);
     }
 
     @Override
@@ -62,8 +72,9 @@ public class LocalDateDeserializer extends ThreeTenDeserializerBase<LocalDate>
 
             case VALUE_STRING:
                 String string = parser.getText().trim();
-                if(string.length() == 0)
+                if(string.length() == 0) {
                     return null;
+                }
                 return LocalDate.parse(string);
         }
 
