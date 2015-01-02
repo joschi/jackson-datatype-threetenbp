@@ -1,5 +1,10 @@
 # History
 
+## 2.5.0
+
+* Updated to Jackson 2.5.0
+
+
 ## 2.4.4 (14-Dec-2014)
 
 * Updated to Jackson 2.4.4
