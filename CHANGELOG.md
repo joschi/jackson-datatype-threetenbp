@@ -1,6 +1,6 @@
 # History
 
-## 2.5.0
+## 2.5.0 (02-Jan-2015)
 
 * Updated to Jackson 2.5.0
 * Support use of `@JsonFormat(pattern=...)` for LocalDateTime (FasterXML/jackson-datatype-jsr310#14)
