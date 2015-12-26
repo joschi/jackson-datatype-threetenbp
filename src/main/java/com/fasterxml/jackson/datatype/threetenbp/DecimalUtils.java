@@ -22,29 +22,25 @@ import java.math.BigDecimal;
  * Utilities to aid in the translation of decimal types to/from multiple parts.
  *
  * @author Nick Williams
- * @since 2.4.1
+ * @since 2.2.0
  */
-public final class DecimalUtils
-{
-    private static final char[] ZEROES = new char[] {'0', '0', '0', '0', '0', '0', '0', '0', '0'};
+public final class DecimalUtils {
+    private static final char[] ZEROES = new char[]{'0', '0', '0', '0', '0', '0', '0', '0', '0'};
 
     private static final BigDecimal ONE_BILLION = new BigDecimal(1000000000L);
 
-    private DecimalUtils()
-    {
+    private DecimalUtils() {
         throw new RuntimeException("DecimalUtils cannot be instantiated.");
     }
 
-    public static String toDecimal(long seconds, int nanoseconds)
-    {
+    public static String toDecimal(long seconds, int nanoseconds) {
         StringBuilder string = new StringBuilder(Integer.toString(nanoseconds));
-        if(string.length() < 9)
+        if (string.length() < 9)
             string.insert(0, ZEROES, 0, 9 - string.length());
         return seconds + "." + string;
     }
 
-    public static int extractNanosecondDecimal(BigDecimal value, long integer)
-    {
+    public static int extractNanosecondDecimal(BigDecimal value, long integer) {
         return value.subtract(new BigDecimal(integer)).multiply(ONE_BILLION).intValue();
     }
 }

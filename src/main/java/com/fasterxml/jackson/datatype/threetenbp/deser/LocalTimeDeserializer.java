@@ -30,70 +30,71 @@ import java.io.IOException;
  * Deserializer for ThreeTen temporal {@link LocalTime}s.
  *
  * @author Nick Williams
- * @since 2.4.1
+ * @since 2.2.0
  */
-public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<LocalTime>
-{
+public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<LocalTime> {
     private static final long serialVersionUID = 1L;
+
+    private static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ISO_LOCAL_TIME;
 
     public static final LocalTimeDeserializer INSTANCE = new LocalTimeDeserializer();
 
     private LocalTimeDeserializer() {
-        this(DateTimeFormatter.ISO_LOCAL_TIME);
+        this(DEFAULT_FORMATTER);
     }
 
-    protected LocalTimeDeserializer(DateTimeFormatter dtf) {
-        super(LocalTime.class, dtf);
-
-    }
-
-    @Override
-    protected JsonDeserializer<LocalTime> withDateFormat(DateTimeFormatter dtf) {
-        return new LocalTimeDeserializer(dtf);
+    public LocalTimeDeserializer(DateTimeFormatter formatter) {
+        super(LocalTime.class, formatter);
     }
 
     @Override
-    public LocalTime deserialize(JsonParser parser, DeserializationContext context) throws IOException
-    {
-        switch(parser.getCurrentToken())
-        {
-            case START_ARRAY:
-                if(parser.nextToken() == JsonToken.END_ARRAY)
-                    return null;
-                int hour = parser.getIntValue();
+    protected JsonDeserializer<LocalTime> withDateFormat(DateTimeFormatter formatter) {
+        return new LocalTimeDeserializer(formatter);
+    }
 
-                parser.nextToken();
-                int minute = parser.getIntValue();
+    @Override
+    public LocalTime deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+        if (parser.hasToken(JsonToken.VALUE_STRING)) {
+            String string = parser.getText().trim();
+            if (string.length() == 0) {
+                return null;
+            }
+            DateTimeFormatter format = _formatter;
+            if (format == DEFAULT_FORMATTER) {
+                if (string.contains("T")) {
+                    return LocalTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                }
+            }
+            return LocalTime.parse(string, format);
+        }
+        if (parser.isExpectedStartArrayToken()) {
+            if (parser.nextToken() == JsonToken.END_ARRAY) {
+                return null;
+            }
+            int hour = parser.getIntValue();
 
-                if(parser.nextToken() != JsonToken.END_ARRAY)
-                {
-                    int second = parser.getIntValue();
+            parser.nextToken();
+            int minute = parser.getIntValue();
 
-                    if(parser.nextToken() != JsonToken.END_ARRAY)
-                    {
-                        int partialSecond = parser.getIntValue();
-                        if(partialSecond < 1000 &&
-                                !context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS))
-                            partialSecond *= 1000000; // value is milliseconds, convert it to nanoseconds
+            if (parser.nextToken() != JsonToken.END_ARRAY) {
+                int second = parser.getIntValue();
 
-                        if(parser.nextToken() != JsonToken.END_ARRAY)
-                            throw context.wrongTokenException(parser, JsonToken.END_ARRAY, "Expected array to end.");
+                if (parser.nextToken() != JsonToken.END_ARRAY) {
+                    int partialSecond = parser.getIntValue();
+                    if (partialSecond < 1000 &&
+                            !context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS))
+                        partialSecond *= 1000000; // value is milliseconds, convert it to nanoseconds
 
-                        return LocalTime.of(hour, minute, second, partialSecond);
-                    }
+                    if (parser.nextToken() != JsonToken.END_ARRAY)
+                        throw context.wrongTokenException(parser, JsonToken.END_ARRAY, "Expected array to end.");
 
-                    return LocalTime.of(hour, minute, second);
+                    return LocalTime.of(hour, minute, second, partialSecond);
                 }
 
-                return LocalTime.of(hour, minute);
-
-            case VALUE_STRING:
-                String string = parser.getText().trim();
-                if(string.length() == 0)
-                    return null;
-                return LocalTime.parse(string);
+                return LocalTime.of(hour, minute, second);
+            }
+            return LocalTime.of(hour, minute);
         }
-
         throw context.wrongTokenException(parser, JsonToken.START_ARRAY, "Expected array or string.");
     }
 }

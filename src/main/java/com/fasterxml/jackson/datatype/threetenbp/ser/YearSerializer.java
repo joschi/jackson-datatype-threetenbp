@@ -32,25 +32,28 @@ import java.io.IOException;
  * Serializer for ThreeTen temporal {@link Year}s.
  *
  * @author Nick Williams
- * @since 2.4.1
+ * @since 2.2
  */
-public class YearSerializer extends ThreeTenFormattedSerializerBase<Year>
-{
+public class YearSerializer extends ThreeTenFormattedSerializerBase<Year> {
     private static final long serialVersionUID = 1L;
 
     public static final YearSerializer INSTANCE = new YearSerializer();
 
-    private YearSerializer() {
-        this(null, null);
+    protected YearSerializer() {
+        this(null);
     }
 
-    private YearSerializer(Boolean useTimestamp, DateTimeFormatter dtf) {
-        super(Year.class, useTimestamp, dtf);
+    public YearSerializer(DateTimeFormatter formatter) {
+        super(Year.class, formatter);
+    }
+
+    protected YearSerializer(YearSerializer base, Boolean useTimestamp, DateTimeFormatter formatter) {
+        super(base, useTimestamp, formatter);
     }
 
     @Override
-    protected YearSerializer withFormat(Boolean useTimestamp, DateTimeFormatter dtf) {
-        return new YearSerializer(useTimestamp, dtf);
+    protected YearSerializer withFormat(Boolean useTimestamp, DateTimeFormatter formatter) {
+        return new YearSerializer(this, useTimestamp, formatter);
     }
 
     @Override

@@ -35,45 +35,38 @@ import java.io.IOException;
  * Serializer for ThreeTen temporal {@link Duration}s.
  *
  * @author Nick Williams
- * @since 2.4.1
+ * @since 2.2
  */
-public class DurationSerializer extends ThreeTenFormattedSerializerBase<Duration>
-{
+public class DurationSerializer extends ThreeTenFormattedSerializerBase<Duration> {
     private static final long serialVersionUID = 1L;
 
     public static final DurationSerializer INSTANCE = new DurationSerializer();
 
     private DurationSerializer() {
-        this(null, null);
+        super(Duration.class);
     }
 
-    protected DurationSerializer(Boolean useTimestamp, DateTimeFormatter dtf) {
-        super(Duration.class, useTimestamp, dtf);
+    protected DurationSerializer(DurationSerializer base,
+                                 Boolean useTimestamp, DateTimeFormatter dtf) {
+        super(base, useTimestamp, dtf);
     }
 
     @Override
     protected DurationSerializer withFormat(Boolean useTimestamp, DateTimeFormatter dtf) {
-        return new DurationSerializer(useTimestamp, dtf);
+        return new DurationSerializer(this, useTimestamp, dtf);
     }
 
     @Override
-    public void serialize(Duration duration, JsonGenerator generator, SerializerProvider provider) throws IOException
-    {
-        if(useTimestamp(provider))
-        {
-            if(provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS))
-            {
+    public void serialize(Duration duration, JsonGenerator generator, SerializerProvider provider) throws IOException {
+        if (useTimestamp(provider)) {
+            if (provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
                 generator.writeNumber(DecimalUtils.toDecimal(
                         duration.getSeconds(), duration.getNano()
                 ));
-            }
-            else
-            {
+            } else {
                 generator.writeNumber(duration.toMillis());
             }
-        }
-        else
-        {
+        } else {
             // Does not look like we can make any use of DateTimeFormatter here?
             generator.writeString(duration.toString());
         }

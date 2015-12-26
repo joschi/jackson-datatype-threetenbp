@@ -1,7 +1,5 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
-import java.util.Locale;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -11,15 +9,15 @@ import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import org.threeten.bp.format.DateTimeFormatter;
 
+import java.util.Locale;
+
 @SuppressWarnings("serial")
 public abstract class ThreeTenDateTimeDeserializerBase<T>
         extends ThreeTenDeserializerBase<T>
-        implements ContextualDeserializer
-{
+        implements ContextualDeserializer {
     protected final DateTimeFormatter _formatter;
 
-    protected ThreeTenDateTimeDeserializerBase(Class<T> supportedType, DateTimeFormatter f)
-    {
+    protected ThreeTenDateTimeDeserializerBase(Class<T> supportedType, DateTimeFormatter f) {
         super(supportedType);
         _formatter = f;
     }
@@ -28,8 +26,7 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
 
     @Override
     public JsonDeserializer<?> createContextual(DeserializationContext ctxt,
-                                                BeanProperty property) throws JsonMappingException
-    {
+                                                BeanProperty property) throws JsonMappingException {
         if (property != null) {
             JsonFormat.Value format = ctxt.getAnnotationIntrospector().findFormat((Annotated) property.getMember());
             if (format != null) {

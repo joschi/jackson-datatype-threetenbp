@@ -18,85 +18,83 @@ package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.function.Function;
 import org.threeten.bp.MonthDay;
 import org.threeten.bp.Period;
-import org.threeten.bp.YearMonth;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZoneOffset;
 
 import java.io.IOException;
 
 /**
- * Deserializer for all Java temporal {@code org.threeten.bp} types that cannot be represented with numbers
- * and that have parse functions that can take {@link String}s.
+ * Deserializer for all ThreeTen temporal {@link java.time} types that cannot be represented with numbers and that have
+ * parse functions that can take {@link String}s.
  *
  * @author Nick Williams
- * @since 2.4.1
+ * @since 2.2
  */
-public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeserializerBase<T>
-{
+public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeserializerBase<T> {
     private static final long serialVersionUID = 1L;
 
-    public static final ThreeTenStringParsableDeserializer<MonthDay> MONTH_DAY = new ThreeTenStringParsableDeserializer<MonthDay>(
-            MonthDay.class,
-            new Function<String, MonthDay>() {
+    public static final ThreeTenStringParsableDeserializer<MonthDay> MONTH_DAY =
+            new ThreeTenStringParsableDeserializer<MonthDay>(MonthDay.class, new Function<String, MonthDay>() {
                 @Override
-                public MonthDay apply(final String text) {
-                    return MonthDay.parse(text);
+                public MonthDay apply(String s) {
+                    return MonthDay.parse(s);
                 }
             });
 
-    public static final ThreeTenStringParsableDeserializer<Period> PERIOD = new ThreeTenStringParsableDeserializer<Period>(
-            Period.class,
-            new Function<String, Period>() {
+    public static final ThreeTenStringParsableDeserializer<Period> PERIOD =
+            new ThreeTenStringParsableDeserializer<Period>(Period.class, new Function<String, Period>() {
                 @Override
-                public Period apply(final String text) {
-                    return Period.parse(text);
+                public Period apply(String s) {
+                    return Period.parse(s);
                 }
             });
 
-    public static final ThreeTenStringParsableDeserializer<YearMonth> YEAR_MONTH = new ThreeTenStringParsableDeserializer<YearMonth>(
-            YearMonth.class,
-            new Function<String, YearMonth>() {
+    public static final ThreeTenStringParsableDeserializer<ZoneId> ZONE_ID =
+            new ThreeTenStringParsableDeserializer<ZoneId>(ZoneId.class, new Function<String, ZoneId>() {
                 @Override
-                public YearMonth apply(final String text) {
-                    return YearMonth.parse(text);
+                public ZoneId apply(String s) {
+                    return ZoneId.of(s);
                 }
             });
 
-    public static final ThreeTenStringParsableDeserializer<ZoneId> ZONE_ID = new ThreeTenStringParsableDeserializer<ZoneId>(
-            ZoneId.class,
-            new Function<String, ZoneId>() {
+    public static final ThreeTenStringParsableDeserializer<ZoneOffset> ZONE_OFFSET =
+            new ThreeTenStringParsableDeserializer<ZoneOffset>(ZoneOffset.class, new Function<String, ZoneOffset>() {
                 @Override
-                public ZoneId apply(final String zoneId) {
-                    return ZoneId.of(zoneId);
+                public ZoneOffset apply(String s) {
+                    return ZoneOffset.of(s);
                 }
             });
 
-    public static final ThreeTenStringParsableDeserializer<ZoneOffset> ZONE_OFFSET = new ThreeTenStringParsableDeserializer<ZoneOffset>(
-            ZoneOffset.class,
-            new Function<String, ZoneOffset>() {
-                @Override
-                public ZoneOffset apply(final String offsetId) {
-                    return ZoneOffset.of(offsetId);
-                }
-            });
+    private final Function<String, T> parse;
 
-    private transient final Function<String, T> parse;
-
-    private ThreeTenStringParsableDeserializer(Class<T> supportedType, Function<String, T> parse)
-    {
+    private ThreeTenStringParsableDeserializer(Class<T> supportedType, Function<String, T> parse) {
         super(supportedType);
         this.parse = parse;
     }
 
     @Override
-    public T deserialize(JsonParser parser, DeserializationContext context) throws IOException
-    {
-        String string = parser.getText().trim();
-        if(string.length() == 0)
+    public T deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+        String string = parser.getValueAsString().trim();
+        if (string.length() == 0) {
             return null;
+        }
         return this.parse.apply(string);
+    }
+
+    @Override
+    public Object deserializeWithType(JsonParser parser, DeserializationContext context, TypeDeserializer deserializer)
+            throws IOException {
+        /**
+         * This is a nasty kludge right here, working around issues like
+         * [datatype-jsr310#24]. But should work better than not having the work-around.
+         */
+        if (parser.getCurrentToken().isScalarValue()) {
+            return deserialize(parser, context);
+        }
+        return deserializer.deserializeTypedFromAny(parser, context);
     }
 }

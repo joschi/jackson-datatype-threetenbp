@@ -16,15 +16,17 @@
 
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
-import org.junit.Test;
-import org.threeten.bp.Year;
-import org.threeten.bp.temporal.Temporal;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import org.threeten.bp.Year;
+import org.threeten.bp.temporal.Temporal;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TestYearSerialization
 {
@@ -35,6 +37,12 @@ public class TestYearSerialization
     {
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new ThreeTenModule());
+    }
+
+    @After
+    public void tearDown()
+    {
+
     }
 
     @Test

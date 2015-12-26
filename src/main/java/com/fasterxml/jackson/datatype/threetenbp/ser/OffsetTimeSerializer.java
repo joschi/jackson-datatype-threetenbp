@@ -29,53 +29,49 @@ import java.io.IOException;
  * Serializer for ThreeTen temporal {@link OffsetTime}s.
  *
  * @author Nick Williams
- * @since 2.4.1
+ * @since 2.2
  */
-public class OffsetTimeSerializer extends ThreeTenFormattedSerializerBase<OffsetTime>
-{
+public class OffsetTimeSerializer extends ThreeTenFormattedSerializerBase<OffsetTime> {
     private static final long serialVersionUID = 1L;
 
     public static final OffsetTimeSerializer INSTANCE = new OffsetTimeSerializer();
 
-    private OffsetTimeSerializer() {
-        this(null, null);
+    protected OffsetTimeSerializer() {
+        super(OffsetTime.class);
     }
 
-    private OffsetTimeSerializer(Boolean useTimestamp, DateTimeFormatter dtf) {
-        super(OffsetTime.class, useTimestamp, dtf);
+    protected OffsetTimeSerializer(OffsetTimeSerializer base,
+                                   Boolean useTimestamp, DateTimeFormatter dtf) {
+        super(base, useTimestamp, dtf);
     }
 
     @Override
     protected OffsetTimeSerializer withFormat(Boolean useTimestamp, DateTimeFormatter dtf) {
-        return new OffsetTimeSerializer(useTimestamp, dtf);
+        return new OffsetTimeSerializer(this, useTimestamp, dtf);
     }
 
     @Override
-    public void serialize(OffsetTime time, JsonGenerator generator, SerializerProvider provider) throws IOException
-    {
-        if(useTimestamp(provider))
-        {
-            generator.writeStartArray();
-            generator.writeNumber(time.getHour());
-            generator.writeNumber(time.getMinute());
-            if(time.getSecond() > 0 || time.getNano() > 0)
-            {
-                generator.writeNumber(time.getSecond());
-                if(time.getNano() > 0)
-                {
-                    if(provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS))
-                        generator.writeNumber(time.getNano());
+    public void serialize(OffsetTime time, JsonGenerator gen, SerializerProvider provider) throws IOException {
+        if (useTimestamp(provider)) {
+            gen.writeStartArray();
+            gen.writeNumber(time.getHour());
+            gen.writeNumber(time.getMinute());
+            final int secs = time.getSecond();
+            final int nanos = time.getNano();
+            if (secs > 0 || nanos > 0) {
+                gen.writeNumber(secs);
+                if (nanos > 0) {
+                    if (provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS))
+                        gen.writeNumber(nanos);
                     else
-                        generator.writeNumber(time.get(ChronoField.MILLI_OF_SECOND));
+                        gen.writeNumber(time.get(ChronoField.MILLI_OF_SECOND));
                 }
             }
-            generator.writeString(time.getOffset().toString());
-            generator.writeEndArray();
-        }
-        else
-        {
+            gen.writeString(time.getOffset().toString());
+            gen.writeEndArray();
+        } else {
             String str = (_formatter == null) ? time.toString() : time.format(_formatter);
-            generator.writeString(str);
+            gen.writeString(str);
         }
     }
 }

@@ -16,38 +16,49 @@
 
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import org.junit.Before;
-import org.junit.Test;
-import org.threeten.bp.Instant;
-import org.threeten.bp.temporal.ChronoUnit;
-import org.threeten.bp.temporal.Temporal;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class TestInstantSerialization
+import org.threeten.bp.Instant;
+import org.threeten.bp.format.DateTimeFormatter;
+import org.threeten.bp.temporal.ChronoUnit;
+import org.threeten.bp.temporal.Temporal;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.*;
+
+import org.junit.Test;
+
+public class TestInstantSerialization extends ModuleTestBase
 {
-    private ObjectMapper mapper;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_INSTANT;
 
-    @Before
-    public void setUp()
-    {
-        this.mapper = new ObjectMapper();
-        this.mapper.registerModule(new ThreeTenModule());
+    private final ObjectMapper mapper = newMapper();
+
+    final static class Wrapper {
+        @JsonFormat(
+                /* 22-Jun-2015, tatu: I'll be damned if I understand why pattern does not
+                 *    work here... but it doesn't. Someone with better date-fu has to come
+                 *    and fix this; until then I will only verify that we can force textual
+                 *    representation here
+                 */
+                //pattern="YYYY-mm-dd",
+                shape=JsonFormat.Shape.STRING)
+        public Instant value;
+
+        public Wrapper() { }
+        public Wrapper(Instant v) { value = v; }
     }
-
+    
     @Test
     public void testSerializationAsTimestamp01Nanoseconds() throws Exception
     {
         Instant date = Instant.ofEpochSecond(0L);
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
-        this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        String value = this.mapper.writeValueAsString(date);
+        String value = mapper.writer()
+                .with(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .with(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .writeValueAsString(date);
 
         assertNotNull("The value should not be null.", value);
         assertEquals("The value is not correct.", "0.000000000", value);
@@ -57,12 +68,10 @@ public class TestInstantSerialization
     public void testSerializationAsTimestamp01Milliseconds() throws Exception
     {
         Instant date = Instant.ofEpochSecond(0L);
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
-        this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
+        String value = mapper.writer()
+                .with(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .without(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .writeValueAsString(date);
         assertEquals("The value is not correct.", "0", value);
     }
 
@@ -70,12 +79,10 @@ public class TestInstantSerialization
     public void testSerializationAsTimestamp02Nanoseconds() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 183917322);
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
-        this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
+        String value = mapper.writer()
+                .with(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .with(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .writeValueAsString(date);
         assertEquals("The value is not correct.", "123456789.183917322", value);
     }
 
@@ -83,12 +90,10 @@ public class TestInstantSerialization
     public void testSerializationAsTimestamp02Milliseconds() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 183917322);
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
-        this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
+        String value = mapper.writer()
+                .with(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .without(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .writeValueAsString(date);
         assertEquals("The value is not correct.", "123456789183", value);
     }
 
@@ -96,12 +101,10 @@ public class TestInstantSerialization
     public void testSerializationAsTimestamp03Nanoseconds() throws Exception
     {
         Instant date = Instant.now();
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
-        this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
+        String value = mapper.writer()
+                .with(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .with(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .writeValueAsString(date);
         assertEquals("The value is not correct.", DecimalUtils.toDecimal(date.getEpochSecond(), date.getNano()), value);
     }
 
@@ -109,12 +112,10 @@ public class TestInstantSerialization
     public void testSerializationAsTimestamp03Milliseconds() throws Exception
     {
         Instant date = Instant.now();
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
-        this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
+        String value = mapper.writer()
+                .with(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .without(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .writeValueAsString(date);
         assertEquals("The value is not correct.", Long.toString(date.toEpochMilli()), value);
     }
 
@@ -122,49 +123,41 @@ public class TestInstantSerialization
     public void testSerializationAsString01() throws Exception
     {
         Instant date = Instant.ofEpochSecond(0L);
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", '"' + date.toString() + '"', value);
+        String value = mapper.writer()
+                .without(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .writeValueAsString(date);
+        assertEquals("The value is not correct.", '"' + FORMATTER.format(date) + '"', value);
     }
 
     @Test
     public void testSerializationAsString02() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 183917322);
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", '"' + date.toString() + '"', value);
+        String value = mapper.writer()
+                .without(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .writeValueAsString(date);
+        assertEquals("The value is not correct.", '"' + FORMATTER.format(date) + '"', value);
     }
 
     @Test
     public void testSerializationAsString03() throws Exception
     {
         Instant date = Instant.now();
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", '"' + date.toString() + '"', value);
+        String value = mapper.writer()
+                .without(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .writeValueAsString(date);
+        assertEquals("The value is not correct.", '"' + FORMATTER.format(date) + '"', value);
     }
 
     @Test
     public void testSerializationWithTypeInfo01() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 183917322);
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
-        this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
+        ObjectMapper m = newMapper()
+            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
+            .configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
+        m.addMixIn(Temporal.class, MockObjectConfiguration.class);
+        String value = m.writeValueAsString(date);
         assertEquals("The value is not correct.", "[\"" + Instant.class.getName() + "\",123456789.183917322]", value);
     }
 
@@ -172,13 +165,11 @@ public class TestInstantSerialization
     public void testSerializationWithTypeInfo02() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 183917322);
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
-        this.mapper.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
+        ObjectMapper m = newMapper()
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
+                .configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
+        m.addMixIn(Temporal.class, MockObjectConfiguration.class);
+        String value = m.writeValueAsString(date);
         assertEquals("The value is not correct.", "[\"" + Instant.class.getName() + "\",123456789183]", value);
     }
 
@@ -186,24 +177,19 @@ public class TestInstantSerialization
     public void testSerializationWithTypeInfo03() throws Exception
     {
         Instant date = Instant.now();
-
-        this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
-        String value = this.mapper.writeValueAsString(date);
-
-        assertNotNull("The value should not be null.", value);
+        ObjectMapper m = newMapper()
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        m.addMixIn(Temporal.class, MockObjectConfiguration.class);
+        String value = m.writeValueAsString(date);
         assertEquals("The value is not correct.",
-                "[\"" + Instant.class.getName() + "\",\"" + date.toString() + "\"]", value);
+                "[\"" + Instant.class.getName() + "\",\"" + FORMATTER.format(date) + "\"]", value);
     }
 
     @Test
     public void testDeserializationAsFloat01() throws Exception
     {
         Instant date = Instant.ofEpochSecond(0L);
-
-        Instant value = this.mapper.readValue("0.000000000", Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readValue("0.000000000", Instant.class);
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -211,10 +197,7 @@ public class TestInstantSerialization
     public void testDeserializationAsFloat02() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 183917322);
-
-        Instant value = this.mapper.readValue("123456789.183917322", Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readValue("123456789.183917322", Instant.class);
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -223,11 +206,9 @@ public class TestInstantSerialization
     {
         Instant date = Instant.now();
 
-        Instant value = this.mapper.readValue(
+        Instant value = mapper.readValue(
                 DecimalUtils.toDecimal(date.getEpochSecond(), date.getNano()), Instant.class
-        );
-
-        assertNotNull("The value should not be null.", value);
+                );
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -235,11 +216,9 @@ public class TestInstantSerialization
     public void testDeserializationAsInt01Nanoseconds() throws Exception
     {
         Instant date = Instant.ofEpochSecond(0L);
-
-        this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        Instant value = this.mapper.readValue("0", Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readerFor(Instant.class)
+                .with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .readValue("0");
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -247,11 +226,9 @@ public class TestInstantSerialization
     public void testDeserializationAsInt01Milliseconds() throws Exception
     {
         Instant date = Instant.ofEpochSecond(0L);
-
-        this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        Instant value = this.mapper.readValue("0", Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readerFor(Instant.class)
+                .without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .readValue("0");
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -259,11 +236,9 @@ public class TestInstantSerialization
     public void testDeserializationAsInt02Nanoseconds() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 0);
-
-        this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        Instant value = this.mapper.readValue("123456789", Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readerFor(Instant.class)
+                .with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .readValue("123456789");
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -271,11 +246,9 @@ public class TestInstantSerialization
     public void testDeserializationAsInt02Milliseconds() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 422000000);
-
-        this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        Instant value = this.mapper.readValue("123456789422", Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readerFor(Instant.class)
+                .without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .readValue("123456789422");
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -285,10 +258,9 @@ public class TestInstantSerialization
         Instant date = Instant.now();
         date = date.minus(date.getNano(), ChronoUnit.NANOS);
 
-        this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        Instant value = this.mapper.readValue(Long.toString(date.getEpochSecond()), Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readerFor(Instant.class)
+                .with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .readValue(Long.toString(date.getEpochSecond()));
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -298,10 +270,9 @@ public class TestInstantSerialization
         Instant date = Instant.now();
         date = date.minus(date.getNano(), ChronoUnit.NANOS);
 
-        this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        Instant value = this.mapper.readValue(Long.toString(date.toEpochMilli()), Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readerFor(Instant.class)
+                .without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .readValue(Long.toString(date.toEpochMilli()));
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -309,10 +280,7 @@ public class TestInstantSerialization
     public void testDeserializationAsString01() throws Exception
     {
         Instant date = Instant.ofEpochSecond(0L);
-
-        Instant value = this.mapper.readValue('"' + date.toString() + '"', Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readValue('"' + FORMATTER.format(date) + '"', Instant.class);
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -320,10 +288,7 @@ public class TestInstantSerialization
     public void testDeserializationAsString02() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 183917322);
-
-        Instant value = this.mapper.readValue('"' + date.toString() + '"', Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readValue('"' + FORMATTER.format(date) + '"', Instant.class);
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -332,9 +297,7 @@ public class TestInstantSerialization
     {
         Instant date = Instant.now();
 
-        Instant value = this.mapper.readValue('"' + date.toString() + '"', Instant.class);
-
-        assertNotNull("The value should not be null.", value);
+        Instant value = mapper.readValue('"' + FORMATTER.format(date) + '"', Instant.class);
         assertEquals("The value is not correct.", date, value);
     }
 
@@ -342,13 +305,11 @@ public class TestInstantSerialization
     public void testDeserializationWithTypeInfo01() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 183917322);
-
-        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
-        Temporal value = this.mapper.readValue(
+        ObjectMapper m = newMapper()
+                .addMixIn(Temporal.class, MockObjectConfiguration.class);
+        Temporal value = m.readValue(
                 "[\"" + Instant.class.getName() + "\",123456789.183917322]", Temporal.class
-        );
-
-        assertNotNull("The value should not be null.", value);
+                );
         assertTrue("The value should be an Instant.", value instanceof Instant);
         assertEquals("The value is not correct.", date, value);
     }
@@ -357,14 +318,12 @@ public class TestInstantSerialization
     public void testDeserializationWithTypeInfo02() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 0);
-
-        this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, true);
-        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
-        Temporal value = this.mapper.readValue(
+        ObjectMapper m = newMapper()
+                .enable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .addMixIn(Temporal.class, MockObjectConfiguration.class);
+        Temporal value = m.readValue(
                 "[\"" + Instant.class.getName() + "\",123456789]", Temporal.class
-        );
-
-        assertNotNull("The value should not be null.", value);
+                );
         assertTrue("The value should be an Instant.", value instanceof Instant);
         assertEquals("The value is not correct.", date, value);
     }
@@ -373,14 +332,13 @@ public class TestInstantSerialization
     public void testDeserializationWithTypeInfo03() throws Exception
     {
         Instant date = Instant.ofEpochSecond(123456789L, 422000000);
-
-        this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
-        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
-        Temporal value = this.mapper.readValue(
+        ObjectMapper m = newMapper()
+                .disable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+                .addMixIn(Temporal.class, MockObjectConfiguration.class);
+        Temporal value = m.readValue(
                 "[\"" + Instant.class.getName() + "\",123456789422]", Temporal.class
-        );
+                );
 
-        assertNotNull("The value should not be null.", value);
         assertTrue("The value should be an Instant.", value instanceof Instant);
         assertEquals("The value is not correct.", date, value);
     }
@@ -389,14 +347,23 @@ public class TestInstantSerialization
     public void testDeserializationWithTypeInfo04() throws Exception
     {
         Instant date = Instant.now();
-
-        this.mapper.addMixIn(Temporal.class, MockObjectConfiguration.class);
-        Temporal value = this.mapper.readValue(
-                "[\"" + Instant.class.getName() + "\",\"" + date.toString() + "\"]", Temporal.class
-        );
-
-        assertNotNull("The value should not be null.", value);
+        ObjectMapper m = newMapper()
+                .addMixIn(Temporal.class, MockObjectConfiguration.class);
+        Temporal value = m.readValue(
+                "[\"" + Instant.class.getName() + "\",\"" + FORMATTER.format(date) + "\"]", Temporal.class
+                );
         assertTrue("The value should be an Instant.", value instanceof Instant);
         assertEquals("The value is not correct.", date, value);
+    }
+
+    @Test
+    public void testCustomPatternWithAnnotations() throws Exception
+    {
+        final Wrapper input = new Wrapper(Instant.ofEpochMilli(0));
+        String json = mapper.writeValueAsString(input);
+        assertEquals(aposToQuotes("{'value':'1970-01-01T00:00:00Z'}"), json);
+
+        Wrapper result = mapper.readValue(json, Wrapper.class);
+        assertEquals(input.value, result.value);
     }
 }

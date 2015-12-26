@@ -16,16 +16,18 @@
 
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import org.threeten.bp.Month;
 import org.threeten.bp.MonthDay;
 import org.threeten.bp.temporal.TemporalAccessor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TestMonthDaySerialization
 {
@@ -36,6 +38,12 @@ public class TestMonthDaySerialization
     {
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new ThreeTenModule());
+    }
+
+    @After
+    public void tearDown()
+    {
+
     }
 
     @Test

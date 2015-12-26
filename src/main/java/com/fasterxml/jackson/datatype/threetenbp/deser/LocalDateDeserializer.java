@@ -29,19 +29,20 @@ import java.io.IOException;
  * Deserializer for ThreeTen temporal {@link LocalDate}s.
  *
  * @author Nick Williams
- * @since 2.4.1
+ * @since 2.2.0
  */
-public class LocalDateDeserializer extends ThreeTenDateTimeDeserializerBase<LocalDate>
-{
+public class LocalDateDeserializer extends ThreeTenDateTimeDeserializerBase<LocalDate> {
     private static final long serialVersionUID = 1L;
+
+    private static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
     public static final LocalDateDeserializer INSTANCE = new LocalDateDeserializer();
 
     private LocalDateDeserializer() {
-        this(DateTimeFormatter.ISO_LOCAL_DATE);
+        this(DEFAULT_FORMATTER);
     }
 
-    protected LocalDateDeserializer(DateTimeFormatter dtf) {
+    public LocalDateDeserializer(DateTimeFormatter dtf) {
         super(LocalDate.class, dtf);
     }
 
@@ -51,31 +52,38 @@ public class LocalDateDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
     }
 
     @Override
-    public LocalDate deserialize(JsonParser parser, DeserializationContext context) throws IOException
-    {
-        switch(parser.getCurrentToken())
-        {
-            case START_ARRAY:
-                if(parser.nextToken() == JsonToken.END_ARRAY)
-                    return null;
-                int year = parser.getIntValue();
-
-                parser.nextToken();
-                int month = parser.getIntValue();
-
-                parser.nextToken();
-                int day = parser.getIntValue();
-
-                if(parser.nextToken() != JsonToken.END_ARRAY)
-                    throw context.wrongTokenException(parser, JsonToken.END_ARRAY, "Expected array to end.");
-                return LocalDate.of(year, month, day);
-
-            case VALUE_STRING:
-                String string = parser.getText().trim();
-                if(string.length() == 0) {
-                    return null;
+    public LocalDate deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+        if (parser.hasToken(JsonToken.VALUE_STRING)) {
+            String string = parser.getText().trim();
+            if (string.length() == 0) {
+                return null;
+            }
+            // as per [datatype-jsr310#37], only check for optional (and, incorrect...) time marker 'T'
+            // if we are using default formatter
+            DateTimeFormatter format = _formatter;
+            if (format == DEFAULT_FORMATTER) {
+                if (string.contains("T")) {
+                    return LocalDate.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 }
-                return LocalDate.parse(string);
+            }
+            return LocalDate.parse(string, format);
+        }
+        if (parser.isExpectedStartArrayToken()) {
+            if (parser.nextToken() == JsonToken.END_ARRAY) {
+                return null;
+            }
+            int year = parser.getIntValue();
+
+            parser.nextToken();
+            int month = parser.getIntValue();
+
+            parser.nextToken();
+            int day = parser.getIntValue();
+
+            if (parser.nextToken() != JsonToken.END_ARRAY) {
+                throw context.wrongTokenException(parser, JsonToken.END_ARRAY, "Expected array to end.");
+            }
+            return LocalDate.of(year, month, day);
         }
 
         throw context.wrongTokenException(parser, JsonToken.START_ARRAY, "Expected array or string.");

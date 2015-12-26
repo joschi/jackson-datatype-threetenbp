@@ -19,6 +19,7 @@ package com.fasterxml.jackson.datatype.threetenbp.deser;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import org.threeten.bp.Year;
+import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.IOException;
 
@@ -26,22 +27,27 @@ import java.io.IOException;
  * Deserializer for ThreeTen temporal {@link Year}s.
  *
  * @author Nick Williams
- * @since 2.4.1
+ * @since 2.2.0
  */
-public class YearDeserializer extends ThreeTenDeserializerBase<Year>
-{
+public class YearDeserializer extends ThreeTenDeserializerBase<Year> {
     private static final long serialVersionUID = 1L;
-
+    private DateTimeFormatter formatter;
     public static final YearDeserializer INSTANCE = new YearDeserializer();
 
-    private YearDeserializer()
-    {
+    private YearDeserializer() {
         super(Year.class);
     }
 
+    public YearDeserializer(DateTimeFormatter formatter) {
+        super(Year.class);
+        this.formatter = formatter;
+    }
+
     @Override
-    public Year deserialize(JsonParser parser, DeserializationContext context) throws IOException
-    {
-        return Year.of(parser.getValueAsInt());
+    public Year deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+        if (formatter == null) {
+            return Year.of(parser.getValueAsInt());
+        }
+        return Year.parse(parser.getValueAsString(), formatter);
     }
 }

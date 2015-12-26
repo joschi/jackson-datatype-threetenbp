@@ -8,24 +8,21 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 
 /**
- * Base class that indicates that all ThreeTen datatypes are serialized as scalar JSON types.
+ * Base class that indicates that all JSR310 datatypes are serialized as scalar JSON types.
  *
  * @author Nick Williams
- * @since 2.4.1
+ * @since 2.2.0
  */
-abstract class ThreeTenSerializerBase<T> extends StdSerializer<T>
-{
+abstract class ThreeTenSerializerBase<T> extends StdSerializer<T> {
     private static final long serialVersionUID = 1L;
 
-    protected ThreeTenSerializerBase(Class<T> supportedType)
-    {
-        super(supportedType);
+    protected ThreeTenSerializerBase(Class<?> supportedType) {
+        super(supportedType, false);
     }
 
     @Override
     public void serializeWithType(T value, JsonGenerator generator, SerializerProvider provider,
-                                  TypeSerializer serializer) throws IOException
-    {
+                                  TypeSerializer serializer) throws IOException {
         serializer.writeTypePrefixForScalar(value, generator);
         this.serialize(value, generator, provider);
         serializer.writeTypeSuffixForScalar(value, generator);
