@@ -1,8 +1,8 @@
 sudo: false
 language: java
-install: mvn install -Dgpg.skip=true
+install: mvn -B install -Dgpg.skip=true
 after_success:
-  - mvn jacoco:report coveralls:jacoco
+  - mvn -B jacoco:report coveralls:report
 jdk:
   - openjdk6
   - openjdk7
