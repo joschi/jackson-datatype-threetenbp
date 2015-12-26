@@ -218,10 +218,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.18.1</version>
             </plugin>
-            <!--plugin>
+            <plugin>
                 <groupId>com.github.github</groupId>
                 <artifactId>site-maven-plugin</artifactId>
-                <version>0.10</version>
+                <version>0.12</version>
                 <configuration>
                     <path>${project.version}</path>
                     <message>Creating site for ${project.version}</message>
@@ -235,7 +235,7 @@
                         <phase>site-deploy</phase>
                     </execution>
                 </executions>
-            </plugin-->
+            </plugin>
         </plugins>
     </build>
     <reporting>
