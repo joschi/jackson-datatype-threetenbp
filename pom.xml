@@ -29,6 +29,14 @@
         <tag>HEAD</tag>
     </scm>
 
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <ciManagement>
         <system>Travis CI</system>
         <url>https://travis-ci.org/joschi/jackson-datatype-threetenbp</url>
