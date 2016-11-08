@@ -16,12 +16,16 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.format.DateTimeFormatter;
 
-import java.io.IOException;
+import com.fasterxml.jackson.core.JsonGenerator;
+
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
 
 /**
  * Serializer for ThreeTen temporal {@link LocalDate}s.
@@ -29,7 +33,8 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2
  */
-public class LocalDateSerializer extends ThreeTenFormattedSerializerBase<LocalDate> {
+public class LocalDateSerializer extends ThreeTenFormattedSerializerBase<LocalDate>
+{
     private static final long serialVersionUID = 1L;
 
     public static final LocalDateSerializer INSTANCE = new LocalDateSerializer();
@@ -39,7 +44,7 @@ public class LocalDateSerializer extends ThreeTenFormattedSerializerBase<LocalDa
     }
 
     protected LocalDateSerializer(LocalDateSerializer base,
-                                  Boolean useTimestamp, DateTimeFormatter dtf) {
+            Boolean useTimestamp, DateTimeFormatter dtf) {
         super(base, useTimestamp, dtf);
     }
 
@@ -53,7 +58,8 @@ public class LocalDateSerializer extends ThreeTenFormattedSerializerBase<LocalDa
     }
 
     @Override
-    public void serialize(LocalDate date, JsonGenerator generator, SerializerProvider provider) throws IOException {
+    public void serialize(LocalDate date, JsonGenerator generator, SerializerProvider provider) throws IOException
+    {
         if (useTimestamp(provider)) {
             generator.writeStartArray();
             generator.writeNumber(date.getYear());
@@ -63,6 +69,21 @@ public class LocalDateSerializer extends ThreeTenFormattedSerializerBase<LocalDa
         } else {
             String str = (_formatter == null) ? date.toString() : date.format(_formatter);
             generator.writeString(str);
+        }
+    }
+    
+    @Override
+    public void acceptJsonFormatVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException
+    {
+        SerializerProvider provider = visitor.getProvider();
+        boolean useTimestamp = (provider != null) && useTimestamp(provider);
+        if (useTimestamp) {
+            _acceptTimestampVisitor(visitor, typeHint);
+        } else {
+            JsonStringFormatVisitor v2 = visitor.expectStringFormat(typeHint);
+            if (v2 != null) {
+                v2.format(JsonValueFormat.DATE);
+            }
         }
     }
 }

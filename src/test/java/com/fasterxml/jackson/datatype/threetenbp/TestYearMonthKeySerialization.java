@@ -22,7 +22,7 @@ public class TestYearMonthKeySerialization {
     public void setUp() {
         this.om = new ObjectMapper();
         om.registerModule(new ThreeTenModule());
-        map = new HashMap<YearMonth, String>();
+        map = new HashMap<>();
     }
 
     /*

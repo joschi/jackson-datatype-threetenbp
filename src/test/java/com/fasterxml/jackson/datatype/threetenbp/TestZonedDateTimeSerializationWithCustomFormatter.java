@@ -14,8 +14,8 @@ import org.threeten.bp.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
 
 @RunWith(Parameterized.class)
 public class TestZonedDateTimeSerializationWithCustomFormatter {
@@ -40,7 +40,7 @@ public class TestZonedDateTimeSerializationWithCustomFormatter {
 
     @Parameters
     public static Collection<Object[]> customFormatters() {
-        Collection<Object[]> formatters = new ArrayList<Object[]>();
+        Collection<Object[]> formatters = new ArrayList<>();
         formatters.add(new Object[]{DateTimeFormatter.ISO_ZONED_DATE_TIME});
         formatters.add(new Object[]{DateTimeFormatter.ISO_OFFSET_DATE_TIME});
         formatters.add(new Object[]{DateTimeFormatter.ISO_LOCAL_DATE_TIME});

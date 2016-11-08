@@ -17,37 +17,60 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import org.threeten.bp.Year;
-import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.IOException;
+import org.threeten.bp.DateTimeException;
+import org.threeten.bp.Year;
+import org.threeten.bp.format.DateTimeFormatter;
 
 /**
  * Deserializer for ThreeTen temporal {@link Year}s.
  *
  * @author Nick Williams
- * @since 2.2.0
+ * @since 2.2
  */
-public class YearDeserializer extends ThreeTenDeserializerBase<Year> {
+public class YearDeserializer extends ThreeTenDeserializerBase<Year>
+{
     private static final long serialVersionUID = 1L;
-    private DateTimeFormatter formatter;
+
     public static final YearDeserializer INSTANCE = new YearDeserializer();
 
-    private YearDeserializer() {
-        super(Year.class);
+    private final DateTimeFormatter _formatter;
+
+    private YearDeserializer()
+    {
+        this(null);
     }
 
     public YearDeserializer(DateTimeFormatter formatter) {
         super(Year.class);
-        this.formatter = formatter;
+        _formatter = formatter;
     }
 
     @Override
-    public Year deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-        if (formatter == null) {
-            return Year.of(parser.getValueAsInt());
+    public Year deserialize(JsonParser parser, DeserializationContext context) throws IOException
+    {
+        JsonToken t = parser.getCurrentToken();
+        if (t == JsonToken.VALUE_STRING) {
+            String string = parser.getValueAsString().trim();
+            try {
+                if (_formatter == null) {
+                    return Year.parse(string);
+                }
+                return Year.parse(string, _formatter);
+            } catch (DateTimeException e) {
+                _rethrowDateTimeException(parser, context, e, string);
+            }
         }
-        return Year.parse(parser.getValueAsString(), formatter);
+        if (t == JsonToken.VALUE_NUMBER_INT) {
+            return Year.of(parser.getIntValue());
+        }
+        if (t == JsonToken.VALUE_EMBEDDED_OBJECT) {
+            return (Year) parser.getEmbeddedObject();
+        }
+        throw context.mappingException("Unexpected token (%s), expected VALUE_STRING or VALUE_NUMBER_INT",
+                parser.getCurrentToken());
     }
 }

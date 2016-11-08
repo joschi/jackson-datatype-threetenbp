@@ -40,7 +40,7 @@ public class TestZonedDateTimeKeySerialization {
     public void setUp() {
         this.om = new ObjectMapper();
         om.registerModule(new ThreeTenModule());
-        map = new HashMap<ZonedDateTime, String>();
+        map = new HashMap<>();
     }
 
     /*

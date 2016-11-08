@@ -21,10 +21,11 @@ import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
-import org.threeten.bp.Duration;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import org.threeten.bp.DateTimeException;
+import org.threeten.bp.Duration;
 
 /**
  * Deserializer for ThreeTen temporal {@link Duration}s.
@@ -32,18 +33,22 @@ import java.math.BigDecimal;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class DurationDeserializer extends ThreeTenDeserializerBase<Duration> {
+public class DurationDeserializer extends ThreeTenDeserializerBase<Duration>
+{
     private static final long serialVersionUID = 1L;
 
     public static final DurationDeserializer INSTANCE = new DurationDeserializer();
 
-    private DurationDeserializer() {
+    private DurationDeserializer()
+    {
         super(Duration.class);
     }
 
     @Override
-    public Duration deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-        switch (parser.getCurrentTokenId()) {
+    public Duration deserialize(JsonParser parser, DeserializationContext context) throws IOException
+    {
+        switch (parser.getCurrentTokenId())
+        {
             case JsonTokenId.ID_NUMBER_FLOAT:
                 BigDecimal value = parser.getDecimalValue();
                 long seconds = value.longValue();
@@ -51,7 +56,7 @@ public class DurationDeserializer extends ThreeTenDeserializerBase<Duration> {
                 return Duration.ofSeconds(seconds, nanoseconds);
 
             case JsonTokenId.ID_NUMBER_INT:
-                if (context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+                if(context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
                     return Duration.ofSeconds(parser.getLongValue());
                 }
                 return Duration.ofMillis(parser.getLongValue());
@@ -61,7 +66,15 @@ public class DurationDeserializer extends ThreeTenDeserializerBase<Duration> {
                 if (string.length() == 0) {
                     return null;
                 }
-                return Duration.parse(string);
+                try {
+                    return Duration.parse(string);
+                } catch (DateTimeException e) {
+                    return _rethrowDateTimeException(parser, context, e, string);
+                }
+            case JsonTokenId.ID_EMBEDDED_OBJECT:
+                // 20-Apr-2016, tatu: Related to [databind#1208], can try supporting embedded
+                //    values quite easily
+                return (Duration) parser.getEmbeddedObject();
         }
         throw context.mappingException("Expected type float, integer, or string.");
     }

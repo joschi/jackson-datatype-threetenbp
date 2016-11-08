@@ -1,8 +1,11 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser.key;
 
-import com.fasterxml.jackson.databind.DeserializationContext;
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
+
+import com.fasterxml.jackson.databind.DeserializationContext;
 
 public class OffsetDateTimeKeyDeserializer extends ThreeTenKeyDeserializer {
 
@@ -13,8 +16,11 @@ public class OffsetDateTimeKeyDeserializer extends ThreeTenKeyDeserializer {
     }
 
     @Override
-    protected OffsetDateTime deserialize(String key, DeserializationContext ctxt) {
-        return OffsetDateTime.parse(key, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    protected OffsetDateTime deserialize(String key, DeserializationContext ctxt) throws IOException {
+        try {
+            return OffsetDateTime.parse(key, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        } catch (DateTimeException e) {
+            return _rethrowDateTimeException(ctxt, OffsetDateTime.class, e, key);
+        }
     }
-
 }

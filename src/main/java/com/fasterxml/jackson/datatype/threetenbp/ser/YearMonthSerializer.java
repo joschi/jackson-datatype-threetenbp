@@ -16,17 +16,18 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import java.io.IOException;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.format.DateTimeFormatter;
+
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
+
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonIntegerFormatVisitor;
-import org.threeten.bp.YearMonth;
-import org.threeten.bp.format.DateTimeFormatter;
-
-import java.io.IOException;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
 
 /**
  * Serializer for ThreeTen temporal {@link YearMonth}s.
@@ -34,7 +35,8 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2
  */
-public class YearMonthSerializer extends ThreeTenFormattedSerializerBase<YearMonth> {
+public class YearMonthSerializer extends ThreeTenFormattedSerializerBase<YearMonth>
+{
     private static final long serialVersionUID = 1L;
 
     public static final YearMonthSerializer INSTANCE = new YearMonthSerializer();
@@ -57,7 +59,8 @@ public class YearMonthSerializer extends ThreeTenFormattedSerializerBase<YearMon
     }
 
     @Override
-    public void serialize(YearMonth yearMonth, JsonGenerator generator, SerializerProvider provider) throws IOException {
+    public void serialize(YearMonth yearMonth, JsonGenerator generator, SerializerProvider provider) throws IOException
+    {
         if (useTimestamp(provider)) {
             generator.writeStartArray();
             generator.writeNumber(yearMonth.getYear());
@@ -70,10 +73,17 @@ public class YearMonthSerializer extends ThreeTenFormattedSerializerBase<YearMon
     }
 
     @Override
-    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException {
-        JsonIntegerFormatVisitor v2 = visitor.expectIntegerFormat(typeHint);
-        if (v2 != null) {
-            v2.numberType(JsonParser.NumberType.LONG);
+    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException
+    {
+        SerializerProvider provider = visitor.getProvider();
+        boolean useTimestamp = (provider != null) && useTimestamp(provider);
+        if (useTimestamp) {
+            _acceptTimestampVisitor(visitor, typeHint);
+        } else {
+            JsonStringFormatVisitor v2 = visitor.expectStringFormat(typeHint);
+            if (v2 != null) {
+                v2.format(JsonValueFormat.DATE_TIME);
+            }
         }
     }
 }

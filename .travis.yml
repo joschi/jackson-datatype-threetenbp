@@ -4,7 +4,6 @@ install: mvn -B install -Dgpg.skip=true
 after_success:
   - mvn -B jacoco:report coveralls:report
 jdk:
-  - openjdk6
   - openjdk7
   - oraclejdk7
   - oraclejdk8

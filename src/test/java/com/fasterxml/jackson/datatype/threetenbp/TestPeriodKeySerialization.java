@@ -26,7 +26,7 @@ public class TestPeriodKeySerialization {
     public void setUp() {
         this.om = new ObjectMapper();
         om.registerModule(new ThreeTenModule());
-        map = new HashMap<Period, String>();
+        map = new HashMap<>();
     }
 
     /*

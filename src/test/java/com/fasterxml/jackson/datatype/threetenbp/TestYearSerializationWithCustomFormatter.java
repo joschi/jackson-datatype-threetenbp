@@ -52,7 +52,7 @@ public class TestYearSerializationWithCustomFormatter {
 
     @Parameters
     public static Collection<Object[]> customFormatters() {
-        Collection<Object[]> formatters = new ArrayList<Object[]>();
+        Collection<Object[]> formatters = new ArrayList<>();
         formatters.add(new Object[]{DateTimeFormatter.ofPattern("yyyy")});
         formatters.add(new Object[]{DateTimeFormatter.ofPattern("yy")});
         return formatters;

@@ -26,7 +26,6 @@ import org.threeten.bp.temporal.Temporal;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,12 +38,6 @@ public class TestLocalTimeSerialization
     {
         this.mapper = new ObjectMapper();
         this.mapper.registerModule(new ThreeTenModule());
-    }
-
-    @After
-    public void tearDown()
-    {
-
     }
 
     @Test
@@ -126,13 +119,13 @@ public class TestLocalTimeSerialization
     @Test
     public void testSerializationAsString01() throws Exception
     {
-        LocalTime time = LocalTime.of(15, 43);
+        LocalTime time = LocalTime.of(15, 43, 20);
 
         this.mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         String value = this.mapper.writeValueAsString(time);
 
         assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", '"' + time.toString() + '"', value);
+        assertEquals("The value is not correct.", "\"15:43:20\"", value);
     }
 
     @Test

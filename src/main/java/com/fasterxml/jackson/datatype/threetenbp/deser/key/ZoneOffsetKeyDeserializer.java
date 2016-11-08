@@ -1,7 +1,10 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser.key;
 
-import com.fasterxml.jackson.databind.DeserializationContext;
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
 import org.threeten.bp.ZoneOffset;
+
+import com.fasterxml.jackson.databind.DeserializationContext;
 
 public class ZoneOffsetKeyDeserializer extends ThreeTenKeyDeserializer {
 
@@ -12,8 +15,11 @@ public class ZoneOffsetKeyDeserializer extends ThreeTenKeyDeserializer {
     }
 
     @Override
-    protected ZoneOffset deserialize(String key, DeserializationContext ctxt) {
-        return ZoneOffset.of(key);
+    protected ZoneOffset deserialize(String key, DeserializationContext ctxt) throws IOException {
+        try {
+            return ZoneOffset.of(key);
+        } catch (DateTimeException e) {
+            return _rethrowDateTimeException(ctxt, ZoneOffset.class, e, key);
+        }
     }
-
 }

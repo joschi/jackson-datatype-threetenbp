@@ -16,83 +16,100 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.function.Function;
-import org.threeten.bp.MonthDay;
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Period;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZoneOffset;
 
-import java.io.IOException;
+import com.fasterxml.jackson.core.JsonParser;
+
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 
 /**
- * Deserializer for all ThreeTen temporal {@link java.time} types that cannot be represented with numbers and that have
- * parse functions that can take {@link String}s.
+ * Deserializer for all ThreeTen temporal {@link org.threeten.bp} types that cannot be represented
+ * with numbers and that have parse functions that can take {@link String}s,
+ * and where format is not configurable.
  *
  * @author Nick Williams
+ * @author Tatu Saloranta
+ *
  * @since 2.2
  */
-public final class ThreeTenStringParsableDeserializer<T> extends ThreeTenDeserializerBase<T> {
+public class ThreeTenStringParsableDeserializer
+    extends ThreeTenDeserializerBase<Object>
+{
     private static final long serialVersionUID = 1L;
 
-    public static final ThreeTenStringParsableDeserializer<MonthDay> MONTH_DAY =
-            new ThreeTenStringParsableDeserializer<MonthDay>(MonthDay.class, new Function<String, MonthDay>() {
-                @Override
-                public MonthDay apply(String s) {
-                    return MonthDay.parse(s);
-                }
-            });
+    protected final static int TYPE_PERIOD = 1;
+    protected final static int TYPE_ZONE_ID = 2;
+    protected final static int TYPE_ZONE_OFFSET = 3;
 
-    public static final ThreeTenStringParsableDeserializer<Period> PERIOD =
-            new ThreeTenStringParsableDeserializer<Period>(Period.class, new Function<String, Period>() {
-                @Override
-                public Period apply(String s) {
-                    return Period.parse(s);
-                }
-            });
+    public static final JsonDeserializer<Period> PERIOD =
+        createDeserializer(Period.class, TYPE_PERIOD);
 
-    public static final ThreeTenStringParsableDeserializer<ZoneId> ZONE_ID =
-            new ThreeTenStringParsableDeserializer<ZoneId>(ZoneId.class, new Function<String, ZoneId>() {
-                @Override
-                public ZoneId apply(String s) {
-                    return ZoneId.of(s);
-                }
-            });
+    public static final JsonDeserializer<ZoneId> ZONE_ID =
+        createDeserializer(ZoneId.class, TYPE_ZONE_ID);
 
-    public static final ThreeTenStringParsableDeserializer<ZoneOffset> ZONE_OFFSET =
-            new ThreeTenStringParsableDeserializer<ZoneOffset>(ZoneOffset.class, new Function<String, ZoneOffset>() {
-                @Override
-                public ZoneOffset apply(String s) {
-                    return ZoneOffset.of(s);
-                }
-            });
+    public static final JsonDeserializer<ZoneOffset> ZONE_OFFSET =
+        createDeserializer(ZoneOffset.class, TYPE_ZONE_OFFSET);
 
-    private final Function<String, T> parse;
+    protected final int _valueType;
 
-    private ThreeTenStringParsableDeserializer(Class<T> supportedType, Function<String, T> parse) {
-        super(supportedType);
-        this.parse = parse;
+    @SuppressWarnings("unchecked")
+    protected ThreeTenStringParsableDeserializer(Class<?> supportedType, int valueId)
+    {
+        super((Class<Object>)supportedType);
+        _valueType = valueId;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected static <T> JsonDeserializer<T> createDeserializer(Class<T> type, int typeId) {
+        return (JsonDeserializer<T>) new ThreeTenStringParsableDeserializer(type, typeId);
     }
 
     @Override
-    public T deserialize(JsonParser parser, DeserializationContext context) throws IOException {
-        String string = parser.getValueAsString().trim();
-        if (string.length() == 0) {
-            return null;
+    public Object deserialize(JsonParser parser, DeserializationContext context) throws IOException
+    {
+        if (parser.hasToken(JsonToken.VALUE_STRING)) {
+            String string = parser.getText().trim();
+            if (string.length() == 0) {
+                return null;
+            }
+            try {
+                switch (_valueType) {
+                case TYPE_PERIOD:
+                    return Period.parse(string);
+                case TYPE_ZONE_ID:
+                    return ZoneId.of(string);
+                case TYPE_ZONE_OFFSET:
+                    return ZoneOffset.of(string);
+                }
+            } catch (DateTimeException e) {
+                _rethrowDateTimeException(parser, context, e, string);
+            }
         }
-        return this.parse.apply(string);
+        if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
+            // 20-Apr-2016, tatu: Related to [databind#1208], can try supporting embedded
+            //    values quite easily
+            return parser.getEmbeddedObject();
+        }
+        throw context.wrongTokenException(parser, JsonToken.VALUE_STRING, null);
     }
 
     @Override
-    public Object deserializeWithType(JsonParser parser, DeserializationContext context, TypeDeserializer deserializer)
-            throws IOException {
-        /**
-         * This is a nasty kludge right here, working around issues like
+    public Object deserializeWithType(JsonParser parser, DeserializationContext context,
+            TypeDeserializer deserializer)
+        throws IOException
+    {
+        /* This is a nasty kludge right here, working around issues like
          * [datatype-jsr310#24]. But should work better than not having the work-around.
          */
-        if (parser.getCurrentToken().isScalarValue()) {
+        JsonToken t = parser.getCurrentToken();
+        if ((t != null) && t.isScalarValue()) {
             return deserialize(parser, context);
         }
         return deserializer.deserializeTypedFromAny(parser, context);

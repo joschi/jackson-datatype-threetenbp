@@ -31,7 +31,7 @@ public class TestLocalDateTimeKeySerialization {
     public void setUp() {
         this.om = new ObjectMapper();
         om.registerModule(new ThreeTenModule());
-        map = new HashMap<LocalDateTime, String>();
+        map = new HashMap<>();
     }
 
     /*

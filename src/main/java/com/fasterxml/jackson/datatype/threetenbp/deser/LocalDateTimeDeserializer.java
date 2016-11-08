@@ -16,16 +16,19 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.ZoneOffset;
+import org.threeten.bp.format.DateTimeFormatter;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.threeten.bp.LocalDateTime;
-import org.threeten.bp.format.DateTimeFormatter;
-
-import java.io.IOException;
 
 /**
  * Deserializer for ThreeTen temporal {@link LocalDateTime}s.
@@ -33,13 +36,17 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class LocalDateTimeDeserializer extends ThreeTenDateTimeDeserializerBase<LocalDateTime> {
+public class LocalDateTimeDeserializer
+    extends ThreeTenDateTimeDeserializerBase<LocalDateTime>
+{
     private static final long serialVersionUID = 1L;
+
+    private static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     public static final LocalDateTimeDeserializer INSTANCE = new LocalDateTimeDeserializer();
 
     private LocalDateTimeDeserializer() {
-        this(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        this(DEFAULT_FORMATTER);
     }
 
     public LocalDateTimeDeserializer(DateTimeFormatter formatter) {
@@ -52,50 +59,62 @@ public class LocalDateTimeDeserializer extends ThreeTenDateTimeDeserializerBase<
     }
 
     @Override
-    public LocalDateTime deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    public LocalDateTime deserialize(JsonParser parser, DeserializationContext context) throws IOException
+    {
         if (parser.hasTokenId(JsonTokenId.ID_STRING)) {
             String string = parser.getText().trim();
             if (string.length() == 0) {
                 return null;
             }
-            return LocalDateTime.parse(string, _formatter);
+
+            try {
+	            if (_formatter == DEFAULT_FORMATTER) {
+	                // JavaScript by default includes time and zone in JSON serialized Dates (UTC/ISO instant format).
+	                if (string.length() > 10 && string.charAt(10) == 'T') {
+	                   if (string.endsWith("Z")) {
+	                       return LocalDateTime.ofInstant(Instant.parse(string), ZoneOffset.UTC);
+	                   } else {
+	                       return LocalDateTime.parse(string, DEFAULT_FORMATTER);
+	                   }
+	                }
+	            }
+
+                return LocalDateTime.parse(string, _formatter);
+            } catch (DateTimeException e) {
+                _rethrowDateTimeException(parser, context, e, string);
+            }
         }
         if (parser.isExpectedStartArrayToken()) {
             if (parser.nextToken() == JsonToken.END_ARRAY) {
                 return null;
             }
             int year = parser.getIntValue();
-
-            parser.nextToken();
-            int month = parser.getIntValue();
-
-            parser.nextToken();
-            int day = parser.getIntValue();
-
-            parser.nextToken();
-            int hour = parser.getIntValue();
-
-            parser.nextToken();
-            int minute = parser.getIntValue();
+            int month = parser.nextIntValue(-1);
+            int day = parser.nextIntValue(-1);
+            int hour = parser.nextIntValue(-1);
+            int minute = parser.nextIntValue(-1);
 
             if (parser.nextToken() != JsonToken.END_ARRAY) {
-                int second = parser.getIntValue();
+            	int second = parser.getIntValue();
 
-                if (parser.nextToken() != JsonToken.END_ARRAY) {
-                    int partialSecond = parser.getIntValue();
-                    if (partialSecond < 1000 &&
-                            !context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS))
-                        partialSecond *= 1000000; // value is milliseconds, convert it to nanoseconds
+            	if (parser.nextToken() != JsonToken.END_ARRAY) {
+            		int partialSecond = parser.getIntValue();
+            		if(partialSecond < 1_000 &&
+            				!context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS))
+            			partialSecond *= 1_000_000; // value is milliseconds, convert it to nanoseconds
 
-                    if (parser.nextToken() != JsonToken.END_ARRAY) {
-                        throw context.wrongTokenException(parser, JsonToken.END_ARRAY, "Expected array to end.");
-                    }
-                    return LocalDateTime.of(year, month, day, hour, minute, second, partialSecond);
-                }
-                return LocalDateTime.of(year, month, day, hour, minute, second);
+            		if(parser.nextToken() != JsonToken.END_ARRAY) {
+            			throw context.wrongTokenException(parser, JsonToken.END_ARRAY, "Expected array to end.");
+            		}
+            		return LocalDateTime.of(year, month, day, hour, minute, second, partialSecond);
+            	}
+            	return LocalDateTime.of(year, month, day, hour, minute, second);
             }
             return LocalDateTime.of(year, month, day, hour, minute);
         }
-        throw context.wrongTokenException(parser, JsonToken.START_ARRAY, "Expected array or string.");
+        if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
+            return (LocalDateTime) parser.getEmbeddedObject();
+        }
+        throw context.wrongTokenException(parser, JsonToken.VALUE_STRING, "Expected array or string.");
     }
 }

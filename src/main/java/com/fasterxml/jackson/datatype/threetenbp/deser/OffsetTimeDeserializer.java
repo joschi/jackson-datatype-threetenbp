@@ -16,23 +16,22 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
 import org.threeten.bp.OffsetTime;
 import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.format.DateTimeFormatter;
 
-import java.io.IOException;
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
 
 /**
  * Deserializer for ThreeTen temporal {@link OffsetTime}s.
  *
  * @author Nick Williams
  */
-public class OffsetTimeDeserializer extends ThreeTenDateTimeDeserializerBase<OffsetTime> {
+public class OffsetTimeDeserializer extends ThreeTenDateTimeDeserializerBase<OffsetTime>
+{
     private static final long serialVersionUID = 1L;
 
     public static final OffsetTimeDeserializer INSTANCE = new OffsetTimeDeserializer();
@@ -49,17 +48,25 @@ public class OffsetTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Off
     protected JsonDeserializer<OffsetTime> withDateFormat(DateTimeFormatter dtf) {
         return new OffsetTimeDeserializer(dtf);
     }
-
+    
     @Override
-    public OffsetTime deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    public OffsetTime deserialize(JsonParser parser, DeserializationContext context) throws IOException
+    {
         if (parser.hasToken(JsonToken.VALUE_STRING)) {
             String string = parser.getText().trim();
             if (string.length() == 0) {
                 return null;
             }
-            return OffsetTime.parse(string, _formatter);
+            try {
+                return OffsetTime.parse(string, _formatter);
+            } catch (DateTimeException e) {
+                _rethrowDateTimeException(parser, context, e, string);
+            }
         }
         if (!parser.isExpectedStartArrayToken()) {
+            if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
+                return (OffsetTime) parser.getEmbeddedObject();
+            }
             throw context.wrongTokenException(parser, JsonToken.START_ARRAY, "Expected array or string.");
         }
         int hour = parser.nextIntValue(-1);
@@ -90,15 +97,15 @@ public class OffsetTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Off
             second = parser.getIntValue();
             if (parser.nextToken() == JsonToken.VALUE_NUMBER_INT) {
                 partialSecond = parser.getIntValue();
-                if (partialSecond < 1000 &&
+                if (partialSecond < 1_000 &&
                         !context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
-                    partialSecond *= 1000000; // value is milliseconds, convert it to nanoseconds
+                    partialSecond *= 1_000_000; // value is milliseconds, convert it to nanoseconds
                 }
                 parser.nextToken();
             }
         }
         if (parser.getCurrentToken() == JsonToken.VALUE_STRING) {
-            OffsetTime t = OffsetTime.of(hour, minute, second, partialSecond, ZoneOffset.of(parser.getText()));
+            OffsetTime t =  OffsetTime.of(hour, minute, second, partialSecond, ZoneOffset.of(parser.getText()));
             if (parser.nextToken() != JsonToken.END_ARRAY) {
                 _reportWrongToken(parser, context, JsonToken.END_ARRAY, "timezone");
             }

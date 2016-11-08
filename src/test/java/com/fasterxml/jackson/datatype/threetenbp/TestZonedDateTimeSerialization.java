@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class TestZonedDateTimeSerialization
@@ -48,15 +47,14 @@ public class TestZonedDateTimeSerialization
 
     private static final ZoneId Z3 = ZoneId.of("America/Los_Angeles");
 
-    private static final ZoneId GMT = ZoneId.of("GMT");
+    private static final ZoneId UTC = ZoneId.of("UTC");
 
-    private static final ZoneId DEFAULT_TZ = GMT;
+    private static final ZoneId DEFAULT_TZ = UTC;
 
     private static final ZoneId FIX_OFFSET = ZoneId.of("-08:00");
 
     final static class Wrapper {
-        @JsonFormat(
-                pattern="yyyy_MM_dd HH:mm:ss(Z)",
+        @JsonFormat(pattern="yyyy_MM_dd HH:mm:ss(Z)",
                 shape=JsonFormat.Shape.STRING)
         public ZonedDateTime value;
 
@@ -64,13 +62,17 @@ public class TestZonedDateTimeSerialization
         public Wrapper(ZonedDateTime v) { value = v; }
     }
 
-    private ObjectMapper mapper;
+    final static class WrapperNumeric {
+        @JsonFormat(pattern="yyyyMMddHHmmss",
+                shape=JsonFormat.Shape.STRING,
+                timezone = "UTC")
+        public ZonedDateTime value;
 
-    @Before
-    public void setUp()
-    {
-        mapper = newMapper();
+        public WrapperNumeric() { }
+        public WrapperNumeric(ZonedDateTime v) { value = v; }
     }
+
+    private final ObjectMapper mapper = newMapper();
 
     @Test
     public void testSerializationAsTimestamp01Nanoseconds() throws Exception
@@ -81,7 +83,7 @@ public class TestZonedDateTimeSerialization
                 .with(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .with(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .writeValueAsString(date);
-        assertEquals("The value is not correct.", "0.000000000", value);
+        assertEquals("The value is not correct.", "0.0", value);
     }
 
     @Test
@@ -453,7 +455,7 @@ public class TestZonedDateTimeSerialization
     public void testDeserializationAsInt03MillisecondsWithoutTimeZone() throws Exception
     {
         ZonedDateTime date = ZonedDateTime.now(Z3);
-        date = date.minus(date.getNano() - (date.get(ChronoField.MILLI_OF_SECOND) * 1000000L), ChronoUnit.NANOS);
+        date = date.minus(date.getNano() - (date.get(ChronoField.MILLI_OF_SECOND) * 1_000_000L), ChronoUnit.NANOS);
 
         this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
         ZonedDateTime value =
@@ -468,7 +470,7 @@ public class TestZonedDateTimeSerialization
     public void testDeserializationAsInt03MillisecondsWithTimeZone() throws Exception
     {
         ZonedDateTime date = ZonedDateTime.now(Z3);
-        date = date.minus(date.getNano() - (date.get(ChronoField.MILLI_OF_SECOND) * 1000000L), ChronoUnit.NANOS);
+        date = date.minus(date.getNano() - (date.get(ChronoField.MILLI_OF_SECOND) * 1_000_000L), ChronoUnit.NANOS);
 
         this.mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
         this.mapper.setTimeZone(TimeZone.getDefault());
@@ -788,7 +790,7 @@ public class TestZonedDateTimeSerialization
     @Test
     public void testCustomPatternWithAnnotations() throws Exception
     {
-        ZonedDateTime inputValue = ZonedDateTime.ofInstant(Instant.ofEpochSecond(0L), GMT);
+        ZonedDateTime inputValue = ZonedDateTime.ofInstant(Instant.ofEpochSecond(0L), UTC);
         final Wrapper input = new Wrapper(inputValue);
         ObjectMapper m = newMapper()
                 .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
@@ -797,6 +799,19 @@ public class TestZonedDateTimeSerialization
 
         Wrapper result = m.readValue(json, Wrapper.class);
         // looks like timezone gets converted (is that correct or not?); verify just offsets for now
+        assertEquals(input.value.toInstant(), result.value.toInstant());
+    }
+
+    @Test
+    public void testNumericCustomPatternWithAnnotations() throws Exception
+    {
+        ZonedDateTime inputValue = ZonedDateTime.ofInstant(Instant.ofEpochSecond(0L), UTC);
+        final WrapperNumeric input = new WrapperNumeric(inputValue);
+        ObjectMapper m = newMapper();
+        String json = m.writeValueAsString(input);
+        assertEquals(aposToQuotes("{'value':'19700101000000'}"), json);
+
+        WrapperNumeric result = m.readValue(json, WrapperNumeric.class);
         assertEquals(input.value.toInstant(), result.value.toInstant());
     }
 

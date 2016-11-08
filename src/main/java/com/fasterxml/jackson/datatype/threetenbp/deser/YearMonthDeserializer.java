@@ -17,14 +17,14 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.threeten.bp.YearMonth;
-import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.IOException;
-
+import org.threeten.bp.DateTimeException;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.format.DateTimeFormatter;
 
 /**
  * Deserializer for ThreeTen temporal {@link YearMonth}s.
@@ -32,27 +32,42 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class YearMonthDeserializer extends ThreeTenDateTimeDeserializerBase<YearMonth> {
+public class YearMonthDeserializer extends ThreeTenDateTimeDeserializerBase<YearMonth>
+{
     private static final long serialVersionUID = 1L;
 
     public static final YearMonthDeserializer INSTANCE = new YearMonthDeserializer();
 
-    private YearMonthDeserializer() {
+    private YearMonthDeserializer()
+    {
         this(DateTimeFormatter.ofPattern("uuuu-MM"));
     }
-
-    public YearMonthDeserializer(DateTimeFormatter formatter) {
+    
+    public YearMonthDeserializer(DateTimeFormatter formatter)
+    {
         super(YearMonth.class, formatter);
     }
 
     @Override
-    protected JsonDeserializer<YearMonth> withDateFormat(DateTimeFormatter dtf) {
+    protected JsonDeserializer<YearMonth> withDateFormat(DateTimeFormatter dtf) 
+    {
         return new YearMonthDeserializer(dtf);
     }
 
-
     @Override
-    public YearMonth deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    public YearMonth deserialize(JsonParser parser, DeserializationContext context) throws IOException
+    {
+        if (parser.hasToken(JsonToken.VALUE_STRING)) {
+            String string = parser.getText().trim();
+            if (string.length() == 0) {
+                return null;
+            }
+            try {
+                return YearMonth.parse(string, _formatter);
+            } catch (DateTimeException e) {
+                _rethrowDateTimeException(parser, context, e, string);
+            }
+        }
         if (parser.isExpectedStartArrayToken()) {
             int year = parser.nextIntValue(-1);
             if (year == -1) {
@@ -77,13 +92,9 @@ public class YearMonthDeserializer extends ThreeTenDateTimeDeserializerBase<Year
             }
             return YearMonth.of(year, month);
         }
-        if (parser.hasToken(JsonToken.VALUE_STRING)) {
-            String string = parser.getText().trim();
-            if (string.length() == 0) {
-                return null;
-            }
-            return YearMonth.parse(string, _formatter);
+        if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
+            return (YearMonth) parser.getEmbeddedObject();
         }
-        throw context.wrongTokenException(parser, JsonToken.START_ARRAY, "Expected array or string.");
+        return _reportWrongToken(parser, context, JsonToken.VALUE_STRING, JsonToken.START_ARRAY);
     }
 }

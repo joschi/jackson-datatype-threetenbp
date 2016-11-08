@@ -1,8 +1,13 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser.key;
 
-import com.fasterxml.jackson.databind.DeserializationContext;
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Instant;
 import org.threeten.bp.format.DateTimeFormatter;
+
+import com.fasterxml.jackson.databind.DeserializationContext;
+import org.threeten.bp.temporal.TemporalAccessor;
+import org.threeten.bp.temporal.TemporalQuery;
 
 public class InstantKeyDeserializer extends ThreeTenKeyDeserializer {
 
@@ -13,8 +18,16 @@ public class InstantKeyDeserializer extends ThreeTenKeyDeserializer {
     }
 
     @Override
-    protected Instant deserialize(String key, DeserializationContext ctxt) {
-        return Instant.from(DateTimeFormatter.ISO_INSTANT.parse(key));
+    protected Instant deserialize(String key, DeserializationContext ctxt) throws IOException {
+        try {
+            return DateTimeFormatter.ISO_INSTANT.parse(key, new TemporalQuery<Instant>() {
+                @Override
+                public Instant queryFrom(TemporalAccessor temporal) {
+                    return Instant.from(temporal);
+                }
+            });
+        } catch (DateTimeException e) {
+            return _rethrowDateTimeException(ctxt, Instant.class, e, key);
+        }
     }
-
 }

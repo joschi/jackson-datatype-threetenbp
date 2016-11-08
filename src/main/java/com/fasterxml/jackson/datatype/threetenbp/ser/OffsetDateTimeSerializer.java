@@ -5,7 +5,8 @@ import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 
-public class OffsetDateTimeSerializer extends InstantSerializerBase<OffsetDateTime> {
+public class OffsetDateTimeSerializer extends InstantSerializerBase<OffsetDateTime>
+{
     private static final long serialVersionUID = 1L;
 
     public static final OffsetDateTimeSerializer INSTANCE = new OffsetDateTimeSerializer();
@@ -14,27 +15,27 @@ public class OffsetDateTimeSerializer extends InstantSerializerBase<OffsetDateTi
         super(OffsetDateTime.class,
                 new ToLongFunction<OffsetDateTime>() {
                     @Override
-                    public long applyAsLong(OffsetDateTime value) {
-                        return value.toInstant().toEpochMilli();
+                    public long applyAsLong(OffsetDateTime dt) {
+                        return dt.toInstant().toEpochMilli();
                     }
                 },
                 new ToLongFunction<OffsetDateTime>() {
                     @Override
-                    public long applyAsLong(OffsetDateTime value) {
-                        return value.toEpochSecond();
+                    public long applyAsLong(OffsetDateTime dt) {
+                        return dt.toEpochSecond();
                     }
                 },
                 new ToIntFunction<OffsetDateTime>() {
                     @Override
-                    public int applyAsInt(OffsetDateTime value) {
-                        return value.getNano();
+                    public int applyAsInt(OffsetDateTime dt) {
+                        return dt.getNano();
                     }
                 },
                 DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 
     protected OffsetDateTimeSerializer(OffsetDateTimeSerializer base,
-                                       Boolean useTimestamp, DateTimeFormatter formatter) {
+            Boolean useTimestamp, DateTimeFormatter formatter) {
         super(base, useTimestamp, formatter);
     }
 

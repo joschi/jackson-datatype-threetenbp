@@ -24,7 +24,7 @@ public class TestMonthDayKeySerialization {
     public void setUp() {
         this.om = new ObjectMapper();
         om.registerModule(new ThreeTenModule());
-        map = new HashMap<MonthDay, String>();
+        map = new HashMap<>();
     }
 
     /*

@@ -30,7 +30,7 @@ public class TestOffsetDateTimeKeySerialization {
     public void setUp() {
         this.om = new ObjectMapper();
         om.registerModule(new ThreeTenModule());
-        map = new HashMap<OffsetDateTime, String>();
+        map = new HashMap<>();
     }
 
     /*

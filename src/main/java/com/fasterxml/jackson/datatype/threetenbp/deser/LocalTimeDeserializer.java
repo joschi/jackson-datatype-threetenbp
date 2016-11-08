@@ -16,15 +16,16 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
+import org.threeten.bp.LocalTime;
+import org.threeten.bp.format.DateTimeFormatter;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.threeten.bp.LocalTime;
-import org.threeten.bp.format.DateTimeFormatter;
-
-import java.io.IOException;
 
 /**
  * Deserializer for ThreeTen temporal {@link LocalTime}s.
@@ -32,9 +33,10 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2.0
  */
-public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<LocalTime> {
+public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<LocalTime>
+{
     private static final long serialVersionUID = 1L;
-
+    
     private static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ISO_LOCAL_TIME;
 
     public static final LocalTimeDeserializer INSTANCE = new LocalTimeDeserializer();
@@ -51,21 +53,26 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
     protected JsonDeserializer<LocalTime> withDateFormat(DateTimeFormatter formatter) {
         return new LocalTimeDeserializer(formatter);
     }
-
+    
     @Override
-    public LocalTime deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    public LocalTime deserialize(JsonParser parser, DeserializationContext context) throws IOException
+    {
         if (parser.hasToken(JsonToken.VALUE_STRING)) {
             String string = parser.getText().trim();
             if (string.length() == 0) {
                 return null;
             }
             DateTimeFormatter format = _formatter;
-            if (format == DEFAULT_FORMATTER) {
-                if (string.contains("T")) {
-                    return LocalTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            try {
+                if (format == DEFAULT_FORMATTER) {
+    	            if (string.contains("T")) {
+    	                return LocalTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    	            }
                 }
+                return LocalTime.parse(string, format);
+            } catch (DateTimeException e) {
+                _rethrowDateTimeException(parser, context, e, string);
             }
-            return LocalTime.parse(string, format);
         }
         if (parser.isExpectedStartArrayToken()) {
             if (parser.nextToken() == JsonToken.END_ARRAY) {
@@ -76,16 +83,18 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
             parser.nextToken();
             int minute = parser.getIntValue();
 
-            if (parser.nextToken() != JsonToken.END_ARRAY) {
+            if(parser.nextToken() != JsonToken.END_ARRAY)
+            {
                 int second = parser.getIntValue();
 
-                if (parser.nextToken() != JsonToken.END_ARRAY) {
+                if(parser.nextToken() != JsonToken.END_ARRAY)
+                {
                     int partialSecond = parser.getIntValue();
-                    if (partialSecond < 1000 &&
+                    if(partialSecond < 1_000 &&
                             !context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS))
-                        partialSecond *= 1000000; // value is milliseconds, convert it to nanoseconds
+                        partialSecond *= 1_000_000; // value is milliseconds, convert it to nanoseconds
 
-                    if (parser.nextToken() != JsonToken.END_ARRAY)
+                    if(parser.nextToken() != JsonToken.END_ARRAY)
                         throw context.wrongTokenException(parser, JsonToken.END_ARRAY, "Expected array to end.");
 
                     return LocalTime.of(hour, minute, second, partialSecond);
@@ -94,6 +103,9 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
                 return LocalTime.of(hour, minute, second);
             }
             return LocalTime.of(hour, minute);
+        }
+        if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
+            return (LocalTime) parser.getEmbeddedObject();
         }
         throw context.wrongTokenException(parser, JsonToken.START_ARRAY, "Expected array or string.");
     }

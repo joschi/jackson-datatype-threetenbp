@@ -1,8 +1,11 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser.key;
 
-import com.fasterxml.jackson.databind.DeserializationContext;
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
 import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
+
+import com.fasterxml.jackson.databind.DeserializationContext;
 
 public class ZonedDateTimeKeyDeserializer extends ThreeTenKeyDeserializer {
 
@@ -13,9 +16,12 @@ public class ZonedDateTimeKeyDeserializer extends ThreeTenKeyDeserializer {
     }
 
     @Override
-    protected ZonedDateTime deserialize(String key, DeserializationContext ctxt) {
+    protected ZonedDateTime deserialize(String key, DeserializationContext ctxt) throws IOException {
         // not serializing timezone data yet
-        return ZonedDateTime.parse(key, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        try {
+            return ZonedDateTime.parse(key, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        } catch (DateTimeException e) {
+            return _rethrowDateTimeException(ctxt, ZonedDateTime.class, e, key);
+        }
     }
-
 }

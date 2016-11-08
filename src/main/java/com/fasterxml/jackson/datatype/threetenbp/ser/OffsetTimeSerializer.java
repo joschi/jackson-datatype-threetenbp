@@ -19,11 +19,11 @@ package com.fasterxml.jackson.datatype.threetenbp.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
+
+import java.io.IOException;
 import org.threeten.bp.OffsetTime;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.ChronoField;
-
-import java.io.IOException;
 
 /**
  * Serializer for ThreeTen temporal {@link OffsetTime}s.
@@ -31,7 +31,8 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2
  */
-public class OffsetTimeSerializer extends ThreeTenFormattedSerializerBase<OffsetTime> {
+public class OffsetTimeSerializer extends ThreeTenFormattedSerializerBase<OffsetTime>
+{
     private static final long serialVersionUID = 1L;
 
     public static final OffsetTimeSerializer INSTANCE = new OffsetTimeSerializer();
@@ -41,7 +42,7 @@ public class OffsetTimeSerializer extends ThreeTenFormattedSerializerBase<Offset
     }
 
     protected OffsetTimeSerializer(OffsetTimeSerializer base,
-                                   Boolean useTimestamp, DateTimeFormatter dtf) {
+            Boolean useTimestamp, DateTimeFormatter dtf) {
         super(base, useTimestamp, dtf);
     }
 
@@ -49,19 +50,22 @@ public class OffsetTimeSerializer extends ThreeTenFormattedSerializerBase<Offset
     protected OffsetTimeSerializer withFormat(Boolean useTimestamp, DateTimeFormatter dtf) {
         return new OffsetTimeSerializer(this, useTimestamp, dtf);
     }
-
+    
     @Override
-    public void serialize(OffsetTime time, JsonGenerator gen, SerializerProvider provider) throws IOException {
+    public void serialize(OffsetTime time, JsonGenerator gen, SerializerProvider provider) throws IOException
+    {
         if (useTimestamp(provider)) {
             gen.writeStartArray();
             gen.writeNumber(time.getHour());
             gen.writeNumber(time.getMinute());
             final int secs = time.getSecond();
             final int nanos = time.getNano();
-            if (secs > 0 || nanos > 0) {
+            if (secs > 0 || nanos > 0)
+            {
                 gen.writeNumber(secs);
-                if (nanos > 0) {
-                    if (provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS))
+                if (nanos > 0)
+                {
+                    if(provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS))
                         gen.writeNumber(nanos);
                     else
                         gen.writeNumber(time.get(ChronoField.MILLI_OF_SECOND));

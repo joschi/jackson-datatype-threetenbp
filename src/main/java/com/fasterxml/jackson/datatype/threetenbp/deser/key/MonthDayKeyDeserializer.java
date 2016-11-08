@@ -1,12 +1,15 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser.key;
 
-import com.fasterxml.jackson.databind.DeserializationContext;
+import static org.threeten.bp.temporal.ChronoField.DAY_OF_MONTH;
+import static org.threeten.bp.temporal.ChronoField.MONTH_OF_YEAR;
+
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
 import org.threeten.bp.MonthDay;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.format.DateTimeFormatterBuilder;
 
-import static org.threeten.bp.temporal.ChronoField.DAY_OF_MONTH;
-import static org.threeten.bp.temporal.ChronoField.MONTH_OF_YEAR;
+import com.fasterxml.jackson.databind.DeserializationContext;
 
 public class MonthDayKeyDeserializer extends ThreeTenKeyDeserializer {
 
@@ -25,8 +28,11 @@ public class MonthDayKeyDeserializer extends ThreeTenKeyDeserializer {
     }
 
     @Override
-    protected MonthDay deserialize(String key, DeserializationContext ctxt) {
-        return MonthDay.parse(key, PARSER);
+    protected MonthDay deserialize(String key, DeserializationContext ctxt) throws IOException {
+        try {
+            return MonthDay.parse(key, PARSER);
+        } catch (DateTimeException e) {
+            return _rethrowDateTimeException(ctxt, MonthDay.class, e, key);
+        }
     }
-
 }

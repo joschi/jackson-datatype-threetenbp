@@ -16,25 +16,20 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import java.lang.reflect.Type;
+
+import org.threeten.bp.DateTimeUtils;
+import org.threeten.bp.format.DateTimeFormatter;
+import java.util.Locale;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
-import org.threeten.bp.format.DateTimeFormatter;
-
-import java.lang.reflect.Type;
-import java.util.Locale;
 
 /**
  * Base class that provides an array schema instead of scalar schema if
@@ -44,8 +39,9 @@ import java.util.Locale;
  * @since 2.2
  */
 abstract class ThreeTenFormattedSerializerBase<T>
-        extends ThreeTenSerializerBase<T>
-        implements ContextualSerializer {
+    extends ThreeTenSerializerBase<T>
+    implements ContextualSerializer
+{
     private static final long serialVersionUID = 1L;
 
     /**
@@ -53,7 +49,7 @@ abstract class ThreeTenFormattedSerializerBase<T>
      * Java timestamp, regardless of other settings.
      */
     protected final Boolean _useTimestamp;
-
+    
     /**
      * Specific format to use, if not default format: non null value
      * also indicates that serialization is to be done as JSON String,
@@ -71,9 +67,10 @@ abstract class ThreeTenFormattedSerializerBase<T>
         _useTimestamp = null;
         _formatter = formatter;
     }
-
+    
     protected ThreeTenFormattedSerializerBase(ThreeTenFormattedSerializerBase<?> base,
-                                              Boolean useTimestamp, DateTimeFormatter dtf) {
+                                              Boolean useTimestamp, DateTimeFormatter dtf)
+    {            
         super(base.handledType());
         _useTimestamp = useTimestamp;
         _formatter = dtf;
@@ -82,50 +79,70 @@ abstract class ThreeTenFormattedSerializerBase<T>
     protected abstract ThreeTenFormattedSerializerBase<?> withFormat(Boolean useTimestamp,
                                                                      DateTimeFormatter dtf);
 
+    /**
+     * @since 2.8
+     */
+    protected ThreeTenFormattedSerializerBase<?> withFeatures(Boolean writeZoneId) {
+        // 01-Jul-2016, tatu: Sub-classes need to override
+        return this;
+    }
+    
     @Override
     public JsonSerializer<?> createContextual(SerializerProvider prov,
-                                              BeanProperty property) throws JsonMappingException {
-        if (property != null) {
-            JsonFormat.Value format = prov.getAnnotationIntrospector().findFormat((Annotated) property.getMember());
-            if (format != null) {
-                Boolean useTimestamp = null;
+            BeanProperty property) throws JsonMappingException
+    {
+        JsonFormat.Value format = findFormatOverrides(prov, property, handledType());
+        if (format != null) {
+            Boolean useTimestamp = null;
 
-                // Simple case first: serialize as numeric timestamp?
-                JsonFormat.Shape shape = format.getShape();
-                if (shape == JsonFormat.Shape.ARRAY || shape.isNumeric()) {
-                    useTimestamp = Boolean.TRUE;
+           // Simple case first: serialize as numeric timestamp?
+            JsonFormat.Shape shape = format.getShape();
+            if (shape == JsonFormat.Shape.ARRAY || shape.isNumeric() ) {
+                useTimestamp = Boolean.TRUE;
+            } else {
+                useTimestamp = (shape == JsonFormat.Shape.STRING) ? Boolean.FALSE : null;
+            }
+            DateTimeFormatter dtf = _formatter;
+
+            // If not, do we have a pattern?
+            if (format.hasPattern()) {
+                final String pattern = format.getPattern();
+                final Locale locale = format.hasLocale() ? format.getLocale() : prov.getLocale();
+                if (locale == null) {
+                    dtf = DateTimeFormatter.ofPattern(pattern);
                 } else {
-                    useTimestamp = (shape == JsonFormat.Shape.STRING) ? Boolean.FALSE : null;
+                    dtf = DateTimeFormatter.ofPattern(pattern, locale);
                 }
-                DateTimeFormatter dtf = _formatter;
-
-                // If not, do we have a pattern?
-                if (format.hasPattern()) {
-                    final String pattern = format.getPattern();
-                    final Locale locale = format.hasLocale() ? format.getLocale() : prov.getLocale();
-                    if (locale == null) {
-                        dtf = DateTimeFormatter.ofPattern(pattern);
-                    } else {
-                        dtf = DateTimeFormatter.ofPattern(pattern, locale);
-                    }
-                }
-                if (useTimestamp != _useTimestamp || dtf != _formatter) {
-                    return withFormat(useTimestamp, dtf);
+                //Issue #69: For instant serializers/deserializers we need to configure the formatter with
+                //a time zone picked up from JsonFormat annotation, otherwise serialization might not work
+                if (format.hasTimeZone()) {
+                    dtf = dtf.withZone(DateTimeUtils.toZoneId(format.getTimeZone()));
                 }
             }
+            ThreeTenFormattedSerializerBase<?> ser = this;
+            if ((useTimestamp != _useTimestamp) || (dtf != _formatter)) {
+                ser = ser.withFormat(useTimestamp, dtf);
+            }
+            Boolean writeZoneId = format.getFeature(JsonFormat.Feature.WRITE_DATES_WITH_ZONE_ID);
+            if (writeZoneId != null) {
+                ser = ser.withFeatures(writeZoneId);
+            }
+            return ser;
         }
         return this;
     }
 
     @Override
-    public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+    {
         return createSchemaNode(
                 provider.isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) ? "array" : "string", true
         );
     }
 
     @Override
-    public void acceptJsonFormatVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException {
+    public void acceptJsonFormatVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException
+    {
         SerializerProvider provider = visitor.getProvider();
         boolean useTimestamp = (provider != null) && useTimestamp(provider);
         if (useTimestamp) {
@@ -138,7 +155,8 @@ abstract class ThreeTenFormattedSerializerBase<T>
         }
     }
 
-    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException {
+    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException
+    {
         // By default, most sub-types use JSON Array, so do this:
         JsonArrayFormatVisitor v2 = visitor.expectArrayFormat(typeHint);
         if (v2 != null) {
@@ -151,9 +169,16 @@ abstract class ThreeTenFormattedSerializerBase<T>
             return _useTimestamp.booleanValue();
         }
         // assume that explicit formatter definition implies use of textual format
-        if (_formatter != null) {
+        if (_formatter != null) { 
             return false;
         }
         return provider.isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+
+    protected boolean _useTimestampExplicitOnly(SerializerProvider provider) {
+        if (_useTimestamp != null) {
+            return _useTimestamp.booleanValue();
+        }
+        return false;
     }
 }

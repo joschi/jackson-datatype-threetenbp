@@ -26,7 +26,7 @@ public class TestZoneOffsetKeySerialization {
     public void setUp() {
         this.om = new ObjectMapper();
         om.registerModule(new ThreeTenModule());
-        map = new HashMap<ZoneOffset, String>();
+        map = new HashMap<>();
     }
 
     /*

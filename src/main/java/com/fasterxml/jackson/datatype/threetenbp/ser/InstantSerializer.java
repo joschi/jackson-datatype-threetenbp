@@ -29,7 +29,8 @@ import org.threeten.bp.format.DateTimeFormatter;
  * @author Nick Williams
  * @since 2.2
  */
-public final class InstantSerializer extends InstantSerializerBase<Instant> {
+public final class InstantSerializer extends InstantSerializerBase<Instant>
+{
     private static final long serialVersionUID = 1L;
 
     public static final InstantSerializer INSTANCE = new InstantSerializer();
@@ -59,7 +60,7 @@ public final class InstantSerializer extends InstantSerializerBase<Instant> {
     }
 
     protected InstantSerializer(InstantSerializer base,
-                                Boolean useTimestamp, DateTimeFormatter formatter) {
+            Boolean useTimestamp, DateTimeFormatter formatter) {
         super(base, useTimestamp, formatter);
     }
 

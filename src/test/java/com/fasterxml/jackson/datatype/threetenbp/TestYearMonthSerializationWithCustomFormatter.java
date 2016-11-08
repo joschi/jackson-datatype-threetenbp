@@ -1,8 +1,8 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -52,7 +52,7 @@ public class TestYearMonthSerializationWithCustomFormatter {
 
     @Parameters
     public static Collection<Object[]> customFormatters() {
-        Collection<Object[]> formatters = new ArrayList<Object[]>();
+        Collection<Object[]> formatters = new ArrayList<>();
         formatters.add(new Object[]{DateTimeFormatter.ofPattern("uuuu-MM")});
         formatters.add(new Object[]{DateTimeFormatter.ofPattern("uu-M")});
         return formatters;

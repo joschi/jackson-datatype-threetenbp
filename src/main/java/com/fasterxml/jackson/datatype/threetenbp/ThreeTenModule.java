@@ -16,6 +16,22 @@
 
 package com.fasterxml.jackson.datatype.threetenbp;
 
+import com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer;
+import org.threeten.bp.Duration;
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.LocalTime;
+import org.threeten.bp.MonthDay;
+import org.threeten.bp.OffsetDateTime;
+import org.threeten.bp.OffsetTime;
+import org.threeten.bp.Period;
+import org.threeten.bp.Year;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZoneOffset;
+import org.threeten.bp.ZonedDateTime;
+
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
@@ -28,11 +44,12 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.DurationDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.InstantDeserializer;
+import com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalTimeDeserializer;
+import com.fasterxml.jackson.datatype.threetenbp.deser.MonthDayDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.OffsetTimeDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.ThreeTenStringParsableDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.YearDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.YearMonthDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.key.DurationKeyDeserializer;
@@ -54,41 +71,27 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.InstantSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.LocalTimeSerializer;
+import com.fasterxml.jackson.datatype.threetenbp.ser.MonthDaySerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.OffsetDateTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.OffsetTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.YearMonthSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.YearSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.ZonedDateTimeSerializer;
-import com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.key.ZonedDateTimeKeySerializer;
-import org.threeten.bp.Duration;
-import org.threeten.bp.Instant;
-import org.threeten.bp.LocalDate;
-import org.threeten.bp.LocalDateTime;
-import org.threeten.bp.LocalTime;
-import org.threeten.bp.MonthDay;
-import org.threeten.bp.OffsetDateTime;
-import org.threeten.bp.OffsetTime;
-import org.threeten.bp.Period;
-import org.threeten.bp.Year;
-import org.threeten.bp.YearMonth;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZoneOffset;
-import org.threeten.bp.ZonedDateTime;
 
 /**
- * Class that registers capability of serializing {@code java.time} objects with the Jackson core.
+ * Class that registers capability of serializing {@code org.threeten.bp} objects with the Jackson core.
  *
  * <pre>
  * ObjectMapper mapper = new ObjectMapper();
  * mapper.registerModule(new JavaTimeModule());
  * </pre>
- * <p>
- * Most {@code java.time} types are serialized as numbers (integers or decimals as appropriate) if the
+ *<p>
+ * Most {@code org.threeten.bp} types are serialized as numbers (integers or decimals as appropriate) if the
  * {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DATES_AS_TIMESTAMPS} feature is enabled, and otherwise are serialized in
  * standard <a href="http://en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO-8601</a> string representation. ISO-8601 specifies formats
  * for representing offset dates and times, zoned dates and times, local dates and times, periods, durations, zones, and more. All
- * {@code java.time} types have built-in translation to and from ISO-8601 formats.
+ * {@code org.threeten.bp} types have built-in translation to and from ISO-8601 formats.
  * <p>
  * Granularity of timestamps is controlled through the companion features
  * {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS} and
@@ -113,14 +116,16 @@ import org.threeten.bp.ZonedDateTime;
  *
  * @author Nick Williams
  * @author Zoltan Kiss
- * @see ThreeTenNullKeySerializer
  * @since 2.6.0
+ * @see ThreeTenNullKeySerializer
  */
 @SuppressWarnings("javadoc")
-public final class ThreeTenModule extends SimpleModule {
+public final class ThreeTenModule extends SimpleModule
+{
     private static final long serialVersionUID = 1L;
 
-    public ThreeTenModule() {
+    public ThreeTenModule()
+    {
         super(PackageVersion.VERSION);
 
         // First deserializers
@@ -135,7 +140,7 @@ public final class ThreeTenModule extends SimpleModule {
         addDeserializer(LocalDateTime.class, LocalDateTimeDeserializer.INSTANCE);
         addDeserializer(LocalDate.class, LocalDateDeserializer.INSTANCE);
         addDeserializer(LocalTime.class, LocalTimeDeserializer.INSTANCE);
-        addDeserializer(MonthDay.class, ThreeTenStringParsableDeserializer.MONTH_DAY);
+        addDeserializer(MonthDay.class, MonthDayDeserializer.INSTANCE);
         addDeserializer(OffsetTime.class, OffsetTimeDeserializer.INSTANCE);
         addDeserializer(Period.class, ThreeTenStringParsableDeserializer.PERIOD);
         addDeserializer(Year.class, YearDeserializer.INSTANCE);
@@ -143,14 +148,14 @@ public final class ThreeTenModule extends SimpleModule {
         addDeserializer(ZoneId.class, ThreeTenStringParsableDeserializer.ZONE_ID);
         addDeserializer(ZoneOffset.class, ThreeTenStringParsableDeserializer.ZONE_OFFSET);
 
-
+        
         // then serializers:
         addSerializer(Duration.class, DurationSerializer.INSTANCE);
         addSerializer(Instant.class, InstantSerializer.INSTANCE);
         addSerializer(LocalDateTime.class, LocalDateTimeSerializer.INSTANCE);
         addSerializer(LocalDate.class, LocalDateSerializer.INSTANCE);
         addSerializer(LocalTime.class, LocalTimeSerializer.INSTANCE);
-        addSerializer(MonthDay.class, new ToStringSerializer(MonthDay.class));
+        addSerializer(MonthDay.class, MonthDaySerializer.INSTANCE);
         addSerializer(OffsetDateTime.class, OffsetDateTimeSerializer.INSTANCE);
         addSerializer(OffsetTime.class, OffsetTimeSerializer.INSTANCE);
         addSerializer(Period.class, new ToStringSerializer(Period.class));
@@ -159,11 +164,11 @@ public final class ThreeTenModule extends SimpleModule {
 
         /* 27-Jun-2015, tatu: This is the real difference from the old
          *  {@link JSR310Module}: default is to produce ISO-8601 compatible
-         *  serialization with timzone offset only, not timezone id.
+         *  serialization with timezone offset only, not timezone id.
          *  But this is configurable.
          */
         addSerializer(ZonedDateTime.class, ZonedDateTimeSerializer.INSTANCE);
-
+        
         // note: actual concrete type is `ZoneRegion`, but that's not visible:
         addSerializer(ZoneId.class, new ToStringSerializer(ZoneId.class));
 
@@ -195,7 +200,8 @@ public final class ThreeTenModule extends SimpleModule {
         context.addValueInstantiators(new ValueInstantiators.Base() {
             @Override
             public ValueInstantiator findValueInstantiator(DeserializationConfig config,
-                                                           BeanDescription beanDesc, ValueInstantiator defaultInstantiator) {
+                    BeanDescription beanDesc, ValueInstantiator defaultInstantiator)
+            {
                 JavaType type = beanDesc.getType();
                 Class<?> raw = type.getRawClass();
 
@@ -214,7 +220,7 @@ public final class ThreeTenModule extends SimpleModule {
                         } else {
                             // we don't need Annotations, so constructing directly is fine here
                             // even if it's not generally recommended
-                            ac = AnnotatedClass.construct(ZoneId.class, null, null);
+                            ac = AnnotatedClass.construct(config.constructType(ZoneId.class), config);
                         }
                         if (!inst.canCreateFromString()) {
                             AnnotatedMethod factory = _findFactory(ac, "of", String.class);
@@ -232,7 +238,8 @@ public final class ThreeTenModule extends SimpleModule {
     }
 
     // For
-    protected AnnotatedMethod _findFactory(AnnotatedClass cls, String name, Class<?>... argTypes) {
+    protected AnnotatedMethod _findFactory(AnnotatedClass cls, String name, Class<?>... argTypes)
+    {
         final int argCount = argTypes.length;
         for (AnnotatedMethod method : cls.getStaticMethods()) {
             if (!name.equals(method.getName())

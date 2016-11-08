@@ -13,7 +13,8 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2.0
  */
-abstract class ThreeTenSerializerBase<T> extends StdSerializer<T> {
+abstract class ThreeTenSerializerBase<T> extends StdSerializer<T>
+{
     private static final long serialVersionUID = 1L;
 
     protected ThreeTenSerializerBase(Class<?> supportedType) {
@@ -22,7 +23,8 @@ abstract class ThreeTenSerializerBase<T> extends StdSerializer<T> {
 
     @Override
     public void serializeWithType(T value, JsonGenerator generator, SerializerProvider provider,
-                                  TypeSerializer serializer) throws IOException {
+                                  TypeSerializer serializer) throws IOException
+    {
         serializer.writeTypePrefixForScalar(value, generator);
         this.serialize(value, generator, provider);
         serializer.writeTypeSuffixForScalar(value, generator);

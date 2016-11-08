@@ -23,10 +23,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonIntegerFormatVisitor;
-import org.threeten.bp.Year;
-import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.IOException;
+import org.threeten.bp.Year;
+import org.threeten.bp.format.DateTimeFormatter;
 
 /**
  * Serializer for ThreeTen temporal {@link Year}s.
@@ -34,7 +34,8 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2
  */
-public class YearSerializer extends ThreeTenFormattedSerializerBase<Year> {
+public class YearSerializer extends ThreeTenFormattedSerializerBase<Year>
+{
     private static final long serialVersionUID = 1L;
 
     public static final YearSerializer INSTANCE = new YearSerializer();
@@ -57,7 +58,8 @@ public class YearSerializer extends ThreeTenFormattedSerializerBase<Year> {
     }
 
     @Override
-    public void serialize(Year year, JsonGenerator generator, SerializerProvider provider) throws IOException {
+    public void serialize(Year year, JsonGenerator generator, SerializerProvider provider) throws IOException
+    {
         if (useTimestamp(provider)) {
             generator.writeNumber(year.getValue());
         } else {
@@ -67,7 +69,8 @@ public class YearSerializer extends ThreeTenFormattedSerializerBase<Year> {
     }
 
     @Override
-    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException {
+    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException
+    {
         JsonIntegerFormatVisitor v2 = visitor.expectIntegerFormat(typeHint);
         if (v2 != null) {
             v2.numberType(JsonParser.NumberType.LONG);

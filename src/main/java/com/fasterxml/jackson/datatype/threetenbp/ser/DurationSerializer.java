@@ -26,10 +26,10 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrappe
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonIntegerFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
-import org.threeten.bp.Duration;
-import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.IOException;
+import org.threeten.bp.Duration;
+import org.threeten.bp.format.DateTimeFormatter;
 
 /**
  * Serializer for ThreeTen temporal {@link Duration}s.
@@ -37,7 +37,8 @@ import java.io.IOException;
  * @author Nick Williams
  * @since 2.2
  */
-public class DurationSerializer extends ThreeTenFormattedSerializerBase<Duration> {
+public class DurationSerializer extends ThreeTenFormattedSerializerBase<Duration>
+{
     private static final long serialVersionUID = 1L;
 
     public static final DurationSerializer INSTANCE = new DurationSerializer();
@@ -47,7 +48,7 @@ public class DurationSerializer extends ThreeTenFormattedSerializerBase<Duration
     }
 
     protected DurationSerializer(DurationSerializer base,
-                                 Boolean useTimestamp, DateTimeFormatter dtf) {
+            Boolean useTimestamp, DateTimeFormatter dtf) {
         super(base, useTimestamp, dtf);
     }
 
@@ -55,12 +56,13 @@ public class DurationSerializer extends ThreeTenFormattedSerializerBase<Duration
     protected DurationSerializer withFormat(Boolean useTimestamp, DateTimeFormatter dtf) {
         return new DurationSerializer(this, useTimestamp, dtf);
     }
-
+    
     @Override
-    public void serialize(Duration duration, JsonGenerator generator, SerializerProvider provider) throws IOException {
+    public void serialize(Duration duration, JsonGenerator generator, SerializerProvider provider) throws IOException
+    {
         if (useTimestamp(provider)) {
             if (provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
-                generator.writeNumber(DecimalUtils.toDecimal(
+                generator.writeNumber(DecimalUtils.toBigDecimal(
                         duration.getSeconds(), duration.getNano()
                 ));
             } else {
@@ -73,7 +75,8 @@ public class DurationSerializer extends ThreeTenFormattedSerializerBase<Duration
     }
 
     @Override
-    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException {
+    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException
+    {
         JsonIntegerFormatVisitor v2 = visitor.expectIntegerFormat(typeHint);
         if (v2 != null) {
             v2.numberType(JsonParser.NumberType.LONG);
@@ -83,7 +86,6 @@ public class DurationSerializer extends ThreeTenFormattedSerializerBase<Duration
             } else { // otherwise good old Unix timestamp, in milliseconds
                 v2.format(JsonValueFormat.UTC_MILLISEC);
             }
-
         }
     }
 }

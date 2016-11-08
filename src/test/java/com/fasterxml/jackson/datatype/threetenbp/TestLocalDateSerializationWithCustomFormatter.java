@@ -1,8 +1,9 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
+
+import static org.hamcrest.core.StringContains.containsString;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -52,7 +53,7 @@ public class TestLocalDateSerializationWithCustomFormatter {
 
     @Parameters
     public static Collection<Object[]> customFormatters() {
-        Collection<Object[]> formatters = new ArrayList<Object[]>();
+        Collection<Object[]> formatters = new ArrayList<>();
         formatters.add(new Object[]{DateTimeFormatter.BASIC_ISO_DATE});
         formatters.add(new Object[]{DateTimeFormatter.ISO_DATE});
         formatters.add(new Object[]{DateTimeFormatter.ISO_LOCAL_DATE});

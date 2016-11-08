@@ -29,7 +29,7 @@ public class TestOffsetTimeKeySerialization {
     public void setUp() {
         this.om = new ObjectMapper();
         om.registerModule(new ThreeTenModule());
-        map = new HashMap<OffsetTime, String>();
+        map = new HashMap<>();
     }
 
     /*

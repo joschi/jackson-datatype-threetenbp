@@ -1,13 +1,16 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser.key;
 
-import com.fasterxml.jackson.databind.DeserializationContext;
+import static org.threeten.bp.temporal.ChronoField.MONTH_OF_YEAR;
+import static org.threeten.bp.temporal.ChronoField.YEAR;
+
+import java.io.IOException;
+import org.threeten.bp.DateTimeException;
 import org.threeten.bp.YearMonth;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.format.DateTimeFormatterBuilder;
 import org.threeten.bp.format.SignStyle;
 
-import static org.threeten.bp.temporal.ChronoField.MONTH_OF_YEAR;
-import static org.threeten.bp.temporal.ChronoField.YEAR;
+import com.fasterxml.jackson.databind.DeserializationContext;
 
 public class YearMothKeyDeserializer extends ThreeTenKeyDeserializer {
 
@@ -25,8 +28,11 @@ public class YearMothKeyDeserializer extends ThreeTenKeyDeserializer {
     }
 
     @Override
-    protected YearMonth deserialize(String key, DeserializationContext ctxt) {
-        return YearMonth.parse(key, FORMATTER);
+    protected YearMonth deserialize(String key, DeserializationContext ctxt) throws IOException {
+        try {
+            return YearMonth.parse(key, FORMATTER);
+        } catch (DateTimeException e) {
+            return _rethrowDateTimeException(ctxt, YearMonth.class, e, key);
+        }
     }
-
 }

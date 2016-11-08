@@ -23,7 +23,7 @@ public class TestNullKeySerialization {
     public void setUp() {
         this.om = new ObjectMapper();
         om.registerModule(new ThreeTenModule());
-        map = new HashMap<LocalDate, String>();
+        map = new HashMap<>();
     }
 
     @Test
