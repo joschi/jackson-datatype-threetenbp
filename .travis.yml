@@ -1,4 +1,5 @@
 sudo: false
+dist: trusty
 language: java
 install: mvn -B install -Dgpg.skip=true
 after_success:
