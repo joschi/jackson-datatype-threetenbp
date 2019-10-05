@@ -28,10 +28,13 @@ public class TestDecimalUtils extends ModuleTestBase
         decimal = DecimalUtils.toDecimal(19827342231L, 999888000);
         assertEquals("The returned decimal is not correct.",
                 "19827342231.999888000", decimal);
+
+        decimal = DecimalUtils.toDecimal(-22704862, 599000000);
+        assertEquals("The returned decimal is not correct.",
+                "-22704862.599000000", decimal);
     }
 
-
-
+    @SuppressWarnings("deprecation")
     private void checkExtractNanos(long expectedSeconds, int expectedNanos, BigDecimal decimal)
     {
         long seconds = decimal.longValue();
@@ -136,6 +139,13 @@ public class TestDecimalUtils extends ModuleTestBase
     {
         BigDecimal value = new BigDecimal("19827342231.999999999");
         checkExtractSecondsAndNanos(19827342231L, 999999999, value);
+    }
+
+    @Test
+    public void testExtractSecondsAndNanosFromNegativeBigDecimal()
+    {
+        BigDecimal value = new BigDecimal("-22704862.599000000");
+        checkExtractSecondsAndNanos(-22704862L, 599000000, value);
     }
 
     @Test(timeout = 100)

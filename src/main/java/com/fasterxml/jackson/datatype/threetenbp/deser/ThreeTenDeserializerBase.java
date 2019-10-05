@@ -38,11 +38,17 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
 {
     private static final long serialVersionUID = 1L;
 
-    protected ThreeTenDeserializerBase(Class<T> supportedType)
-    {
+    protected ThreeTenDeserializerBase(Class<T> supportedType) {
         super(supportedType);
     }
 
+    /**
+     * @since 2.10
+     */
+    protected ThreeTenDeserializerBase(ThreeTenDeserializerBase<?> base) {
+        super(base);
+    }
+    
     @Override
     public Object deserializeWithType(JsonParser parser, DeserializationContext context,
             TypeDeserializer typeDeserializer)

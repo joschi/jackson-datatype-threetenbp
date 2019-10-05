@@ -25,13 +25,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonDeserializer;
 
 /**
  * Deserializer for ThreeTen temporal {@link LocalTime}s.
  *
  * @author Nick Williams
- * @since 2.2.0
  */
 public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<LocalTime>
 {
@@ -50,10 +48,16 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
     }
 
     @Override
-    protected JsonDeserializer<LocalTime> withDateFormat(DateTimeFormatter formatter) {
+    protected LocalTimeDeserializer withDateFormat(DateTimeFormatter formatter) {
         return new LocalTimeDeserializer(formatter);
     }
-    
+
+    // !!! TODO: lenient vs strict?
+    @Override
+    protected LocalTimeDeserializer withLeniency(Boolean leniency) {
+        return this;
+    }
+
     @Override
     public LocalTime deserialize(JsonParser parser, DeserializationContext context) throws IOException
     {

@@ -16,9 +16,10 @@
 
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
-
 import java.math.BigDecimal;
+
+import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
+import org.threeten.bp.Instant;
 
 /**
  * Utilities to aid in the translation of decimal types to/from multiple parts.
@@ -77,7 +78,10 @@ public final class DecimalUtils
     }
 
     /**
-     * @since 2.7.3
+     * Factory method for constructing {@link BigDecimal} out of second, nano-second
+     * components.
+     *
+     * @since 2.8
      */
     public static BigDecimal toBigDecimal(long seconds, int nanoseconds)
     {
@@ -93,8 +97,9 @@ public final class DecimalUtils
     }
 
     /**
-     * @Deprecated due to potential unbounded latency on some JRE releases.
+     * @deprecated due to potential unbounded latency on some JRE releases.
      */
+    @Deprecated // since 2.9.8
     public static int extractNanosecondDecimal(BigDecimal value, long integer)
     {
         // !!! 14-Mar-2016, tatu: Somewhat inefficient; should replace with functionally
@@ -102,7 +107,6 @@ public final class DecimalUtils
         //   there's no difference and do nothing... )
         return value.subtract(new BigDecimal(integer)).multiply(ONE_BILLION).intValue();
     }
-
 
     /**
      * Extracts the seconds and nanoseconds component of {@code seconds} as {@code long} and {@code int}
@@ -134,6 +138,11 @@ public final class DecimalUtils
             // Now we know that seconds has reasonable scale, we can safely chop it apart.
             secondsOnly = seconds.longValue();
             nanosOnly = nanoseconds.subtract(new BigDecimal(secondsOnly).scaleByPowerOfTen(9)).intValue();
+
+            if (secondsOnly < 0 && secondsOnly > Instant.MIN.getEpochSecond()) {
+                // Issue #69 and Issue #120: avoid sending a negative adjustment to the Instant constructor, we want this as the actual nanos
+                nanosOnly = Math.abs(nanosOnly);
+            }
         }
 
         return convert.apply(secondsOnly, nanosOnly);

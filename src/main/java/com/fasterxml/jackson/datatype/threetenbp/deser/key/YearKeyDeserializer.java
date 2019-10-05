@@ -1,13 +1,8 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser.key;
 
-import static org.threeten.bp.temporal.ChronoField.YEAR;
-
 import java.io.IOException;
 import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Year;
-import org.threeten.bp.format.DateTimeFormatter;
-import org.threeten.bp.format.DateTimeFormatterBuilder;
-import org.threeten.bp.format.SignStyle;
 
 import com.fasterxml.jackson.databind.DeserializationContext;
 
@@ -15,23 +10,19 @@ public class YearKeyDeserializer extends ThreeTenKeyDeserializer {
 
     public static final YearKeyDeserializer INSTANCE = new YearKeyDeserializer();
 
-    /*
-     * formatter copied from Year. There is no way of getting a reference to the formatter it uses.
-     */
-    private static final DateTimeFormatter FORMATTER = new DateTimeFormatterBuilder()
-            .appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
-            .toFormatter();
-
-    private YearKeyDeserializer() {
+    protected YearKeyDeserializer() {
         // singleton
     }
 
     @Override
     protected Year deserialize(String key, DeserializationContext ctxt) throws IOException {
+
         try {
-            return Year.parse(key, FORMATTER);
-        } catch (DateTimeException e) {
-            return _handleDateTimeException(ctxt, Year.class, e, key);
+            return Year.of(Integer.parseInt(key));
+        } catch (NumberFormatException nfe) {
+            return _handleDateTimeException(ctxt, Year.class, new DateTimeException("Number format exception", nfe), key);
+        } catch (DateTimeException dte) {
+            return _handleDateTimeException(ctxt, Year.class, dte, key);
         }
     }
 }

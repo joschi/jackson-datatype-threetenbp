@@ -17,20 +17,7 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
 import com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer;
-import org.threeten.bp.Duration;
-import org.threeten.bp.Instant;
-import org.threeten.bp.LocalDate;
-import org.threeten.bp.LocalDateTime;
-import org.threeten.bp.LocalTime;
-import org.threeten.bp.MonthDay;
-import org.threeten.bp.OffsetDateTime;
-import org.threeten.bp.OffsetTime;
-import org.threeten.bp.Period;
-import org.threeten.bp.Year;
-import org.threeten.bp.YearMonth;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZoneOffset;
-import org.threeten.bp.ZonedDateTime;
+import org.threeten.bp.*;
 
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationConfig;
@@ -53,20 +40,7 @@ import com.fasterxml.jackson.datatype.threetenbp.deser.MonthDayDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.OffsetTimeDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.YearDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.deser.YearMonthDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.DurationKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.InstantKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.LocalDateKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.LocalDateTimeKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.LocalTimeKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.MonthDayKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.OffsetDateTimeKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.OffsetTimeKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.PeriodKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.YearKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.YearMothKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.ZoneIdKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.ZoneOffsetKeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.deser.key.ZonedDateTimeKeyDeserializer;
+import com.fasterxml.jackson.datatype.threetenbp.deser.key.*;
 import com.fasterxml.jackson.datatype.threetenbp.ser.DurationSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.InstantSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.LocalDateSerializer;
@@ -85,14 +59,22 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.key.ZonedDateTimeKeySeriali
  *
  * <pre>
  * ObjectMapper mapper = new ObjectMapper();
- * mapper.registerModule(new ThreeTenModule());
+ * mapper.registerModule(new JavaTimeModule());
  * </pre>
  *<p>
+ * Note that as of 2.x, if auto-registering modules, this package will register
+ * legacy version, {@link JSR310Module}, and NOT this module. 3.x will change the default.
+ * Legacy version has the same functionality, but slightly different default configuration:
+ * see {@link com.fasterxml.jackson.datatype.threetenbp.JSR310Module} for details.
+ *<p>
  * Most {@code org.threeten.bp} types are serialized as numbers (integers or decimals as appropriate) if the
- * {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DATES_AS_TIMESTAMPS} feature is enabled, and otherwise are serialized in
- * standard <a href="http://en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO-8601</a> string representation. ISO-8601 specifies formats
- * for representing offset dates and times, zoned dates and times, local dates and times, periods, durations, zones, and more. All
- * {@code org.threeten.bp} types have built-in translation to and from ISO-8601 formats.
+ * {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DATES_AS_TIMESTAMPS} feature is enabled
+ * (or, for {@link Duration}, {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DURATIONS_AS_TIMESTAMPS}),
+ * and otherwise are serialized in standard
+ * <a href="http://en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO-8601</a> string representation.
+ * ISO-8601 specifies formats for representing offset dates and times, zoned dates and times,
+ * local dates and times, periods, durations, zones, and more. All {@code org.threeten.bp} types
+ * have built-in translation to and from ISO-8601 formats.
  * <p>
  * Granularity of timestamps is controlled through the companion features
  * {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS} and
@@ -151,7 +133,6 @@ public final class ThreeTenModule extends SimpleModule
         addDeserializer(ZoneId.class, ThreeTenStringParsableDeserializer.ZONE_ID);
         addDeserializer(ZoneOffset.class, ThreeTenStringParsableDeserializer.ZONE_OFFSET);
 
-        
         // then serializers:
         addSerializer(Duration.class, DurationSerializer.INSTANCE);
         addSerializer(Instant.class, InstantSerializer.INSTANCE);
@@ -191,7 +172,7 @@ public final class ThreeTenModule extends SimpleModule
         addKeyDeserializer(OffsetTime.class, OffsetTimeKeyDeserializer.INSTANCE);
         addKeyDeserializer(Period.class, PeriodKeyDeserializer.INSTANCE);
         addKeyDeserializer(Year.class, YearKeyDeserializer.INSTANCE);
-        addKeyDeserializer(YearMonth.class, YearMothKeyDeserializer.INSTANCE);
+        addKeyDeserializer(YearMonth.class, YearMonthKeyDeserializer.INSTANCE);
         addKeyDeserializer(ZonedDateTime.class, ZonedDateTimeKeyDeserializer.INSTANCE);
         addKeyDeserializer(ZoneId.class, ZoneIdKeyDeserializer.INSTANCE);
         addKeyDeserializer(ZoneOffset.class, ZoneOffsetKeyDeserializer.INSTANCE);
@@ -241,7 +222,6 @@ public final class ThreeTenModule extends SimpleModule
         });
     }
 
-    // For
     protected AnnotatedMethod _findFactory(AnnotatedClass cls, String name, Class<?>... argTypes)
     {
         final int argCount = argTypes.length;

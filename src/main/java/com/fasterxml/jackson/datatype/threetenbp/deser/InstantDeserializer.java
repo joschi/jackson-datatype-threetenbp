@@ -214,13 +214,19 @@ public class InstantDeserializer<T extends Temporal>
     }
 
     @Override
-    protected JsonDeserializer<T> withDateFormat(DateTimeFormatter dtf) {
+    protected InstantDeserializer<T> withDateFormat(DateTimeFormatter dtf) {
         if (dtf == _formatter) {
             return this;
         }
         return new InstantDeserializer<T>(this, dtf);
     }
 
+    // !!! TODO: lenient vs strict?
+    @Override
+    protected InstantDeserializer<T> withLeniency(Boolean leniency) {
+        return this;
+    }
+    
     @SuppressWarnings("unchecked")
     @Override
     public T deserialize(JsonParser parser, DeserializationContext context) throws IOException
@@ -309,9 +315,7 @@ public class InstantDeserializer<T extends Temporal>
                 context.isEnabled(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
     }
 
-    /**
-     * Helper method to find Strings of form "all digits" and "digits-comma-digits"
-     */
+    // Helper method to find Strings of form "all digits" and "digits-comma-digits"
     protected int _countPeriods(String str)
     {
         int commas = 0;

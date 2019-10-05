@@ -1,19 +1,23 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser.key;
 
 import java.io.IOException;
+
+import com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer;
 import org.threeten.bp.DateTimeException;
 
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.KeyDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer;
 
 abstract class ThreeTenKeyDeserializer extends KeyDeserializer {
 
+    @SuppressWarnings("deprecation")
     @Override
     public final Object deserializeKey(String key, DeserializationContext ctxt)
         throws IOException
     {
+        // 17-Aug-2019, tatu: I think this is wrong, actually, but since it has been this way
+        //    throughout 2.x, can't just change. But with 3.0 will remove special handling.
         if (ThreeTenNullKeySerializer.NULL_KEY.equals(key)) {
             // potential null key in HashMap
             return null;
