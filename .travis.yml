@@ -7,3 +7,4 @@ after_success:
 jdk:
   - openjdk7
   - openjdk8
+  - openjdk11
