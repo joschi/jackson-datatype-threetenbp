@@ -1,10 +1,8 @@
-sudo: false
-dist: trusty
+dist: xenial
 language: java
 install: ./mvnw -B install -Dgpg.skip=true
 after_success:
   - ./mvnw -B jacoco:report coveralls:report
 jdk:
-  - openjdk7
   - openjdk8
   - openjdk11
