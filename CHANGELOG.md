@@ -1,5 +1,10 @@
 # History
 
+## 2.10.0 (06-Oct-2019)
+
+* Updated to Jackson 2.10.0
+
+
 ## 2.9.10 (06-Oct-2019)
 
 * Updated to Jackson 2.9.10
