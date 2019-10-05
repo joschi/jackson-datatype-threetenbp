@@ -16,16 +16,19 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.IOException;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.type.WritableTypeId;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 /**
  * Serializer for ThreeTen temporal {@link LocalDate}s.
@@ -44,8 +47,8 @@ public class LocalDateSerializer extends ThreeTenFormattedSerializerBase<LocalDa
     }
 
     protected LocalDateSerializer(LocalDateSerializer base,
-            Boolean useTimestamp, DateTimeFormatter dtf) {
-        super(base, useTimestamp, dtf);
+                                  Boolean useTimestamp, DateTimeFormatter dtf, JsonFormat.Shape shape) {
+        super(base, useTimestamp, dtf, shape);
     }
 
     public LocalDateSerializer(DateTimeFormatter formatter) {
@@ -53,25 +56,54 @@ public class LocalDateSerializer extends ThreeTenFormattedSerializerBase<LocalDa
     }
 
     @Override
-    protected LocalDateSerializer withFormat(Boolean useTimestamp, DateTimeFormatter dtf) {
-        return new LocalDateSerializer(this, useTimestamp, dtf);
+    protected LocalDateSerializer withFormat(Boolean useTimestamp, DateTimeFormatter dtf, JsonFormat.Shape shape) {
+        return new LocalDateSerializer(this, useTimestamp, dtf, shape);
     }
 
     @Override
-    public void serialize(LocalDate date, JsonGenerator generator, SerializerProvider provider) throws IOException
+    public void serialize(LocalDate date, JsonGenerator g, SerializerProvider provider) throws IOException
     {
         if (useTimestamp(provider)) {
-            generator.writeStartArray();
-            generator.writeNumber(date.getYear());
-            generator.writeNumber(date.getMonthValue());
-            generator.writeNumber(date.getDayOfMonth());
-            generator.writeEndArray();
+            if (_shape == JsonFormat.Shape.NUMBER_INT) {
+                g.writeNumber(date.toEpochDay());
+            } else {
+                g.writeStartArray();
+                _serializeAsArrayContents(date, g, provider);
+                g.writeEndArray();
+            }
         } else {
-            String str = (_formatter == null) ? date.toString() : date.format(_formatter);
-            generator.writeString(str);
+            g.writeString((_formatter == null) ? date.toString() : date.format(_formatter));
         }
     }
-    
+
+    @Override
+    public void serializeWithType(LocalDate value, JsonGenerator g,
+            SerializerProvider provider, TypeSerializer typeSer) throws IOException
+    {
+        WritableTypeId typeIdDef = typeSer.writeTypePrefix(g,
+                typeSer.typeId(value, serializationShape(provider)));
+        // need to write out to avoid double-writing array markers
+        switch (typeIdDef.valueShape) {
+        case START_ARRAY:
+            _serializeAsArrayContents(value, g, provider);
+            break;
+        case VALUE_NUMBER_INT:
+            g.writeNumber(value.toEpochDay());
+            break;
+        default:
+            g.writeString((_formatter == null) ? value.toString() : value.format(_formatter));
+        }
+        typeSer.writeTypeSuffix(g, typeIdDef);
+    }
+
+    protected void _serializeAsArrayContents(LocalDate value, JsonGenerator g,
+            SerializerProvider provider) throws IOException
+    {
+        g.writeNumber(value.getYear());
+        g.writeNumber(value.getMonthValue());
+        g.writeNumber(value.getDayOfMonth());
+    }
+
     @Override
     public void acceptJsonFormatVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException
     {
@@ -85,5 +117,16 @@ public class LocalDateSerializer extends ThreeTenFormattedSerializerBase<LocalDa
                 v2.format(JsonValueFormat.DATE);
             }
         }
+    }
+
+    @Override // since 2.9
+    protected JsonToken serializationShape(SerializerProvider provider) {
+        if (useTimestamp(provider)) {
+            if (_shape == JsonFormat.Shape.NUMBER_INT) {
+                return JsonToken.VALUE_NUMBER_INT;
+            }
+            return JsonToken.START_ARRAY;
+        }
+        return JsonToken.VALUE_STRING;
     }
 }

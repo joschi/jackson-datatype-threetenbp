@@ -16,14 +16,17 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-
 import java.io.IOException;
 import org.threeten.bp.LocalTime;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.ChronoField;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.type.WritableTypeId;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 /**
  * Serializer for ThreeTen temporal {@link LocalTime}s.
@@ -46,32 +49,30 @@ public class LocalTimeSerializer extends ThreeTenFormattedSerializerBase<LocalTi
     }
 
     protected LocalTimeSerializer(LocalTimeSerializer base, Boolean useTimestamp, DateTimeFormatter formatter) {
-        super(base, useTimestamp, formatter);
+        this(base, useTimestamp, null, formatter);
+    }
+
+    protected LocalTimeSerializer(LocalTimeSerializer base, Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter formatter) {
+        super(base, useTimestamp, useNanoseconds, formatter, null);
     }
 
     @Override
-    protected ThreeTenFormattedSerializerBase<LocalTime> withFormat(Boolean useTimestamp, DateTimeFormatter dtf) {
+    protected ThreeTenFormattedSerializerBase<LocalTime> withFormat(Boolean useTimestamp, DateTimeFormatter dtf, JsonFormat.Shape shape) {
         return new LocalTimeSerializer(this, useTimestamp, dtf);
     }
 
+    // since 2.7: TODO in 2.8; change to use per-type defaulting
+    protected DateTimeFormatter _defaultFormatter() {
+        return DateTimeFormatter.ISO_LOCAL_TIME;
+    }
+
     @Override
-    public void serialize(LocalTime value, JsonGenerator g, SerializerProvider provider) throws IOException
+    public void serialize(LocalTime value, JsonGenerator g, SerializerProvider provider)
+        throws IOException
     {
         if (useTimestamp(provider)) {
             g.writeStartArray();
-            g.writeNumber(value.getHour());
-            g.writeNumber(value.getMinute());
-            if(value.getSecond() > 0 || value.getNano() > 0)
-            {
-                g.writeNumber(value.getSecond());
-                if(value.getNano() > 0)
-                {
-                    if(provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS))
-                        g.writeNumber(value.getNano());
-                    else
-                        g.writeNumber(value.get(ChronoField.MILLI_OF_SECOND));
-                }
-            }
+            _serializeAsArrayContents(value, g, provider);
             g.writeEndArray();
         } else {
             DateTimeFormatter dtf = _formatter;
@@ -82,8 +83,52 @@ public class LocalTimeSerializer extends ThreeTenFormattedSerializerBase<LocalTi
         }
     }
 
-    // since 2.7: TODO in 2.8; change to use per-type defaulting
-    protected DateTimeFormatter _defaultFormatter() {
-        return DateTimeFormatter.ISO_LOCAL_TIME;
+    @Override
+    public void serializeWithType(LocalTime value, JsonGenerator g,
+            SerializerProvider provider, TypeSerializer typeSer) throws IOException
+    {
+        WritableTypeId typeIdDef = typeSer.writeTypePrefix(g,
+                typeSer.typeId(value, serializationShape(provider)));
+        // need to write out to avoid double-writing array markers
+        if (typeIdDef.valueShape == JsonToken.START_ARRAY) {
+            _serializeAsArrayContents(value, g, provider);
+        } else {
+            DateTimeFormatter dtf = _formatter;
+            if (dtf == null) {
+                dtf = _defaultFormatter();
+            }
+            g.writeString(value.format(dtf));
+        }
+        typeSer.writeTypeSuffix(g, typeIdDef);
+    }
+
+    private final void _serializeAsArrayContents(LocalTime value, JsonGenerator g,
+            SerializerProvider provider) throws IOException
+    {
+        g.writeNumber(value.getHour());
+        g.writeNumber(value.getMinute());
+        int secs = value.getSecond();
+        int nanos = value.getNano();
+        if ((secs > 0) || (nanos > 0))
+        {
+            g.writeNumber(secs);
+            if (nanos > 0) {
+                if (useNanoseconds(provider)) {
+                    g.writeNumber(nanos);
+                } else {
+                    g.writeNumber(value.get(ChronoField.MILLI_OF_SECOND));
+                }
+            }
+        }
+    }
+
+    @Override // since 2.9
+    protected JsonToken serializationShape(SerializerProvider provider) {
+        return useTimestamp(provider) ? JsonToken.START_ARRAY : JsonToken.VALUE_STRING;
+    }
+
+    @Override
+    protected ThreeTenFormattedSerializerBase<?> withFeatures(Boolean writeZoneId, Boolean writeNanoseconds) {
+        return new LocalTimeSerializer(this, _useTimestamp, writeNanoseconds, _formatter);
     }
 }

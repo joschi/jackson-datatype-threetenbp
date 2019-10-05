@@ -16,18 +16,21 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.IOException;
 import org.threeten.bp.YearMonth;
 import org.threeten.bp.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.type.WritableTypeId;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 /**
  * Serializer for ThreeTen temporal {@link YearMonth}s.
@@ -49,27 +52,49 @@ public class YearMonthSerializer extends ThreeTenFormattedSerializerBase<YearMon
         super(YearMonth.class, formatter);
     }
 
-    private YearMonthSerializer(YearMonthSerializer base, Boolean useTimestamp, DateTimeFormatter formatter) {
-        super(base, useTimestamp, formatter);
+    private YearMonthSerializer(YearMonthSerializer base, Boolean useTimestamp,
+            DateTimeFormatter formatter) {
+        super(base, useTimestamp, formatter, null);
     }
 
     @Override
-    protected YearMonthSerializer withFormat(Boolean useTimestamp, DateTimeFormatter formatter) {
+    protected YearMonthSerializer withFormat(Boolean useTimestamp, DateTimeFormatter formatter,
+            JsonFormat.Shape shape) {
         return new YearMonthSerializer(this, useTimestamp, formatter);
     }
 
     @Override
-    public void serialize(YearMonth yearMonth, JsonGenerator generator, SerializerProvider provider) throws IOException
+    public void serialize(YearMonth value, JsonGenerator g, SerializerProvider provider) throws IOException
     {
         if (useTimestamp(provider)) {
-            generator.writeStartArray();
-            generator.writeNumber(yearMonth.getYear());
-            generator.writeNumber(yearMonth.getMonthValue());
-            generator.writeEndArray();
-        } else {
-            String str = (_formatter == null) ? yearMonth.toString() : yearMonth.format(_formatter);
-            generator.writeString(str);
+            g.writeStartArray();
+            _serializeAsArrayContents(value, g, provider);
+            g.writeEndArray();
+            return;
         }
+        g.writeString((_formatter == null) ? value.toString() : value.format(_formatter));
+    }
+
+    @Override
+    public void serializeWithType(YearMonth value, JsonGenerator g,
+            SerializerProvider provider, TypeSerializer typeSer) throws IOException
+    {
+        WritableTypeId typeIdDef = typeSer.writeTypePrefix(g,
+                typeSer.typeId(value, serializationShape(provider)));
+        // need to write out to avoid double-writing array markers
+        if (typeIdDef.valueShape == JsonToken.START_ARRAY) {
+            _serializeAsArrayContents(value, g, provider);
+        } else {
+            g.writeString((_formatter == null) ? value.toString() : value.format(_formatter));
+        }
+        typeSer.writeTypeSuffix(g, typeIdDef);
+    }
+    
+    protected void _serializeAsArrayContents(YearMonth value, JsonGenerator g,
+            SerializerProvider provider) throws IOException
+    {
+        g.writeNumber(value.getYear());
+        g.writeNumber(value.getMonthValue());
     }
 
     @Override
@@ -78,12 +103,17 @@ public class YearMonthSerializer extends ThreeTenFormattedSerializerBase<YearMon
         SerializerProvider provider = visitor.getProvider();
         boolean useTimestamp = (provider != null) && useTimestamp(provider);
         if (useTimestamp) {
-            _acceptTimestampVisitor(visitor, typeHint);
+            super._acceptTimestampVisitor(visitor, typeHint);
         } else {
             JsonStringFormatVisitor v2 = visitor.expectStringFormat(typeHint);
             if (v2 != null) {
                 v2.format(JsonValueFormat.DATE_TIME);
             }
         }
+    }
+
+    @Override // since 2.9
+    protected JsonToken serializationShape(SerializerProvider provider) {
+        return useTimestamp(provider) ? JsonToken.START_ARRAY : JsonToken.VALUE_STRING;
     }
 }

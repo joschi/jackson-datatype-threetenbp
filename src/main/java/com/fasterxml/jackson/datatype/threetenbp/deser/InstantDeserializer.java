@@ -18,6 +18,7 @@ package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -40,6 +41,7 @@ import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.Temporal;
 import org.threeten.bp.temporal.TemporalAccessor;
+import java.util.regex.Pattern;
 
 /**
  * Deserializer for ThreeTen temporal {@link Instant}s, {@link OffsetDateTime}, and {@link ZonedDateTime}s.
@@ -51,6 +53,13 @@ public class InstantDeserializer<T extends Temporal>
     extends ThreeTenDateTimeDeserializerBase<T>
 {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Constants used to check if the time offset is zero. See [jackson-modules-java8#18]
+     *
+     * @since 2.9.0
+     */
+    private static final Pattern ISO8601_UTC_ZERO_OFFSET_SUFFIX_REGEX = Pattern.compile("\\+00:?(00)?$");
 
     public static final InstantDeserializer<Instant> INSTANT = new InstantDeserializer<>(
             Instant.class, DateTimeFormatter.ISO_INSTANT,
@@ -73,7 +82,7 @@ public class InstantDeserializer<T extends Temporal>
                 }
             },
             null,
-            true // yes, replace +0000 with Z
+            true // yes, replace zero offset with Z
     );
 
     public static final InstantDeserializer<OffsetDateTime> OFFSET_DATE_TIME = new InstantDeserializer<>(
@@ -102,7 +111,7 @@ public class InstantDeserializer<T extends Temporal>
                     return d.withOffsetSameInstant(z.getRules().getOffset(d.toLocalDateTime()));
                 }
             },
-            true // yes, replace +0000 with Z
+            true // yes, replace zero offset with Z
     );
 
     public static final InstantDeserializer<ZonedDateTime> ZONED_DATE_TIME = new InstantDeserializer<>(
@@ -131,7 +140,7 @@ public class InstantDeserializer<T extends Temporal>
                     return zonedDateTime.withZoneSameInstant(zoneId);
                 }
             },
-            false // keep +0000 and Z separate since zones explicitly supported
+            false // keep zero offset and Z separate since zones explicitly supported
     );
 
     protected final Function<FromIntegerArguments, T> fromMilliseconds;
@@ -139,17 +148,17 @@ public class InstantDeserializer<T extends Temporal>
     protected final Function<FromDecimalArguments, T> fromNanoseconds;
 
     protected final Function<TemporalAccessor, T> parsedToValue;
-    
+
     protected final BiFunction<T, ZoneId, T> adjust;
 
     /**
-     * In case of vanilla `Instant` we seem to need to translate "+0000"
+     * In case of vanilla `Instant` we seem to need to translate "+0000 | +00:00 | +00"
      * timezone designator into plain "Z" for some reason; see
-     * [datatype-jsr310#79] for more info
+     * [jackson-modules-java8#18] for more info
      *
-     * @since 2.7.5
+     * @since 2.9.0
      */
-    protected final boolean replace0000AsZ;
+    protected final boolean replaceZeroOffsetAsZ;
 
     /**
      * Flag for <code>JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE</code>
@@ -164,7 +173,7 @@ public class InstantDeserializer<T extends Temporal>
             Function<FromIntegerArguments, T> fromMilliseconds,
             Function<FromDecimalArguments, T> fromNanoseconds,
             BiFunction<T, ZoneId, T> adjust,
-            boolean replace0000AsZ)
+            boolean replaceZeroOffsetAsZ)
     {
         super(supportedType, formatter);
         this.parsedToValue = parsedToValue;
@@ -172,11 +181,11 @@ public class InstantDeserializer<T extends Temporal>
         this.fromNanoseconds = fromNanoseconds;
         this.adjust = adjust == null ? new BiFunction<T, ZoneId, T>() {
             @Override
-            public T apply(T t, ZoneId zoneId) {
-                return t;
+            public T apply(T d, ZoneId z) {
+                return d;
             }
         } : adjust;
-        this.replace0000AsZ = replace0000AsZ;
+        this.replaceZeroOffsetAsZ = replaceZeroOffsetAsZ;
         _adjustToContextTZOverride = null;
     }
 
@@ -188,7 +197,7 @@ public class InstantDeserializer<T extends Temporal>
         fromMilliseconds = base.fromMilliseconds;
         fromNanoseconds = base.fromNanoseconds;
         adjust = base.adjust;
-        replace0000AsZ = (_formatter == DateTimeFormatter.ISO_INSTANT);
+        replaceZeroOffsetAsZ = (_formatter == DateTimeFormatter.ISO_INSTANT);
         _adjustToContextTZOverride = base._adjustToContextTZOverride;
     }
 
@@ -200,10 +209,10 @@ public class InstantDeserializer<T extends Temporal>
         fromMilliseconds = base.fromMilliseconds;
         fromNanoseconds = base.fromNanoseconds;
         adjust = base.adjust;
-        replace0000AsZ = base.replace0000AsZ;
+        replaceZeroOffsetAsZ = base.replaceZeroOffsetAsZ;
         _adjustToContextTZOverride = adjustToContextTimezoneOverride;
     }
-    
+
     @Override
     protected JsonDeserializer<T> withDateFormat(DateTimeFormatter dtf) {
         if (dtf == _formatter) {
@@ -250,13 +259,8 @@ public class InstantDeserializer<T extends Temporal>
                             // fall through to default handling, to get error there
                         }
                     }
-                    // 24-May-2016, tatu: as per [datatype-jsr310#79] seems like we need
-                    //   some massaging in some cases...
-                    if (replace0000AsZ) {
-                        if (string.endsWith("+0000")) {
-                            string = string.substring(0, string.length() - 5) + "Z";
-                        }
-                    }
+
+                    string = replaceZeroOffsetAsZIfNecessary(string);
                 }
 
                 T value;
@@ -267,7 +271,7 @@ public class InstantDeserializer<T extends Temporal>
                         return adjust.apply(value, this.getZone(context));
                     }
                 } catch (DateTimeException e) {
-                    value = _rethrowDateTimeException(parser, context, e, string);
+                    value = _handleDateTimeException(context, e, string);
                 }
                 return value;
             }
@@ -276,14 +280,18 @@ public class InstantDeserializer<T extends Temporal>
                 // 20-Apr-2016, tatu: Related to [databind#1208], can try supporting embedded
                 //    values quite easily
                 return (T) parser.getEmbeddedObject();
+
+            case JsonTokenId.ID_START_ARRAY:
+            	return _deserializeFromArray(parser, context);
         }
-        throw context.mappingException("Expected type float, integer, or string.");
+        return _handleUnexpectedToken(context, parser, JsonToken.VALUE_STRING,
+                JsonToken.VALUE_NUMBER_INT, JsonToken.VALUE_NUMBER_FLOAT);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public JsonDeserializer<T> createContextual(DeserializationContext ctxt,
-                                                BeanProperty property) throws JsonMappingException
+            BeanProperty property) throws JsonMappingException
     {
         InstantDeserializer<T> deserializer =
                 (InstantDeserializer<T>)super.createContextual(ctxt, property);
@@ -319,7 +327,7 @@ public class InstantDeserializer<T extends Temporal>
         }
         return commas;
     }
-    
+
     protected T _fromLong(DeserializationContext context, long timestamp)
     {
         if(context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)){
@@ -330,19 +338,32 @@ public class InstantDeserializer<T extends Temporal>
         return fromMilliseconds.apply(new FromIntegerArguments(
                 timestamp, this.getZone(context)));
     }
-    
-    protected T _fromDecimal(DeserializationContext context, BigDecimal value)
+
+    protected T _fromDecimal(final DeserializationContext context, BigDecimal value)
     {
-        long seconds = value.longValue();
-        int nanoseconds = DecimalUtils.extractNanosecondDecimal(value, seconds);
-        return fromNanoseconds.apply(new FromDecimalArguments(
-                seconds, nanoseconds, getZone(context)));
+        FromDecimalArguments args =
+            DecimalUtils.extractSecondsAndNanos(value, new BiFunction<Long, Integer, FromDecimalArguments>() {
+                @Override
+                public FromDecimalArguments apply(Long s, Integer ns) {
+                    return new FromDecimalArguments(s, ns, getZone(context));
+                }
+            });
+        return fromNanoseconds.apply(args);
     }
-    
+
     private ZoneId getZone(DeserializationContext context)
     {
         // Instants are always in UTC, so don't waste compute cycles
         return (_valueClass == Instant.class) ? null : DateTimeUtils.toZoneId(context.getTimeZone());
+    }
+
+    private String replaceZeroOffsetAsZIfNecessary(String text)
+    {
+        if (replaceZeroOffsetAsZ) {
+            return ISO8601_UTC_ZERO_OFFSET_SUFFIX_REGEX.matcher(text).replaceFirst("Z");
+        }
+
+        return text;
     }
 
     public static class FromIntegerArguments // since 2.8.3

@@ -1,80 +1,78 @@
-package com.fasterxml.jackson.datatype.threetenbp;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectReader;
-import org.junit.Test;
+package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.io.IOException;
+import org.threeten.bp.LocalDate;
 import org.threeten.bp.Month;
-import org.threeten.bp.YearMonth;
 import org.threeten.bp.format.DateTimeParseException;
+
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-public class TestYearMonthDeserialization extends ModuleTestBase
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
+
+public class LocalDateDeserTest extends ModuleTestBase
 {
-    private final ObjectReader READER = newMapper().readerFor(YearMonth.class);
+    private final ObjectReader READER = newMapper().readerFor(LocalDate.class);
 
     @Test
     public void testDeserializationAsString01() throws Exception
     {
-        expectSuccess(YearMonth.of(2000, Month.JANUARY), "'2000-01'");
+        expectSuccess(LocalDate.of(2000, Month.JANUARY, 1), "'2000-01-01'");
     }
 
     @Test
     public void testBadDeserializationAsString01() throws Throwable
     {
-        expectFailure("'notayearmonth'");
+        expectFailure("'notalocaldate'");
     }
     
     @Test
     public void testDeserializationAsArrayDisabled() throws Throwable
     {
-    	try {
-    		read("['2000-01']");
-    	    fail("expected JsonMappingException");
-        } catch (JsonMappingException e) {
-           // OK
-        } catch (IOException e) {
-            throw e;
+        try {
+            read("['2000-01-01']");
+            fail("expected MismatchedInputException");
+        } catch (MismatchedInputException e) {
+            verifyException(e, "Unexpected token (VALUE_STRING) within Array");
         }
-
     }
-    
+
     @Test
     public void testDeserializationAsEmptyArrayDisabled() throws Throwable
     {
-    	// works even without the feature enabled
-    	assertNull(read("[]"));
+        // works even without the feature enabled
+        assertNull(read("[]"));
     }
-    
+
     @Test
     public void testDeserializationAsArrayEnabled() throws Throwable
     {
-    	String json="['2000-01']";
-    	YearMonth value= newMapper()
-    			.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
-    			.readerFor(YearMonth.class).readValue(aposToQuotes(json));
-    	notNull(value);
-        expect(YearMonth.of(2000, Month.JANUARY), value);
+        String json="['2000-01-01']";
+        LocalDate value= newMapper()
+                .configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
+                .readerFor(LocalDate.class).readValue(aposToQuotes(json));
+        notNull(value);
+        expect(LocalDate.of(2000, 1, 1), value);
     }
     
     @Test
     public void testDeserializationAsEmptyArrayEnabled() throws Throwable
     {
-    	String json="[]";
-    	YearMonth value= newMapper()
-    			.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
-    			.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true)
-    			.readerFor(YearMonth.class).readValue(aposToQuotes(json));
-    	assertNull(value);
+        String json="[]";
+        LocalDate value= newMapper()
+                .configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
+                .configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true)
+                .readerFor(LocalDate.class).readValue(aposToQuotes(json));
+        assertNull(value);
     }
-
 
     private void expectFailure(String json) throws Throwable {
         try {
@@ -93,12 +91,12 @@ public class TestYearMonthDeserialization extends ModuleTestBase
     }
 
     private void expectSuccess(Object exp, String json) throws IOException {
-        final YearMonth value = read(json);
+        final LocalDate value = read(json);
         notNull(value);
         expect(exp, value);
     }
 
-    private YearMonth read(final String json) throws IOException {
+    private LocalDate read(final String json) throws IOException {
         return READER.readValue(aposToQuotes(json));
     }
 

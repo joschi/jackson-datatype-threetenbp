@@ -16,8 +16,12 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -49,11 +53,11 @@ public class YearSerializer extends ThreeTenFormattedSerializerBase<Year>
     }
 
     protected YearSerializer(YearSerializer base, Boolean useTimestamp, DateTimeFormatter formatter) {
-        super(base, useTimestamp, formatter);
+        super(base, useTimestamp, formatter, null);
     }
 
     @Override
-    protected YearSerializer withFormat(Boolean useTimestamp, DateTimeFormatter formatter) {
+    protected YearSerializer withFormat(Boolean useTimestamp, DateTimeFormatter formatter, JsonFormat.Shape shape) {
         return new YearSerializer(this, useTimestamp, formatter);
     }
 
@@ -68,12 +72,19 @@ public class YearSerializer extends ThreeTenFormattedSerializerBase<Year>
         }
     }
 
+    // Override because we have String/Int, NOT String/Array
     @Override
-    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint) throws JsonMappingException
+    protected void _acceptTimestampVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint)
+            throws JsonMappingException
     {
         JsonIntegerFormatVisitor v2 = visitor.expectIntegerFormat(typeHint);
         if (v2 != null) {
             v2.numberType(JsonParser.NumberType.LONG);
         }
+    }
+
+    @Override // since 2.9
+    protected JsonToken serializationShape(SerializerProvider provider) {
+        return useTimestamp(provider) ? JsonToken.VALUE_NUMBER_INT : JsonToken.VALUE_STRING;
     }
 }

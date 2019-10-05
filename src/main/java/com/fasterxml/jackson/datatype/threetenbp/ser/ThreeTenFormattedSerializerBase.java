@@ -23,6 +23,8 @@ import org.threeten.bp.format.DateTimeFormatter;
 import java.util.Locale;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
@@ -49,13 +51,22 @@ abstract class ThreeTenFormattedSerializerBase<T>
      * Java timestamp, regardless of other settings.
      */
     protected final Boolean _useTimestamp;
-    
+
+    /**
+     * Flag that indicates that numeric timestamp values must be written using
+     * nanosecond timestamps if the datatype supports such resolution,
+     * regardless of other settings.
+     */
+    protected final Boolean _useNanoseconds;
+
     /**
      * Specific format to use, if not default format: non null value
      * also indicates that serialization is to be done as JSON String,
      * not numeric timestamp, unless {@link #_useTimestamp} is true.
      */
     protected final DateTimeFormatter _formatter;
+
+    protected final JsonFormat.Shape _shape;
 
     protected ThreeTenFormattedSerializerBase(Class<T> supportedType) {
         this(supportedType, null);
@@ -65,28 +76,48 @@ abstract class ThreeTenFormattedSerializerBase<T>
                                               DateTimeFormatter formatter) {
         super(supportedType);
         _useTimestamp = null;
+        _useNanoseconds = null;
+        _shape = null;
         _formatter = formatter;
     }
     
     protected ThreeTenFormattedSerializerBase(ThreeTenFormattedSerializerBase<?> base,
-                                              Boolean useTimestamp, DateTimeFormatter dtf)
-    {            
+                                              Boolean useTimestamp, DateTimeFormatter dtf, JsonFormat.Shape shape)
+    {
+        this(base, useTimestamp, null, dtf, shape);
+    }
+
+    protected ThreeTenFormattedSerializerBase(ThreeTenFormattedSerializerBase<?> base,
+                                              Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter dtf,
+                                              JsonFormat.Shape shape)
+    {
         super(base.handledType());
         _useTimestamp = useTimestamp;
+        _useNanoseconds = useNanoseconds;
         _formatter = dtf;
+        _shape = shape;
     }
 
     protected abstract ThreeTenFormattedSerializerBase<?> withFormat(Boolean useTimestamp,
-                                                                     DateTimeFormatter dtf);
+                                                                     DateTimeFormatter dtf, JsonFormat.Shape shape);
 
     /**
      * @since 2.8
      */
+    @Deprecated // since 2.9.5
     protected ThreeTenFormattedSerializerBase<?> withFeatures(Boolean writeZoneId) {
         // 01-Jul-2016, tatu: Sub-classes need to override
         return this;
     }
-    
+
+    /**
+     * @since 2.9.5
+     */
+    protected ThreeTenFormattedSerializerBase<?> withFeatures(Boolean writeZoneId,
+                                                              Boolean writeNanoseconds) {
+        return this;
+    }
+
     @Override
     public JsonSerializer<?> createContextual(SerializerProvider prov,
             BeanProperty property) throws JsonMappingException
@@ -120,12 +151,13 @@ abstract class ThreeTenFormattedSerializerBase<T>
                 }
             }
             ThreeTenFormattedSerializerBase<?> ser = this;
-            if ((useTimestamp != _useTimestamp) || (dtf != _formatter)) {
-                ser = ser.withFormat(useTimestamp, dtf);
+            if ((shape != _shape) || (useTimestamp != _useTimestamp) || (dtf != _formatter)) {
+                ser = ser.withFormat(useTimestamp, dtf, shape);
             }
             Boolean writeZoneId = format.getFeature(JsonFormat.Feature.WRITE_DATES_WITH_ZONE_ID);
-            if (writeZoneId != null) {
-                ser = ser.withFeatures(writeZoneId);
+            Boolean writeNanoseconds = format.getFeature(JsonFormat.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+            if ((writeZoneId != null) || (writeNanoseconds != null)) {
+                ser = ser.withFeatures(writeZoneId, writeNanoseconds);
             }
             return ser;
         }
@@ -168,11 +200,16 @@ abstract class ThreeTenFormattedSerializerBase<T>
         if (_useTimestamp != null) {
             return _useTimestamp.booleanValue();
         }
-        // assume that explicit formatter definition implies use of textual format
-        if (_formatter != null) { 
-            return false;
+        if (_shape != null) {
+            if (_shape == Shape.STRING) {
+                return false;
+            }
+            if (_shape == Shape.NUMBER_INT) {
+                return true;
+            }
         }
-        return provider.isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        // assume that explicit formatter definition implies use of textual format
+        return _formatter == null && provider.isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     protected boolean _useTimestampExplicitOnly(SerializerProvider provider) {
@@ -180,5 +217,20 @@ abstract class ThreeTenFormattedSerializerBase<T>
             return _useTimestamp.booleanValue();
         }
         return false;
+    }
+
+    protected boolean useNanoseconds(SerializerProvider provider) {
+        if (_useNanoseconds != null) {
+            return _useNanoseconds.booleanValue();
+        }
+        if (_shape != null) {
+            if (_shape == Shape.NUMBER_INT) {
+                return false;
+            }
+            if (_shape == Shape.NUMBER_FLOAT) {
+                return true;
+            }
+        }
+        return provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
     }
 }

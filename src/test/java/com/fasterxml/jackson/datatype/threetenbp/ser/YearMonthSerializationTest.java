@@ -14,7 +14,7 @@
  * limitations under the license.
  */
 
-package com.fasterxml.jackson.datatype.threetenbp;
+package com.fasterxml.jackson.datatype.threetenbp.ser;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -29,11 +29,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
+import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
-import org.junit.Before;
 import org.junit.Test;
 
-public class TestYearMonthSerialization
+public class YearMonthSerializationTest
 	extends ModuleTestBase
 {
     private static class SimpleAggregate
@@ -49,14 +50,7 @@ public class TestYearMonthSerialization
         }
     }
 
-    private ObjectMapper MAPPER;
-
-    @Before
-    public void setUp()
-    {
-        this.MAPPER = new ObjectMapper();
-        this.MAPPER.registerModule(new ThreeTenModule());
-    }
+    private final ObjectMapper MAPPER = newMapper();
 
     @Test
     public void testSerializationAsTimestamp01() throws Exception

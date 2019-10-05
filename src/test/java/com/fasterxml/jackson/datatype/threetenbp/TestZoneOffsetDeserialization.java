@@ -1,65 +1,66 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
+import org.threeten.bp.ZoneOffset;
+
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectReader;
-import org.junit.Test;
-
-import java.io.IOException;
-import org.threeten.bp.Year;
-import org.threeten.bp.format.DateTimeParseException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-public class TestYearDeserialization extends ModuleTestBase
+public class TestZoneOffsetDeserialization extends ModuleTestBase
 {
-    private final ObjectReader READER = newMapper().readerFor(Year.class);
+    private final ObjectReader READER = newMapper().readerFor(ZoneOffset.class);
 
     @Test
     public void testDeserializationAsString01() throws Exception
     {
-        expectSuccess(Year.of(2000), "'2000'");
+        expectSuccess(ZoneOffset.of("+0300"), "'+0300'");
     }
 
     @Test
     public void testBadDeserializationAsString01() throws Throwable
     {
-        expectFailure("'notayear'");
+        try {
+            read("'notazonedoffset'");
+            fail("expected MismatchedInputException");
+        } catch (MismatchedInputException e) {
+            verifyException(e, "Invalid ID for ZoneOffset");
+        }
     }
 
     @Test
     public void testDeserializationAsArrayDisabled() throws Throwable
     {
-    	try {
-    		read("['2000']");
-    	    fail("expected JsonMappingException");
-        } catch (JsonMappingException e) {
+        try {
+            read("['+0300']");
+    	        fail("expected MismatchedInputException");
+        } catch (MismatchedInputException e) {
            // OK
-        } catch (IOException e) {
-            throw e;
         }
     }
     
     @Test
     public void testDeserializationAsEmptyArrayDisabled() throws Throwable
     {
-    	try {
+        try {
     		read("[]");
-    	    fail("expected JsonMappingException");
-        } catch (JsonMappingException e) {
+    	    fail("expected MismatchedInputException");
+        } catch (MismatchedInputException e) {
            // OK
-        } catch (IOException e) {
-            throw e;
         }
-    	try {
+        try {
     		String json="[]";
         	newMapper()
         			.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
-        			.readerFor(Year.class).readValue(aposToQuotes(json));
+        			.readerFor(ZoneOffset.class).readValue(aposToQuotes(json));
     	    fail("expected JsonMappingException");
         } catch (JsonMappingException e) {
            // OK
@@ -71,48 +72,32 @@ public class TestYearDeserialization extends ModuleTestBase
     @Test
     public void testDeserializationAsArrayEnabled() throws Throwable
     {
-    	String json="['2000']";
-    	Year value= newMapper()
+        String json="['+0300']";
+        ZoneOffset value= newMapper()
     			.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
-    			.readerFor(Year.class).readValue(aposToQuotes(json));
-    	notNull(value);
-        expect(Year.of(2000), value);
+    			.readerFor(ZoneOffset.class).readValue(aposToQuotes(json));
+        notNull(value);
+        expect(ZoneOffset.of("+0300"), value);
     }
     
     @Test
     public void testDeserializationAsEmptyArrayEnabled() throws Throwable
     {
-    	String json="[]";
-    	Year value= newMapper()
+        String json="[]";
+        ZoneOffset value= newMapper()
     			.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
     			.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true)
-    			.readerFor(Year.class).readValue(aposToQuotes(json));
+    			.readerFor(ZoneOffset.class).readValue(aposToQuotes(json));
     	assertNull(value);
-    }
-    
-    private void expectFailure(String json) throws Throwable {
-        try {
-            read(json);
-            fail("expected DateTimeParseException");
-        } catch (JsonProcessingException e) {
-            if (e.getCause() == null) {
-                throw e;
-            }
-            if (!(e.getCause() instanceof DateTimeParseException)) {
-                throw e.getCause();
-            }
-        } catch (IOException e) {
-            throw e;
-        }
     }
 
     private void expectSuccess(Object exp, String json) throws IOException {
-        final Year value = read(json);
+        final ZoneOffset value = read(json);
         notNull(value);
         expect(exp, value);
     }
 
-    private Year read(final String json) throws IOException {
+    private ZoneOffset read(final String json) throws IOException {
         return READER.readValue(aposToQuotes(json));
     }
 

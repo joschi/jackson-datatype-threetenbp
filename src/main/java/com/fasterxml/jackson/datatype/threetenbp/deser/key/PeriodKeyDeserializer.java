@@ -19,7 +19,7 @@ public class PeriodKeyDeserializer extends ThreeTenKeyDeserializer {
         try {
             return Period.parse(key);
         } catch (DateTimeException e) {
-            return _rethrowDateTimeException(ctxt, Period.class, e, key);
+            return _handleDateTimeException(ctxt, Period.class, e, key);
         }
     }
 }

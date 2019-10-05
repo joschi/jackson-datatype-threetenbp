@@ -27,7 +27,7 @@ public class InstantKeyDeserializer extends ThreeTenKeyDeserializer {
                 }
             });
         } catch (DateTimeException e) {
-            return _rethrowDateTimeException(ctxt, Instant.class, e, key);
+            return _handleDateTimeException(ctxt, Instant.class, e, key);
         }
     }
 }

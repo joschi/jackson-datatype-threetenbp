@@ -1,5 +1,7 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
+import java.util.Arrays;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ModuleTestBase
@@ -9,7 +11,7 @@ public class ModuleTestBase
     final static String NO_NANOSECS_SER = "0.0";
     final static String NO_NANOSECS_SUFFIX = ".000000000";
     
-    protected ObjectMapper newMapper() {
+    protected static ObjectMapper newMapper() {
         return new ObjectMapper()
                 .registerModule(new ThreeTenModule());
     }
@@ -20,5 +22,18 @@ public class ModuleTestBase
 
     protected String aposToQuotes(String json) {
         return json.replace("'", "\"");
+    }
+
+    protected void verifyException(Throwable e, String... matches)
+    {
+        String msg = e.getMessage();
+        String lmsg = (msg == null) ? "" : msg.toLowerCase();
+        for (String match : matches) {
+            String lmatch = match.toLowerCase();
+            if (lmsg.indexOf(lmatch) >= 0) {
+                return;
+            }
+        }
+        throw new Error("Expected an exception with one of substrings ("+Arrays.asList(matches)+"): got one with message \""+msg+"\"");
     }
 }

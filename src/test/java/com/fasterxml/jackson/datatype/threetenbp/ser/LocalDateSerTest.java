@@ -14,7 +14,16 @@
  * limitations under the license.
  */
 
-package com.fasterxml.jackson.datatype.threetenbp;
+package com.fasterxml.jackson.datatype.threetenbp.ser;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
+import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
 import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDate;
@@ -22,19 +31,14 @@ import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.Month;
 import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.temporal.Temporal;
-
 import org.junit.Test;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class TestLocalDateSerialization
+public class LocalDateSerTest
 	extends ModuleTestBase
 {
     final static class Wrapper {
@@ -46,6 +50,14 @@ public class TestLocalDateSerialization
         public Wrapper(LocalDate v) { value = v; }
     }
 
+    final static class EpochDayWrapper {
+        @JsonFormat(shape=JsonFormat.Shape.NUMBER_INT)
+        public LocalDate value;
+
+        public EpochDayWrapper() { }
+        public EpochDayWrapper(LocalDate v) { value = v; }
+    }
+
     static class VanillaWrapper {
         public LocalDate value;
 
@@ -53,6 +65,19 @@ public class TestLocalDateSerialization
         public VanillaWrapper(LocalDate v) { value = v; }
     }
 
+    // [modules-java8#46]
+    static class Holder46 {
+        public LocalDate localDate;
+
+        @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.WRAPPER_OBJECT)
+        public Object object;
+
+        public Holder46(LocalDate localDate, Object object) {
+            this.localDate = localDate;
+            this.object = object;
+        }
+    }    
+    
     private final ObjectMapper MAPPER = newMapper();
 
     @Test
@@ -226,5 +251,45 @@ public class TestLocalDateSerialization
         assertEquals(input.value, output.value);
         LocalDate date2 = mapper.readValue(EXP_DATE, LocalDate.class);
         assertEquals(date, date2);
+    }
+
+    @Test
+    public void testConfigOverridesToEpochDay() throws Exception
+    {
+        ObjectMapper mapper = newMapper();
+        mapper.configOverride(LocalDate.class)
+            .setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER_INT));
+        LocalDate date = LocalDate.ofEpochDay(1000);
+        VanillaWrapper input = new VanillaWrapper(date);
+        final String EXP_DATE = "1000";
+        String json = mapper.writeValueAsString(input);
+        assertEquals("{\"value\":"+EXP_DATE+"}", json);
+        assertEquals(EXP_DATE, mapper.writeValueAsString(date));
+
+        // and read back, too
+        VanillaWrapper output = mapper.readValue(json, VanillaWrapper.class);
+        assertEquals(input.value, output.value);
+        LocalDate date2 = mapper.readValue(EXP_DATE, LocalDate.class);
+        assertEquals(date, date2);
+    }
+
+    @Test
+    public void testCustomFormatToEpochDay() throws Exception
+    {
+        EpochDayWrapper w = MAPPER.readValue("{\"value\": 1000}", EpochDayWrapper.class);
+        LocalDate date = w.value;
+        assertNotNull(date);
+        assertEquals(LocalDate.ofEpochDay(1000), date);
+    }
+
+    // [modules-java8#46]
+    @Test
+    public void testPolymorphicSerialization() throws Exception
+    {
+        ObjectMapper mapper = newMapper();
+        final LocalDate localDate = LocalDate.of(2017, 12, 5);
+        String json = mapper.writeValueAsString(new Holder46(localDate, localDate));
+        assertEquals(aposToQuotes("{\"localDate\":[2017,12,5],\"object\":{\"org.threeten.bp.LocalDate\":[2017,12,5]}}"),
+                json);
     }
 }

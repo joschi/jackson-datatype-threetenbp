@@ -21,7 +21,7 @@ public class ZonedDateTimeKeyDeserializer extends ThreeTenKeyDeserializer {
         try {
             return ZonedDateTime.parse(key, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         } catch (DateTimeException e) {
-            return _rethrowDateTimeException(ctxt, ZonedDateTime.class, e, key);
+            return _handleDateTimeException(ctxt, ZonedDateTime.class, e, key);
         }
     }
 }

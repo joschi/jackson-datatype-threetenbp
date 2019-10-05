@@ -39,13 +39,15 @@ public class MonthDayDeserializer extends ThreeTenDateTimeDeserializerBase<Month
                 }
                 return MonthDay.parse(string, _formatter);
             } catch (DateTimeException e) {
-                _rethrowDateTimeException(parser, context, e, string);
+                return _handleDateTimeException(context, e, string);
             }
         }
         if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
             return (MonthDay) parser.getEmbeddedObject();
         }
-        throw context.mappingException("Unexpected token (%s), expected VALUE_STRING or VALUE_NUMBER_INT",
-                parser.getCurrentToken());
+        if (parser.hasToken(JsonToken.START_ARRAY)){
+            return _deserializeFromArray(parser, context);
+        }
+        return _handleUnexpectedToken(context, parser, JsonToken.VALUE_STRING, JsonToken.VALUE_NUMBER_INT);
     }
 }

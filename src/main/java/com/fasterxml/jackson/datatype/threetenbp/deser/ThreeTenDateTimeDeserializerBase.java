@@ -1,10 +1,13 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
+import java.io.IOException;
+
 import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.format.DateTimeFormatter;
 import java.util.Locale;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -52,4 +55,12 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
         }
         return this;
    }
+
+    protected void _throwNoNumericTimestampNeedTimeZone(JsonParser p, DeserializationContext ctxt)
+        throws IOException
+    {
+        ctxt.reportInputMismatch(handledType(),
+"raw timestamp (%d) not allowed for `%s`: need additional information such as an offset or time-zone (see class Javadocs)",
+p.getNumberValue(), handledType().getName());
+    }
 }

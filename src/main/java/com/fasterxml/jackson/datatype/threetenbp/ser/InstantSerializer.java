@@ -16,6 +16,7 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
 import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
 import org.threeten.bp.Instant;
@@ -29,7 +30,7 @@ import org.threeten.bp.format.DateTimeFormatter;
  * @author Nick Williams
  * @since 2.2
  */
-public final class InstantSerializer extends InstantSerializerBase<Instant>
+public class InstantSerializer extends InstantSerializerBase<Instant>
 {
     private static final long serialVersionUID = 1L;
 
@@ -39,20 +40,20 @@ public final class InstantSerializer extends InstantSerializerBase<Instant>
         super(Instant.class,
                 new ToLongFunction<Instant>() {
                     @Override
-                    public long applyAsLong(Instant value) {
-                        return value.toEpochMilli();
+                    public long applyAsLong(Instant instant) {
+                        return instant.toEpochMilli();
                     }
                 },
                 new ToLongFunction<Instant>() {
                     @Override
-                    public long applyAsLong(Instant value) {
-                        return value.getEpochSecond();
+                    public long applyAsLong(Instant instant) {
+                        return instant.getEpochSecond();
                     }
                 },
                 new ToIntFunction<Instant>() {
                     @Override
-                    public int applyAsInt(Instant value) {
-                        return value.getNano();
+                    public int applyAsInt(Instant instant) {
+                        return instant.getNano();
                     }
                 },
                 // null -> use 'value.toString()', default format
@@ -61,11 +62,22 @@ public final class InstantSerializer extends InstantSerializerBase<Instant>
 
     protected InstantSerializer(InstantSerializer base,
             Boolean useTimestamp, DateTimeFormatter formatter) {
-        super(base, useTimestamp, formatter);
+        this(base, useTimestamp, null, formatter);
+    }
+
+    protected InstantSerializer(InstantSerializer base,
+            Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter formatter) {
+        super(base, useTimestamp, useNanoseconds, formatter);
     }
 
     @Override
-    protected ThreeTenFormattedSerializerBase<Instant> withFormat(Boolean useTimestamp, DateTimeFormatter formatter) {
+    protected ThreeTenFormattedSerializerBase<Instant> withFormat(Boolean useTimestamp,
+                                                                  DateTimeFormatter formatter, JsonFormat.Shape shape) {
         return new InstantSerializer(this, useTimestamp, formatter);
+    }
+
+    @Override
+    protected ThreeTenFormattedSerializerBase<?> withFeatures(Boolean writeZoneId, Boolean writeNanoseconds) {
+        return new InstantSerializer(this, _useTimestamp, writeNanoseconds, _formatter);
     }
 }

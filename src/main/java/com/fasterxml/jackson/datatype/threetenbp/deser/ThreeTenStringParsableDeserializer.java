@@ -89,7 +89,7 @@ public class ThreeTenStringParsableDeserializer
                     return ZoneOffset.of(string);
                 }
             } catch (DateTimeException e) {
-                _rethrowDateTimeException(parser, context, e, string);
+                return _handleDateTimeException(context, e, string);
             }
         }
         if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
@@ -97,7 +97,11 @@ public class ThreeTenStringParsableDeserializer
             //    values quite easily
             return parser.getEmbeddedObject();
         }
-        throw context.wrongTokenException(parser, JsonToken.VALUE_STRING, null);
+        if (parser.hasToken(JsonToken.START_ARRAY)){
+        	return _deserializeFromArray(parser, context);
+        }
+        
+        throw context.wrongTokenException(parser, handledType(), JsonToken.VALUE_STRING, null);
     }
 
     @Override

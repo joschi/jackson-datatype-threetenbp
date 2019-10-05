@@ -19,6 +19,7 @@ package com.fasterxml.jackson.datatype.threetenbp.deser;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
 import java.io.IOException;
 import org.threeten.bp.DateTimeException;
@@ -31,13 +32,11 @@ import org.threeten.bp.format.DateTimeFormatter;
  * @author Nick Williams
  * @since 2.2
  */
-public class YearDeserializer extends ThreeTenDeserializerBase<Year>
+public class YearDeserializer extends ThreeTenDateTimeDeserializerBase<Year>
 {
     private static final long serialVersionUID = 1L;
 
     public static final YearDeserializer INSTANCE = new YearDeserializer();
-
-    private final DateTimeFormatter _formatter;
 
     private YearDeserializer()
     {
@@ -45,8 +44,12 @@ public class YearDeserializer extends ThreeTenDeserializerBase<Year>
     }
 
     public YearDeserializer(DateTimeFormatter formatter) {
-        super(Year.class);
-        _formatter = formatter;
+        super(Year.class, formatter);
+    }
+
+    @Override
+    protected JsonDeserializer<Year> withDateFormat(DateTimeFormatter dtf) {
+        return new YearDeserializer(dtf);
     }
 
     @Override
@@ -61,7 +64,7 @@ public class YearDeserializer extends ThreeTenDeserializerBase<Year>
                 }
                 return Year.parse(string, _formatter);
             } catch (DateTimeException e) {
-                _rethrowDateTimeException(parser, context, e, string);
+                return _handleDateTimeException(context, e, string);
             }
         }
         if (t == JsonToken.VALUE_NUMBER_INT) {
@@ -70,7 +73,9 @@ public class YearDeserializer extends ThreeTenDeserializerBase<Year>
         if (t == JsonToken.VALUE_EMBEDDED_OBJECT) {
             return (Year) parser.getEmbeddedObject();
         }
-        throw context.mappingException("Unexpected token (%s), expected VALUE_STRING or VALUE_NUMBER_INT",
-                parser.getCurrentToken());
+        if (parser.hasToken(JsonToken.START_ARRAY)){
+            return _deserializeFromArray(parser, context);
+        }
+        return _handleUnexpectedToken(context, parser, JsonToken.VALUE_STRING, JsonToken.VALUE_NUMBER_INT);
     }
 }

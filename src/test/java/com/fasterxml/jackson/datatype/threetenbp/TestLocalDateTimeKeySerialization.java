@@ -2,13 +2,16 @@ package com.fasterxml.jackson.datatype.threetenbp;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -74,6 +77,29 @@ public class TestLocalDateTimeKeySerialization {
 
         map.put(DATE_TIME, "test");
         assertEquals("Value is incorrect", map, value);
+    }
+
+    @Test
+    public void testDateTimeExceptionIsHandled() throws Throwable
+    {
+        final LocalDateTime now = LocalDateTime.now();
+        DeserializationProblemHandler handler = new DeserializationProblemHandler() {
+            @Override
+            public Object handleWeirdKey(DeserializationContext ctxt, Class<?> targetType,
+                   String valueToConvert, String failureMsg) throws IOException {
+                if (LocalDateTime.class == targetType) {
+                    if ("now".equals(valueToConvert)) {
+                        return now;
+                    }
+                }
+                return NOT_HANDLED;
+            }
+        };
+        Map<LocalDateTime, String> value = om.addHandler(handler).readValue(
+                map("now", "test"),
+                TYPE_REF);
+        map.put(now, "test");
+        assertEquals(map, value);
     }
 
     private String map(String key, String value) {

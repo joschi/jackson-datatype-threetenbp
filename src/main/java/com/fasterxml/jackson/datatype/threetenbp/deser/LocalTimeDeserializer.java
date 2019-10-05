@@ -65,48 +65,68 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
             DateTimeFormatter format = _formatter;
             try {
                 if (format == DEFAULT_FORMATTER) {
-    	            if (string.contains("T")) {
-    	                return LocalTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-    	            }
+                    if (string.contains("T")) {
+                        return LocalTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    }
                 }
                 return LocalTime.parse(string, format);
             } catch (DateTimeException e) {
-                _rethrowDateTimeException(parser, context, e, string);
+                return _handleDateTimeException(context, e, string);
             }
         }
         if (parser.isExpectedStartArrayToken()) {
-            if (parser.nextToken() == JsonToken.END_ARRAY) {
+            JsonToken t = parser.nextToken();
+            if (t == JsonToken.END_ARRAY) {
                 return null;
             }
-            int hour = parser.getIntValue();
-
-            parser.nextToken();
-            int minute = parser.getIntValue();
-
-            if(parser.nextToken() != JsonToken.END_ARRAY)
-            {
-                int second = parser.getIntValue();
-
-                if(parser.nextToken() != JsonToken.END_ARRAY)
-                {
-                    int partialSecond = parser.getIntValue();
-                    if(partialSecond < 1_000 &&
-                            !context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS))
-                        partialSecond *= 1_000_000; // value is milliseconds, convert it to nanoseconds
-
-                    if(parser.nextToken() != JsonToken.END_ARRAY)
-                        throw context.wrongTokenException(parser, JsonToken.END_ARRAY, "Expected array to end.");
-
-                    return LocalTime.of(hour, minute, second, partialSecond);
+            if (context.isEnabled(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS)
+                    && (t == JsonToken.VALUE_STRING || t==JsonToken.VALUE_EMBEDDED_OBJECT)) {
+                final LocalTime parsed = deserialize(parser, context);
+                if (parser.nextToken() != JsonToken.END_ARRAY) {
+                    handleMissingEndArrayForSingle(parser, context);
                 }
-
-                return LocalTime.of(hour, minute, second);
+                return parsed;            
             }
-            return LocalTime.of(hour, minute);
+            if (t == JsonToken.VALUE_NUMBER_INT) {
+                int hour = parser.getIntValue();
+    
+                parser.nextToken();
+                int minute = parser.getIntValue();
+                LocalTime result;
+    
+                t = parser.nextToken();
+                if (t == JsonToken.END_ARRAY) {
+                    result = LocalTime.of(hour, minute);
+                } else {
+                    int second = parser.getIntValue();
+                    t = parser.nextToken();
+                    if (t == JsonToken.END_ARRAY) {
+                        result = LocalTime.of(hour, minute, second);
+                    } else {
+                        int partialSecond = parser.getIntValue();
+                        if(partialSecond < 1_000 &&
+                                !context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS))
+                            partialSecond *= 1_000_000; // value is milliseconds, convert it to nanoseconds
+                        t = parser.nextToken();
+                        if (t != JsonToken.END_ARRAY) {
+                            throw context.wrongTokenException(parser, handledType(), JsonToken.END_ARRAY,
+                                    "Expected array to end");
+                        }
+                        result = LocalTime.of(hour, minute, second, partialSecond);
+                    }
+                }
+                return result;
+            }
+            context.reportInputMismatch(handledType(),
+                    "Unexpected token (%s) within Array, expected VALUE_NUMBER_INT",
+                    t);
         }
         if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
             return (LocalTime) parser.getEmbeddedObject();
         }
-        throw context.wrongTokenException(parser, JsonToken.START_ARRAY, "Expected array or string.");
+        if (parser.hasToken(JsonToken.VALUE_NUMBER_INT)) {
+            _throwNoNumericTimestampNeedTimeZone(parser, context);
+        }
+        return _handleUnexpectedToken(context, parser, "Expected array or string.");
     }
 }

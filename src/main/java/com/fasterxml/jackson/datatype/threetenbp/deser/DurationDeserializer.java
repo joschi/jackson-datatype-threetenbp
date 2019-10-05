@@ -17,6 +17,7 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -24,6 +25,8 @@ import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+
+import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
 import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Duration;
 
@@ -51,9 +54,12 @@ public class DurationDeserializer extends ThreeTenDeserializerBase<Duration>
         {
             case JsonTokenId.ID_NUMBER_FLOAT:
                 BigDecimal value = parser.getDecimalValue();
-                long seconds = value.longValue();
-                int nanoseconds = DecimalUtils.extractNanosecondDecimal(value, seconds);
-                return Duration.ofSeconds(seconds, nanoseconds);
+                return DecimalUtils.extractSecondsAndNanos(value, new BiFunction<Long, Integer, Duration>() {
+                    @Override
+                    public Duration apply(Long seconds, Integer nanoAdjustment) {
+                        return Duration.ofSeconds(seconds, nanoAdjustment);
+                    }
+                });
 
             case JsonTokenId.ID_NUMBER_INT:
                 if(context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
@@ -69,13 +75,17 @@ public class DurationDeserializer extends ThreeTenDeserializerBase<Duration>
                 try {
                     return Duration.parse(string);
                 } catch (DateTimeException e) {
-                    return _rethrowDateTimeException(parser, context, e, string);
+                    return _handleDateTimeException(context, e, string);
                 }
             case JsonTokenId.ID_EMBEDDED_OBJECT:
                 // 20-Apr-2016, tatu: Related to [databind#1208], can try supporting embedded
                 //    values quite easily
                 return (Duration) parser.getEmbeddedObject();
+                
+            case JsonTokenId.ID_START_ARRAY:
+            	return _deserializeFromArray(parser, context);
         }
-        throw context.mappingException("Expected type float, integer, or string.");
+        return _handleUnexpectedToken(context, parser, JsonToken.VALUE_STRING,
+                JsonToken.VALUE_NUMBER_INT, JsonToken.VALUE_NUMBER_FLOAT);
     }
 }

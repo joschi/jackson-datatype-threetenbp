@@ -15,6 +15,7 @@ import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class TestOffsetDateTimeDeserialization extends ModuleTestBase
@@ -89,6 +90,79 @@ public class TestOffsetDateTimeDeserialization extends ModuleTestBase
         expectFailure("'notanoffsetdatetime'");
     }
 
+    @Test
+    public void testDeserializationAsWithZeroZoneOffset01() throws Exception
+    {
+        expectSuccess(OffsetDateTime.of(2000, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC), "'2000-01-01T12:00+00:00'");
+    }
+
+    @Test
+    public void testDeserializationAsWithZeroZoneOffset02() throws Exception
+    {
+        expectSuccess(OffsetDateTime.of(2000, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC), "'2000-01-01T12:00+0000'");
+    }
+
+    @Test
+    public void testDeserializationAsWithZeroZoneOffset03() throws Exception
+    {
+        expectSuccess(OffsetDateTime.of(2000, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC), "'2000-01-01T12:00+00'");
+    }
+
+    @Test
+    public void testDeserializationAsArrayDisabled() throws Throwable
+    {
+        try {
+    		    read("['2000-01-01T12:00+00']");
+    		    fail("expected JsonMappingException");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Cannot deserialize");
+            verifyException(e, "START_ARRAY token");
+        }
+    }
+    
+    @Test
+    public void testDeserializationAsEmptyArrayDisabled() throws Throwable
+    {
+        try {
+            read("[]");
+            fail("expected JsonMappingException");
+        } catch (JsonMappingException e) {
+            verifyException(e, "Cannot deserialize");
+            verifyException(e, "START_ARRAY token");
+        }
+        try {
+    		    newMapper()
+    		        .configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
+    		        .readerFor(OffsetDateTime.class)
+    		        .readValue("[]");
+    		    fail("expected JsonMappingException");
+        } catch (JsonMappingException e) {
+            // 25-Jul-2017, tatu: Ideally should note it's really missing value but...
+            verifyException(e, "Unexpected token (END_ARRAY)");
+        }
+    }
+
+    @Test
+    public void testDeserializationAsArrayEnabled() throws Throwable
+    {
+        String json = aposToQuotes("['2000-01-01T12:00+00']");
+        OffsetDateTime value= newMapper()
+                .configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
+                .readerFor(OffsetDateTime.class).readValue(json);
+        expect(OffsetDateTime.of(2000, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC), value);
+    }
+    
+    @Test
+    public void testDeserializationAsEmptyArrayEnabled() throws Throwable
+    {
+        String json="[]";
+        OffsetDateTime value= newMapper()
+    			.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
+    			.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true)
+    			.readerFor(OffsetDateTime.class).readValue(aposToQuotes(json));
+        assertNull(value);
+    }
+    
     private void expectFailure(String json) throws Exception {
         try {
             read(json);

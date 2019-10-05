@@ -18,12 +18,12 @@ package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.io.IOException;
 import org.threeten.bp.DateTimeException;
-import org.threeten.bp.format.DateTimeParseException;
 import java.util.Arrays;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
 {
     private static final long serialVersionUID = 1L;
-    
+
     protected ThreeTenDeserializerBase(Class<T> supportedType)
     {
         super(supportedType);
@@ -51,12 +51,13 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
         return typeDeserializer.deserializeTypedFromAny(parser, context);
     }
 
-    protected <BOGUS> BOGUS _reportWrongToken(JsonParser parser, DeserializationContext context,
+    protected <BOGUS> BOGUS _reportWrongToken(DeserializationContext context,
             JsonToken exp, String unit) throws IOException
     {
-        throw context.wrongTokenException(parser, exp,
-                String.format("Expected %s for '%s' of %s value",
-                        exp.name(), unit, handledType().getName()));
+        context.reportWrongTokenException((JsonDeserializer<?>)this, exp,
+                "Expected %s for '%s' of %s value",
+                        exp.name(), unit, handledType().getName());
+        return null;
     }
 
     protected <BOGUS> BOGUS _reportWrongToken(JsonParser parser, DeserializationContext context,
@@ -64,33 +65,62 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
     {
         // 20-Apr-2016, tatu: No multiple-expected-types handler yet, construct message
         //    here
-        String msg = String.format("Unexpected token (%s), expected one of %s for %s value",
+        return context.reportInputMismatch(handledType(),
+                "Unexpected token (%s), expected one of %s for %s value",
                 parser.getCurrentToken(),
                 Arrays.asList(expTypes).toString(),
                 handledType().getName());
-        throw JsonMappingException.from(parser, msg);
     }
-    
-    protected <BOGUS> BOGUS _rethrowDateTimeException(JsonParser p, DeserializationContext context,
-            DateTimeException e0, String value) throws JsonMappingException
+
+    @SuppressWarnings("unchecked")
+    protected <R> R _handleDateTimeException(DeserializationContext context,
+              DateTimeException e0, String value) throws JsonMappingException
     {
-        JsonMappingException e;
-        if (e0 instanceof DateTimeParseException) {
-            e = context.weirdStringException(value, handledType(), e0.getMessage());
+        try {
+            return (R) context.handleWeirdStringValue(handledType(), value,
+                    "Failed to deserialize %s: (%s) %s",
+                    handledType().getName(), e0.getClass().getName(), e0.getMessage());
+
+        } catch (JsonMappingException e) {
             e.initCause(e0);
-        } else {
-            e = JsonMappingException.from(p,
-                String.format("Failed to deserialize %s: (%s) %s",
-                        handledType().getName(), e0.getClass().getName(), e0.getMessage()), e0);
+            throw e;
+        } catch (IOException e) {
+            if (null == e.getCause()) {
+                e.initCause(e0);
+            }
+            throw JsonMappingException.fromUnexpectedIOE(e);
         }
-        throw e;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <R> R _handleUnexpectedToken(DeserializationContext context,
+              JsonParser parser, String message, Object... args) throws JsonMappingException {
+        try {
+            return (R) context.handleUnexpectedToken(handledType(), parser.getCurrentToken(),
+                    parser, message, args);
+
+        } catch (JsonMappingException e) {
+            throw e;
+        } catch (IOException e) {
+            throw JsonMappingException.fromUnexpectedIOE(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <R> R _handleUnexpectedToken(DeserializationContext context,
+              JsonParser parser, JsonToken... expTypes) throws JsonMappingException {
+        return _handleUnexpectedToken(context, parser,
+                "Unexpected token (%s), expected one of %s for %s value",
+                parser.currentToken(),
+                Arrays.asList(expTypes),
+                handledType().getName());
     }
 
     /**
      * Helper method used to peel off spurious wrappings of DateTimeException
      *
      * @param e DateTimeException to peel
-     * 
+     *
      * @return DateTimeException that does not have another DateTimeException as its cause.
      */
     protected DateTimeException _peelDTE(DateTimeException e) {

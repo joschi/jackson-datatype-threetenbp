@@ -1,5 +1,6 @@
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.IOException;
 
 import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
@@ -8,6 +9,7 @@ import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
@@ -54,30 +56,47 @@ public class ZonedDateTimeSerializer extends InstantSerializerBase<ZonedDateTime
 
     protected ZonedDateTimeSerializer(ZonedDateTimeSerializer base,
             Boolean useTimestamp, DateTimeFormatter formatter, Boolean writeZoneId) {
-        super(base, useTimestamp, formatter);
+        this(base, useTimestamp, null, formatter, writeZoneId);
+    }
+
+    protected ZonedDateTimeSerializer(ZonedDateTimeSerializer base,
+            Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter formatter,
+            Boolean writeZoneId) {
+        super(base, useTimestamp, useNanoseconds, formatter);
         _writeZoneId = writeZoneId;
     }
 
     @Override
-    protected ThreeTenFormattedSerializerBase<?> withFormat(Boolean useTimestamp, DateTimeFormatter formatter) {
+    protected ThreeTenFormattedSerializerBase<?> withFormat(
+        Boolean useTimestamp,
+        DateTimeFormatter formatter,
+        JsonFormat.Shape shape) {
         return new ZonedDateTimeSerializer(this, useTimestamp, formatter, _writeZoneId);
     }
 
     @Override
+    @Deprecated
     protected ThreeTenFormattedSerializerBase<?> withFeatures(Boolean writeZoneId) {
         return new ZonedDateTimeSerializer(this, _useTimestamp, _formatter, writeZoneId);
     }
 
     @Override
-    public void serialize(ZonedDateTime value, JsonGenerator generator, SerializerProvider provider) throws IOException {
+    protected ThreeTenFormattedSerializerBase<?> withFeatures(Boolean writeZoneId, Boolean writeNanoseconds) {
+        return new ZonedDateTimeSerializer(this, _useTimestamp, writeNanoseconds, _formatter, writeZoneId);
+    }
+
+    @Override
+    public void serialize(ZonedDateTime value, JsonGenerator g, SerializerProvider provider)
+        throws IOException
+    {
         if (!useTimestamp(provider)) {
             if (shouldWriteWithZoneId(provider)) {
                 // write with zone
-                generator.writeString(DateTimeFormatter.ISO_ZONED_DATE_TIME.format(value));
+                g.writeString(DateTimeFormatter.ISO_ZONED_DATE_TIME.format(value));
                 return;
             }
         }
-        super.serialize(value, generator, provider);
+        super.serialize(value, g, provider);
     }
 
     /**
@@ -86,5 +105,13 @@ public class ZonedDateTimeSerializer extends InstantSerializerBase<ZonedDateTime
     public boolean shouldWriteWithZoneId(SerializerProvider ctxt) {
         return (_writeZoneId != null) ? _writeZoneId :
             ctxt.isEnabled(SerializationFeature.WRITE_DATES_WITH_ZONE_ID);
+    }
+
+    @Override // since 2.9
+    protected JsonToken serializationShape(SerializerProvider provider) {
+        if (!useTimestamp(provider) && shouldWriteWithZoneId(provider)) {
+            return JsonToken.VALUE_STRING;
+        }
+        return super.serializationShape(provider);
     }
 }

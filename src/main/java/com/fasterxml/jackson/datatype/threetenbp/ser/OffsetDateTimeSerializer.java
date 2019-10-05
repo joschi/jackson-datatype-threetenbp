@@ -1,5 +1,6 @@
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
 import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
 import org.threeten.bp.OffsetDateTime;
@@ -36,11 +37,23 @@ public class OffsetDateTimeSerializer extends InstantSerializerBase<OffsetDateTi
 
     protected OffsetDateTimeSerializer(OffsetDateTimeSerializer base,
             Boolean useTimestamp, DateTimeFormatter formatter) {
-        super(base, useTimestamp, formatter);
+        this(base, useTimestamp, null, formatter);
+    }
+
+    protected OffsetDateTimeSerializer(OffsetDateTimeSerializer base,
+            Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter formatter) {
+        super(base, useTimestamp, useNanoseconds, formatter);
     }
 
     @Override
-    protected ThreeTenFormattedSerializerBase<?> withFormat(Boolean useTimestamp, DateTimeFormatter formatter) {
+    protected ThreeTenFormattedSerializerBase<?> withFormat(Boolean useTimestamp,
+                                                            DateTimeFormatter formatter, JsonFormat.Shape shape)
+    {
         return new OffsetDateTimeSerializer(this, useTimestamp, formatter);
+    }
+
+    @Override
+    protected ThreeTenFormattedSerializerBase<?> withFeatures(Boolean writeZoneId, Boolean writeNanoseconds) {
+        return new OffsetDateTimeSerializer(this, _useTimestamp, writeNanoseconds, _formatter);
     }
 }

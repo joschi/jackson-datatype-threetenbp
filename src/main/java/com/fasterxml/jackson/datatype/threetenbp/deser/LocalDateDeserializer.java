@@ -26,6 +26,7 @@ import org.threeten.bp.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
 /**
@@ -79,25 +80,44 @@ public class LocalDateDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
                 }
                 return LocalDate.parse(string, format);
             } catch (DateTimeException e) {
-                _rethrowDateTimeException(parser, context, e, string);
+                return _handleDateTimeException(context, e, string);
             }
         }
         if (parser.isExpectedStartArrayToken()) {
-    		    if (parser.nextToken() == JsonToken.END_ARRAY) {
-    		        return null;
-    		    }
-    		    int year = parser.getIntValue();
-    		    int month = parser.nextIntValue(-1);
-    		    int day = parser.nextIntValue(-1);
-
-    		    if (parser.nextToken() != JsonToken.END_ARRAY) {
-    		        throw context.wrongTokenException(parser, JsonToken.END_ARRAY, "Expected array to end.");
-    		    }
-    		    return LocalDate.of(year, month, day);
+            JsonToken t = parser.nextToken();
+            if (t == JsonToken.END_ARRAY) {
+                return null;
+            }
+            if (context.isEnabled(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS)
+                    && (t == JsonToken.VALUE_STRING || t==JsonToken.VALUE_EMBEDDED_OBJECT)) {
+                final LocalDate parsed = deserialize(parser, context);
+                if (parser.nextToken() != JsonToken.END_ARRAY) {
+                    handleMissingEndArrayForSingle(parser, context);
+                }
+                return parsed;            
+            }
+            if (t == JsonToken.VALUE_NUMBER_INT) {
+                int year = parser.getIntValue();
+                int month = parser.nextIntValue(-1);
+                int day = parser.nextIntValue(-1);
+                
+                if (parser.nextToken() != JsonToken.END_ARRAY) {
+                    throw context.wrongTokenException(parser, handledType(), JsonToken.END_ARRAY,
+                            "Expected array to end");
+                }
+                return LocalDate.of(year, month, day);
+            }
+            context.reportInputMismatch(handledType(),
+                    "Unexpected token (%s) within Array, expected VALUE_NUMBER_INT",
+                    t);
         }
         if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
             return (LocalDate) parser.getEmbeddedObject();
         }
-        throw context.wrongTokenException(parser, JsonToken.VALUE_STRING, "Expected array or string.");
+        // 06-Jan-2018, tatu: Is this actually safe? Do users expect such coercion?
+        if (parser.hasToken(JsonToken.VALUE_NUMBER_INT)) {
+            return LocalDate.ofEpochDay(parser.getLongValue());
+        }
+        return _handleUnexpectedToken(context, parser, "Expected array or string.");
     }
 }
