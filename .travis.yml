@@ -1,9 +1,9 @@
 sudo: false
 dist: trusty
 language: java
-install: mvn -B install -Dgpg.skip=true
+install: ./mvnw -B install -Dgpg.skip=true
 after_success:
-  - mvn -B jacoco:report coveralls:report
+  - ./mvnw -B jacoco:report coveralls:report
 jdk:
   - openjdk7
   - openjdk8
