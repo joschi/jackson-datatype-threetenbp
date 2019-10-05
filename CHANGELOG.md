@@ -1,6 +1,6 @@
 # History
 
-## 2.8.11 (XX-Oct-2019)
+## 2.8.11 (06-Oct-2019)
 
 * Updated to Jackson 2.8.11
 * Updated to ThreeTen backport 1.4.0
