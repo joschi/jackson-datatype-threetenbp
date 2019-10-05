@@ -84,7 +84,7 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.key.ZonedDateTimeKeySeriali
  *
  * <pre>
  * ObjectMapper mapper = new ObjectMapper();
- * mapper.registerModule(new JavaTimeModule());
+ * mapper.registerModule(new ThreeTenModule());
  * </pre>
  *<p>
  * Most {@code org.threeten.bp} types are serialized as numbers (integers or decimals as appropriate) if the

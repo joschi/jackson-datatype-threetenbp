@@ -14,6 +14,10 @@ public class ModuleTestBase
                 .registerModule(new ThreeTenModule());
     }
 
+    protected String quote(String value) {
+        return "\"" + value + "\"";
+    }
+
     protected String aposToQuotes(String json) {
         return json.replace("'", "\"");
     }
