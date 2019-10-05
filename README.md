@@ -6,7 +6,7 @@ Datatype module to make [Jackson](http://wiki.fasterxml.com/JacksonHome) recogni
 [![Build Status](https://travis-ci.org/joschi/jackson-datatype-threetenbp.svg?branch=master)](https://travis-ci.org/joschi/jackson-datatype-threetenbp)
 [![Coverage Status](https://img.shields.io/coveralls/joschi/jackson-datatype-threetenbp.svg)](https://coveralls.io/r/joschi/jackson-datatype-threetenbp)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.joschi.jackson/jackson-datatype-threetenbp/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.joschi.jackson/jackson-datatype-threetenbp/)
-[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/com.github.joschi.jackson/jackson-datatype-threetenbp/badge.svg)](http://www.javadoc.io/doc/com.github.joschi.jackson/jackson-datatype-threetenbp)
+[![Javadocs](https://www.javadoc.io/badge/com.github.joschi.jackson/jackson-datatype-threetenbp.svg)](https://www.javadoc.io/doc/com.github.joschi.jackson/jackson-datatype-threetenbp)
 
 Generally available as of Jackson 2.4 and Java 1.6.
 
