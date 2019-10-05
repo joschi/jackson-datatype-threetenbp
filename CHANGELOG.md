@@ -1,5 +1,10 @@
 # History
 
+## 2.9.10 (06-Oct-2019)
+
+* Updated to Jackson 2.9.10
+
+
 ## 2.8.11 (06-Oct-2019)
 
 * Updated to Jackson 2.8.11
@@ -32,7 +37,7 @@
 
 ## 2.4.2 (27-Sep-2014)
 
-* Added missing OSGI imports for org.threeten.bp.* ([#2](https://github.com/joschi/jackson-datatype-threetenbp/issues/2))
+* Added missing OSGI imports for `org.threeten.bp.*` ([#2](https://github.com/joschi/jackson-datatype-threetenbp/issues/2))
 * Updated to Jackson 2.4.2
 
 
