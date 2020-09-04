@@ -21,6 +21,7 @@ import org.threeten.bp.DateTimeException;
 import org.threeten.bp.LocalTime;
 import org.threeten.bp.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -47,16 +48,25 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
         super(LocalTime.class, formatter);
     }
 
+    /**
+     * Since 2.11
+     */
+    protected LocalTimeDeserializer(LocalTimeDeserializer base, Boolean leniency) {
+        super(base, leniency);
+    }
+
     @Override
     protected LocalTimeDeserializer withDateFormat(DateTimeFormatter formatter) {
         return new LocalTimeDeserializer(formatter);
     }
 
-    // !!! TODO: lenient vs strict?
     @Override
     protected LocalTimeDeserializer withLeniency(Boolean leniency) {
-        return this;
+        return new LocalTimeDeserializer(this, leniency);
     }
+
+    @Override
+    protected LocalTimeDeserializer withShape(JsonFormat.Shape shape) { return this; }
 
     @Override
     public LocalTime deserialize(JsonParser parser, DeserializationContext context) throws IOException
@@ -64,6 +74,9 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
         if (parser.hasToken(JsonToken.VALUE_STRING)) {
             String string = parser.getText().trim();
             if (string.length() == 0) {
+                if (!isLenient()) {
+                    return _failForNotLenient(parser, context, JsonToken.VALUE_STRING);
+                }
                 return null;
             }
             DateTimeFormatter format = _formatter;

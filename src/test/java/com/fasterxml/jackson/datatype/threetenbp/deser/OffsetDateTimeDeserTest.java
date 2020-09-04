@@ -1,36 +1,34 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
-import org.threeten.bp.DateTimeUtils;
-import org.threeten.bp.Instant;
-import org.threeten.bp.LocalDate;
-import org.threeten.bp.OffsetDateTime;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZoneOffset;
+import org.threeten.bp.*;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.ChronoField;
 import org.threeten.bp.temporal.ChronoUnit;
 import org.threeten.bp.temporal.Temporal;
+import java.util.Map;
 import java.util.TimeZone;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
 import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
 
 public class OffsetDateTimeDeserTest
     extends ModuleTestBase
 {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-
+    private final TypeReference<Map<String, OffsetDateTime>> MAP_TYPE_REF = new TypeReference<Map<String, OffsetDateTime>>() { };
     private static final ZoneId UTC = ZoneId.of("UTC");
 
     private static final ZoneId Z1 = ZoneId.of("America/Chicago");
@@ -614,6 +612,49 @@ public class OffsetDateTimeDeserTest
         OffsetDateTime actual = mapper.readValue(json, OffsetDateTime.class); // this fails
 
         assertEquals(givenInstant.atOffset(ZoneOffset.UTC), actual);
+    }
+
+    /*
+    /**********************************************************
+    /* Tests for empty string handling
+    /**********************************************************
+     */
+
+    @Test
+    public void testLenientDeserializeFromEmptyString() throws Exception {
+
+        String key = "OffsetDateTime";
+        ObjectMapper mapper = newMapper();
+        ObjectReader objectReader = mapper.readerFor(MAP_TYPE_REF);
+
+        String valueFromNullStr = mapper.writeValueAsString(asMap(key, null));
+        Map<String, OffsetDateTime> actualMapFromNullStr = objectReader.readValue(valueFromNullStr);
+        OffsetDateTime actualDateFromNullStr = actualMapFromNullStr.get(key);
+        assertNull(actualDateFromNullStr);
+
+        String valueFromEmptyStr = mapper.writeValueAsString(asMap(key, ""));
+        Map<String, OffsetDateTime> actualMapFromEmptyStr = objectReader.readValue(valueFromEmptyStr);
+        OffsetDateTime actualDateFromEmptyStr = actualMapFromEmptyStr.get(key);
+        assertEquals("empty string failed to deserialize to null with lenient setting", null, actualDateFromEmptyStr);
+    }
+
+    @Test ( expected =  MismatchedInputException.class)
+    public void testStrictDeserializeFromEmptyString() throws Exception {
+
+        final String key = "OffsetDateTime";
+        final ObjectMapper mapper = mapperBuilder().build();
+        mapper.configOverride(OffsetDateTime.class)
+                .setFormat(JsonFormat.Value.forLeniency(false));
+
+        final ObjectReader objectReader = mapper.readerFor(MAP_TYPE_REF);
+        final String dateValAsNullStr = null;
+
+        String valueFromNullStr = mapper.writeValueAsString(asMap(key, null));
+        Map<String, OffsetDateTime> actualMapFromNullStr = objectReader.readValue(valueFromNullStr);
+        assertNull(actualMapFromNullStr.get(key));
+
+        String valueFromEmptyStr = mapper.writeValueAsString(asMap(key, ""));
+        objectReader.readValue(valueFromEmptyStr);
     }
 
     private static void assertIsEqual(OffsetDateTime expected, OffsetDateTime actual)

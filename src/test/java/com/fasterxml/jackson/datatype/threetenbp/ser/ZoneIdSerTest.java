@@ -52,6 +52,6 @@ public class ZoneIdSerTest extends ModuleTestBase
     public void testSerializationWithTypeInfo01() throws Exception
     {
         String value = MOCK_OBJECT_MIXIN_MAPPER.writeValueAsString(ZoneId.of("America/Denver"));
-        assertEquals("The value is not correct.", "[\"org.threeten.bp.ZoneRegion\",\"America/Denver\"]", value);
+        assertEquals("The value is not correct.", "[\"org.threeten.bp.ZoneId\",\"America/Denver\"]", value);
     }
 }

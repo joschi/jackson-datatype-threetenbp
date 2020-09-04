@@ -23,6 +23,7 @@ import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
@@ -68,6 +69,9 @@ public class LocalDateTimeDeserializer
     protected LocalDateTimeDeserializer withLeniency(Boolean leniency) {
         return new LocalDateTimeDeserializer(this, leniency);
     }
+
+    @Override
+    protected LocalDateTimeDeserializer withShape(JsonFormat.Shape shape) { return this; }
 
     @Override
     public LocalDateTime deserialize(JsonParser parser, DeserializationContext context) throws IOException

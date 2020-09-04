@@ -1,6 +1,5 @@
 package com.fasterxml.jackson.datatype.threetenbp.key;
 
-import com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer;
 import org.threeten.bp.LocalDate;
 import java.util.Map;
 
@@ -21,15 +20,15 @@ public class TestNullKeySerialization extends ModuleTestBase
     @Test
     public void testSerialization() throws Exception {
         final ObjectMapper mapper = newMapper();
-        mapper.getSerializerProvider().setNullKeySerializer(new ThreeTenNullKeySerializer());
+        mapper.getSerializerProvider().setNullKeySerializer(new com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer());
         String value = mapper.writeValueAsString(asMap(null, "test"));
-        Assert.assertEquals(mapAsString(ThreeTenNullKeySerializer.NULL_KEY, "test"), value);
+        Assert.assertEquals(mapAsString(com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer.NULL_KEY, "test"), value);
     }
 
     @SuppressWarnings("deprecation")
     @Test
     public void testDeserialization() throws Exception {
-        Map<LocalDate, String> value = READER.readValue(mapAsString(ThreeTenNullKeySerializer.NULL_KEY, "test"));
+        Map<LocalDate, String> value = READER.readValue(mapAsString(com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer.NULL_KEY, "test"));
         Assert.assertEquals(asMap(null, "test"), value);
     }
 }

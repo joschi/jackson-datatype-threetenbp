@@ -5,6 +5,7 @@ import org.threeten.bp.DateTimeException;
 import org.threeten.bp.MonthDay;
 import org.threeten.bp.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -33,6 +34,9 @@ public class MonthDayDeserializer extends ThreeTenDateTimeDeserializerBase<Month
     protected MonthDayDeserializer withLeniency(Boolean leniency) {
         return this;
     }
+
+    @Override
+    protected MonthDayDeserializer withShape(JsonFormat.Shape shape) { return this; }
 
     @Override
     public MonthDay deserialize(JsonParser parser, DeserializationContext context) throws IOException

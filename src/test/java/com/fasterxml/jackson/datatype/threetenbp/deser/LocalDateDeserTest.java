@@ -15,6 +15,8 @@ import org.threeten.bp.format.DateTimeParseException;
 import org.threeten.bp.temporal.Temporal;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.OptBoolean;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.junit.Test;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -45,7 +47,24 @@ public class LocalDateDeserTest extends ModuleTestBase
         public Wrapper() { }
         public Wrapper(LocalDate v) { value = v; }
     }
-    
+
+    final static class ShapeWrapper {
+        @JsonFormat(shape=JsonFormat.Shape.NUMBER_INT)
+        public LocalDate date;
+
+        public ShapeWrapper() { }
+        public ShapeWrapper(LocalDate v) { date = v; }
+    }
+
+    final static class StrictWrapper {
+        @JsonFormat(pattern="yyyy-MM-dd",
+                lenient = OptBoolean.FALSE)
+        public LocalDate value;
+
+        public StrictWrapper() { }
+        public StrictWrapper(LocalDate v) { value = v; }
+    }
+
     /*
     /**********************************************************
     /* Deserialization from Int array representation
@@ -208,7 +227,7 @@ public class LocalDateDeserTest extends ModuleTestBase
     }
 
     @Test( expected =  MismatchedInputException.class)
-    public void testStrictDeserializFromEmptyString() throws Exception {
+    public void testStrictDeserializeFromEmptyString() throws Exception {
 
         final String key = "date";
         final ObjectMapper mapper = mapperBuilder().build();
@@ -287,6 +306,20 @@ public class LocalDateDeserTest extends ModuleTestBase
         assertEquals(28, date.getDayOfMonth());
     }
 
+
+    /*
+    /**********************************************************
+    /* Strict Custom format
+    /**********************************************************
+     */
+
+    // for [modules-java8#148]
+    @Test(expected = InvalidFormatException.class)
+    public void testStrictCustomFormat() throws Exception
+    {
+        /*StrictWrapper w =*/ MAPPER.readValue("{\"value\":\"2019-11-31\"}", StrictWrapper.class);
+    }
+
     /*
     /**********************************************************************
     /* Case-insensitive tests
@@ -341,6 +374,53 @@ public class LocalDateDeserTest extends ModuleTestBase
         }
     }
 
+    /*
+    /**********************************************************************
+    /*
+     * Tests for issue 58 - NUMBER_INT should be specified when deserializing
+     * LocalDate as EpochDays
+     *
+     /**********************************************************************
+     */
+    @Test
+    public void testLenientDeserializeFromNumberInt() throws Exception {
+        ObjectMapper mapper = newMapper();
+        mapper.configOverride(LocalDate.class)
+                        .setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER_INT));
+
+        assertEquals("The value is not correct.", LocalDate.of(1970, Month.MAY, 04),
+                mapper.readValue("123", LocalDate.class));
+    }
+
+    @Test
+    public void testStrictDeserializeFromNumberInt() throws Exception
+    {
+        ObjectMapper mapper = newMapper();
+        mapper.configOverride(LocalDate.class)
+                .setFormat(JsonFormat.Value.forLeniency(false));
+
+        ShapeWrapper w = mapper.readValue("{\"date\":123}", ShapeWrapper.class);
+        LocalDate localDate = w.date;
+
+        assertEquals("The value is not correct.", LocalDate.of(1970, Month.MAY, 04),
+                localDate);
+    }
+
+    @Test(expected = MismatchedInputException.class)
+    public void testStrictDeserializeFromString() throws Exception
+    {
+        ObjectMapper mapper = newMapper();
+        mapper.configOverride(LocalDate.class)
+                .setFormat(JsonFormat.Value.forLeniency(false));
+
+        mapper.readValue("{\"value\":123}", Wrapper.class);
+    }
+
+    /*
+    /**********************************************************************
+    /* Helper methods
+    /**********************************************************************
+     */
     private void expectFailure(ObjectReader reader, String json) throws Throwable {
         try {
             reader.readValue(aposToQuotes(json));

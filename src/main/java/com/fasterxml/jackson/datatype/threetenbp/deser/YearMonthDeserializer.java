@@ -21,6 +21,7 @@ import org.threeten.bp.DateTimeException;
 import org.threeten.bp.YearMonth;
 import org.threeten.bp.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -48,16 +49,25 @@ public class YearMonthDeserializer extends ThreeTenDateTimeDeserializerBase<Year
         super(YearMonth.class, formatter);
     }
 
+    /**
+     * Since 2.11
+     */
+    protected YearMonthDeserializer(YearMonthDeserializer base, Boolean leniency) {
+        super(base, leniency);
+    }
+
     @Override
     protected YearMonthDeserializer withDateFormat(DateTimeFormatter dtf)  {
         return new YearMonthDeserializer(dtf);
     }
 
-    // !!! TODO: lenient vs strict?
     @Override
     protected YearMonthDeserializer withLeniency(Boolean leniency) {
-        return this;
+        return new YearMonthDeserializer(this, leniency);
     }
+
+    @Override
+    protected YearMonthDeserializer withShape(JsonFormat.Shape shape) { return this; }
 
     @Override
     public YearMonth deserialize(JsonParser parser, DeserializationContext context) throws IOException
@@ -65,6 +75,9 @@ public class YearMonthDeserializer extends ThreeTenDateTimeDeserializerBase<Year
         if (parser.hasToken(JsonToken.VALUE_STRING)) {
             String string = parser.getText().trim();
             if (string.length() == 0) {
+                if (!isLenient()) {
+                    return _failForNotLenient(parser, context, JsonToken.VALUE_STRING);
+                }
                 return null;
             }
             try {

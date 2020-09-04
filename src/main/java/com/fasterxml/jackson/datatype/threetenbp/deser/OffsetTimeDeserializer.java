@@ -22,6 +22,7 @@ import org.threeten.bp.OffsetTime;
 import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
 
@@ -44,16 +45,25 @@ public class OffsetTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Off
         super(OffsetTime.class, dtf);
     }
 
+    /**
+     * Since 2.11
+     */
+    protected OffsetTimeDeserializer(OffsetTimeDeserializer base, Boolean leniency) {
+        super(base, leniency);
+    }
+
     @Override
     protected OffsetTimeDeserializer withDateFormat(DateTimeFormatter dtf) {
         return new OffsetTimeDeserializer(dtf);
     }
 
-    // !!! TODO: lenient vs strict?
     @Override
     protected OffsetTimeDeserializer withLeniency(Boolean leniency) {
-        return this;
+        return new OffsetTimeDeserializer(this, leniency);
     }
+
+    @Override
+    protected OffsetTimeDeserializer withShape(JsonFormat.Shape shape) { return this; }
 
     @Override
     public OffsetTime deserialize(JsonParser parser, DeserializationContext context) throws IOException
@@ -61,6 +71,9 @@ public class OffsetTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Off
         if (parser.hasToken(JsonToken.VALUE_STRING)) {
             String string = parser.getText().trim();
             if (string.length() == 0) {
+                if (!isLenient()) {
+                    return _failForNotLenient(parser, context, JsonToken.VALUE_STRING);
+                }
                 return null;
             }
             try {

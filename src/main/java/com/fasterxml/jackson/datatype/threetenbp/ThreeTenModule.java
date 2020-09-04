@@ -16,7 +16,6 @@
 
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer;
 import org.threeten.bp.*;
 
 import com.fasterxml.jackson.databind.BeanDescription;
@@ -51,6 +50,7 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.OffsetDateTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.OffsetTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.YearMonthSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.YearSerializer;
+import com.fasterxml.jackson.datatype.threetenbp.ser.ZoneIdSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.ZonedDateTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.key.ZonedDateTimeKeySerializer;
 
@@ -59,13 +59,13 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.key.ZonedDateTimeKeySeriali
  *
  * <pre>
  * ObjectMapper mapper = new ObjectMapper();
- * mapper.registerModule(new JavaTimeModule());
+ * mapper.registerModule(new ThreeTenModule());
  * </pre>
  *<p>
  * Note that as of 2.x, if auto-registering modules, this package will register
- * legacy version, {@link JSR310Module}, and NOT this module. 3.x will change the default.
+ * legacy version, {@link ThreeTenModule}, and NOT this module. 3.x will change the default.
  * Legacy version has the same functionality, but slightly different default configuration:
- * see {@link com.fasterxml.jackson.datatype.threetenbp.JSR310Module} for details.
+ * see {@link com.fasterxml.jackson.datatype.threetenbp.ThreeTenModule} for details.
  *<p>
  * Most {@code org.threeten.bp} types are serialized as numbers (integers or decimals as appropriate) if the
  * {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DATES_AS_TIMESTAMPS} feature is enabled
@@ -102,7 +102,7 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.key.ZonedDateTimeKeySeriali
  *
  * @since 2.6
  *
- * @see ThreeTenNullKeySerializer
+ * @see com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer
  */
 @SuppressWarnings("javadoc")
 public final class ThreeTenModule extends SimpleModule
@@ -147,15 +147,15 @@ public final class ThreeTenModule extends SimpleModule
         addSerializer(YearMonth.class, YearMonthSerializer.INSTANCE);
 
         /* 27-Jun-2015, tatu: This is the real difference from the old
-         *  {@link JSR310Module}: default is to produce ISO-8601 compatible
+         *  {@link ThreeTenModule}: default is to produce ISO-8601 compatible
          *  serialization with timezone offset only, not timezone id.
          *  But this is configurable.
          */
         addSerializer(ZonedDateTime.class, ZonedDateTimeSerializer.INSTANCE);
         
-        // note: actual concrete type is `ZoneRegion`, but that's not visible:
-        addSerializer(ZoneId.class, new ToStringSerializer(ZoneId.class));
-
+        // since 2.11: need to override Type Id handling
+        // (actual concrete type is `ZoneRegion`, but that's not visible)
+        addSerializer(ZoneId.class, new ZoneIdSerializer());
         addSerializer(ZoneOffset.class, new ToStringSerializer(ZoneOffset.class));
 
         // key serializers

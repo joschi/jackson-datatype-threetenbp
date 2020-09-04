@@ -27,9 +27,10 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
+import com.fasterxml.jackson.databind.util.ClassUtil;
 
 /**
- * Base class that indicates that all JSR310 datatypes are deserialized from scalar JSON types.
+ * Base class that indicates that all ThreeTen datatypes are deserialized from scalar JSON types.
  *
  * @author Nick Williams
  * @since 2.2
@@ -38,15 +39,57 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
 {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Flag that indicates what leniency setting is enabled for this deserializer (either
+     * due {@link JsonFormat} annotation on property or class, or due to per-type
+     * "config override", or from global settings): leniency/strictness has effect
+     * on accepting some non-default input value representations (such as integer values
+     * for dates).
+     *<p>
+     * Note that global default setting is for leniency to be enabled, for Jackson 2.x,
+     * and has to be explicitly change to force strict handling: this is to keep backwards
+     * compatibility with earlier versions.
+     *
+     * @since 2.11
+     */
+    protected final boolean _isLenient;
+
+    /**
+     * @since 2.11
+     */
     protected ThreeTenDeserializerBase(Class<T> supportedType) {
         super(supportedType);
+        _isLenient = true;
+    }
+
+    protected ThreeTenDeserializerBase(Class<T> supportedType,
+                                     Boolean leniency) {
+        super(supportedType);
+        _isLenient = !Boolean.FALSE.equals(leniency);
+    }
+
+    protected ThreeTenDeserializerBase(ThreeTenDeserializerBase<T> base) {
+        super(base);
+        _isLenient = base._isLenient;
+    }
+
+    protected ThreeTenDeserializerBase(ThreeTenDeserializerBase<T> base, Boolean leniency) {
+        super(base);
+        _isLenient = !Boolean.FALSE.equals(leniency);
     }
 
     /**
-     * @since 2.10
+     * @since 2.11
      */
-    protected ThreeTenDeserializerBase(ThreeTenDeserializerBase<?> base) {
-        super(base);
+    protected abstract ThreeTenDeserializerBase<T> withLeniency(Boolean leniency);
+
+    /**
+     * @return {@code true} if lenient handling is enabled; {code false} if not (strict mode)
+     *
+     * @since 2.11
+     */
+    protected boolean isLenient() {
+        return _isLenient;
     }
     
     @Override
@@ -112,7 +155,6 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected <R> R _handleUnexpectedToken(DeserializationContext context,
               JsonParser parser, JsonToken... expTypes) throws JsonMappingException {
         return _handleUnexpectedToken(context, parser,
@@ -120,6 +162,15 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
                 parser.currentToken(),
                 Arrays.asList(expTypes),
                 handledType().getName());
+    }
+
+    @SuppressWarnings("unchecked")
+    protected T _failForNotLenient(JsonParser p, DeserializationContext ctxt,
+                                   JsonToken expToken) throws IOException
+    {
+        return (T) ctxt.handleUnexpectedToken(handledType(), expToken, p,
+                "Cannot deserialize instance of %s out of %s token: not allowed because 'strict' mode set for property or type (enable 'lenient' handling to allow)",
+                ClassUtil.nameOf(handledType()), p.currentToken());
     }
 
     /**

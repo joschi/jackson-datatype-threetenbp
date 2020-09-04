@@ -20,14 +20,17 @@ import java.io.IOException;
 import org.threeten.bp.Year;
 import org.threeten.bp.format.DateTimeParseException;
 import org.threeten.bp.temporal.Temporal;
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
@@ -40,6 +43,9 @@ import static org.junit.Assert.fail;
 
 public class YearDeserTest extends ModuleTestBase
 {
+
+    private final TypeReference<Map<String, Year>> MAP_TYPE_REF = new TypeReference<Map<String, Year>>() { };
+
     static class FormattedYear {
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "'Y'yyyy")
         public Year value;
@@ -203,7 +209,29 @@ public class YearDeserTest extends ModuleTestBase
         ObjectTest result = MAPPER.readValue(json, ObjectTest.class);
         assertEquals(input, result);
     }
-    
+
+    /*
+    /**********************************************************
+    /* Tests for empty string handling
+    /**********************************************************
+     */
+
+    @Test( expected =  MismatchedInputException.class)
+    public void testStrictDeserializeFromEmptyString() throws Exception {
+
+        final String key = "Year";
+        final ObjectMapper mapper = mapperBuilder().build();
+        // YearDeserializer is always strict as far as empty strings, so lenient/strict has no effect
+        final ObjectReader objectReader = mapper.readerFor(MAP_TYPE_REF);
+
+        String valueFromNullStr = mapper.writeValueAsString(asMap(key, null));
+        Map<String, Year> actualMapFromNullStr = objectReader.readValue(valueFromNullStr);
+        assertNull(actualMapFromNullStr.get(key));
+
+        String valueFromEmptyStr = mapper.writeValueAsString(asMap("date", ""));
+        objectReader.readValue(valueFromEmptyStr);
+    }
+
     /*
     /**********************************************************
     /* Helper methods

@@ -22,11 +22,15 @@ import org.threeten.bp.Period;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZoneOffset;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonParser;
 
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 
 /**
@@ -41,6 +45,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
  */
 public class ThreeTenStringParsableDeserializer
     extends ThreeTenDeserializerBase<Object>
+        implements ContextualDeserializer
 {
     private static final long serialVersionUID = 1L;
 
@@ -57,13 +62,21 @@ public class ThreeTenStringParsableDeserializer
     public static final JsonDeserializer<ZoneOffset> ZONE_OFFSET =
         createDeserializer(ZoneOffset.class, TYPE_ZONE_OFFSET);
 
-    protected final int _valueType;
+    protected final int _typeSelector;
 
     @SuppressWarnings("unchecked")
-    protected ThreeTenStringParsableDeserializer(Class<?> supportedType, int valueId)
+    protected ThreeTenStringParsableDeserializer(Class<?> supportedType, int typeSelector)
     {
         super((Class<Object>)supportedType);
-        _valueType = valueId;
+        _typeSelector = typeSelector;
+    }
+
+    /**
+     * Since 2.11
+     */
+    protected ThreeTenStringParsableDeserializer(ThreeTenStringParsableDeserializer base, Boolean leniency) {
+        super(base, leniency);
+        _typeSelector = base._typeSelector;
     }
 
     @SuppressWarnings("unchecked")
@@ -72,15 +85,29 @@ public class ThreeTenStringParsableDeserializer
     }
 
     @Override
-    public Object deserialize(JsonParser parser, DeserializationContext context) throws IOException
+    protected ThreeTenStringParsableDeserializer withLeniency(Boolean leniency) {
+        if (_isLenient == !Boolean.FALSE.equals(leniency)) {
+            return this;
+        }
+        // TODO: or should this be casting as above in createDeserializer? But then in createContext, we need to
+        // call the withLeniency method in this class. (See if we can follow InstantDeser convention here?)
+        return new ThreeTenStringParsableDeserializer(this, leniency);
+    }
+
+    @Override
+    public Object deserialize(JsonParser p, DeserializationContext context) throws IOException
     {
-        if (parser.hasToken(JsonToken.VALUE_STRING)) {
-            String string = parser.getText().trim();
+        String string = p.getValueAsString();
+        if (string != null) {
+            string = string.trim();
             if (string.length() == 0) {
+                if (!isLenient()) {
+                    return _failForNotLenient(p, context, JsonToken.VALUE_STRING);
+                }
                 return null;
             }
             try {
-                switch (_valueType) {
+                switch (_typeSelector) {
                 case TYPE_PERIOD:
                     return Period.parse(string);
                 case TYPE_ZONE_ID:
@@ -92,16 +119,16 @@ public class ThreeTenStringParsableDeserializer
                 return _handleDateTimeException(context, e, string);
             }
         }
-        if (parser.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
+        if (p.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
             // 20-Apr-2016, tatu: Related to [databind#1208], can try supporting embedded
             //    values quite easily
-            return parser.getEmbeddedObject();
+            return p.getEmbeddedObject();
         }
-        if (parser.hasToken(JsonToken.START_ARRAY)){
-        	return _deserializeFromArray(parser, context);
+        if (p.hasToken(JsonToken.START_ARRAY)){
+            return _deserializeFromArray(p, context);
         }
         
-        throw context.wrongTokenException(parser, handledType(), JsonToken.VALUE_STRING, null);
+        throw context.wrongTokenException(p, handledType(), JsonToken.VALUE_STRING, null);
     }
 
     @Override
@@ -109,13 +136,29 @@ public class ThreeTenStringParsableDeserializer
             TypeDeserializer deserializer)
         throws IOException
     {
-        /* This is a nasty kludge right here, working around issues like
-         * [datatype-jsr310#24]. But should work better than not having the work-around.
-         */
+        // This is a nasty kludge right here, working around issues like
+        // [datatype-jsr310#24]. But should work better than not having the work-around.
         JsonToken t = parser.getCurrentToken();
         if ((t != null) && t.isScalarValue()) {
             return deserialize(parser, context);
         }
         return deserializer.deserializeTypedFromAny(parser, context);
+    }
+
+    @Override
+    public JsonDeserializer<?> createContextual(DeserializationContext ctxt,
+                                                BeanProperty property) throws JsonMappingException
+    {
+        JsonFormat.Value format = findFormatOverrides(ctxt, property, handledType());
+        ThreeTenStringParsableDeserializer deser = this;
+        if (format != null) {
+            if (format.hasLenient()) {
+                Boolean leniency = format.getLenient();
+                if (leniency != null) {
+                    deser = this.withLeniency(leniency);
+                }
+            }
+        }
+        return deser;
     }
 }

@@ -17,9 +17,11 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.io.IOException;
+import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.LocalTime;
 import org.threeten.bp.format.DateTimeParseException;
 import org.threeten.bp.temporal.Temporal;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,10 +29,14 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
@@ -39,7 +45,18 @@ import org.junit.Test;
 
 public class LocalTimeDeserTest extends ModuleTestBase
 {
-    private ObjectReader reader = newMapper().readerFor(LocalTime.class);
+    private final static ObjectMapper MAPPER = newMapper();
+    private ObjectReader reader = MAPPER.readerFor(LocalTime.class);
+    private final TypeReference<Map<String, LocalTime>> MAP_TYPE_REF = new TypeReference<Map<String, LocalTime>>() { };
+
+    final static class StrictWrapper {
+        @JsonFormat(pattern="HH:mm",
+                lenient = OptBoolean.FALSE)
+        public LocalDateTime value;
+
+        public StrictWrapper() { }
+        public StrictWrapper(LocalDateTime v) { value = v; }
+    }
 
     @Test
     public void testDeserializationAsTimestamp01() throws Exception
@@ -209,6 +226,62 @@ public class LocalTimeDeserTest extends ModuleTestBase
         assertEquals("The value is not correct.", time, value);
     }
 
+    /*
+    /**********************************************************
+    /* Tests for empty string handling
+    /**********************************************************
+     */
+
+    @Test
+    public void testLenientDeserializeFromEmptyString() throws Exception {
+
+        String key = "localTime";
+        ObjectMapper mapper = newMapper();
+        ObjectReader objectReader = mapper.readerFor(MAP_TYPE_REF);
+
+        String dateValAsEmptyStr = "";
+
+        String valueFromNullStr = mapper.writeValueAsString(asMap(key, null));
+        Map<String, LocalTime> actualMapFromNullStr = objectReader.readValue(valueFromNullStr);
+        LocalTime actualDateFromNullStr = actualMapFromNullStr.get(key);
+        assertNull(actualDateFromNullStr);
+
+        String valueFromEmptyStr = mapper.writeValueAsString(asMap(key, dateValAsEmptyStr));
+        Map<String, LocalTime> actualMapFromEmptyStr = objectReader.readValue(valueFromEmptyStr);
+        LocalTime actualDateFromEmptyStr = actualMapFromEmptyStr.get(key);
+        assertEquals("empty string failed to deserialize to null with lenient setting",null, actualDateFromEmptyStr);
+    }
+
+    @Test( expected =  MismatchedInputException.class)
+    public void testStrictDeserializeFromEmptyString() throws Exception {
+
+        final String key = "localTime";
+        final ObjectMapper mapper = mapperBuilder().build();
+        mapper.configOverride(LocalTime.class)
+                .setFormat(JsonFormat.Value.forLeniency(false));
+        final ObjectReader objectReader = mapper.readerFor(MAP_TYPE_REF);
+
+        String valueFromNullStr = mapper.writeValueAsString(asMap(key, null));
+        Map<String, LocalTime> actualMapFromNullStr = objectReader.readValue(valueFromNullStr);
+        assertNull(actualMapFromNullStr.get(key));
+
+        String valueFromEmptyStr = mapper.writeValueAsString(asMap("date", ""));
+        objectReader.readValue(valueFromEmptyStr);
+    }
+
+    /*
+    /**********************************************************************
+    /* Strict JsonFormat tests
+    /**********************************************************************
+     */
+
+    // [modules-java8#148]: handle strict deserializaiton for date/time
+
+    @Test(expected = InvalidFormatException.class)
+    public void testStrictCustomFormatInvalidTime() throws Exception
+    {
+        /*StrictWrapper w =*/ MAPPER.readValue("{\"value\":\"25:45\"}", StrictWrapper.class);
+    }
 
     private void expectFailure(String aposJson) throws Throwable {
         try {

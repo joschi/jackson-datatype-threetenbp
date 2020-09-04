@@ -7,6 +7,7 @@ import static org.hamcrest.core.StringContains.containsString;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.threetenbp.deser.YearMonthDeserializer;
+import com.fasterxml.jackson.datatype.threetenbp.ser.YearMonthSerializer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

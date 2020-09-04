@@ -9,6 +9,7 @@ import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
 import org.junit.Assert;
@@ -71,5 +72,22 @@ public class ZonedDateTimeAsKeyTest extends ModuleTestBase
     public void testDeserialization2() throws Exception {
         Assert.assertEquals("Value is incorrect", asMap(DATE_TIME_2_OFFSET, "test"),
                 READER.readValue(mapAsString(DATE_TIME_2_STRING, "test")));
+    }
+
+    @Test
+    public void testSerializationToInstantWithNanos() throws Exception {
+        String value = mapperBuilder().enable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS).build()
+            .writerFor(TYPE_REF).writeValueAsString(asMap(DATE_TIME_1, "test"));
+        Assert.assertEquals("Value is incorrect",
+            mapAsString(String.valueOf(DATE_TIME_1.toEpochSecond()) + '.' + DATE_TIME_1.getNano(), "test"), value);
+    }
+
+    @Test
+    public void testSerializationToInstantWithoutNanos() throws Exception {
+        String value = mapperBuilder().enable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS)
+            .disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS).build()
+            .writerFor(TYPE_REF).writeValueAsString(asMap(DATE_TIME_1, "test"));
+        Assert.assertEquals("Value is incorrect",
+            mapAsString(String.valueOf(DATE_TIME_1.toInstant().toEpochMilli()), "test"), value);
     }
 }
