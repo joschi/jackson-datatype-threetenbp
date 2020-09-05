@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.Instant;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
@@ -102,9 +103,13 @@ public class TestZonedDateTimeSerialization
     @Test
     public void testSerializationAsTimestamp01NegativeSecondsWithDefaults() throws Exception
     {
+        // https://github.com/ThreeTen/threetenbp/issues/133
+        this.MAPPER.setTimeZone(DateTimeUtils.toTimeZone(UTC));
+
         // test for Issue #69 using default mapper config
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MMM dd yyyy HH:mm:ss.SSS zzz");
-        ZonedDateTime original = ZonedDateTime.parse("Apr 13 1969 05:05:38.599 UTC", dtf);
+        ZonedDateTime original = ZonedDateTime.parse("Apr 13 1969 05:05:38.599 UTC", dtf)
+                .withZoneSameInstant(UTC);
         String serialized = MAPPER.writeValueAsString(original);
         ZonedDateTime deserialized = MAPPER.readValue(serialized, ZonedDateTime.class);
         assertEquals("The value is not correct.",  original, deserialized);
