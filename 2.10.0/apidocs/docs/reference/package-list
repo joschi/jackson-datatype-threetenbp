@@ -1,0 +1,7 @@
+com.fasterxml.jackson.datatype.threetenbp
+com.fasterxml.jackson.datatype.threetenbp.deser
+com.fasterxml.jackson.datatype.threetenbp.deser.key
+com.fasterxml.jackson.datatype.threetenbp.function
+com.fasterxml.jackson.datatype.threetenbp.ser
+com.fasterxml.jackson.datatype.threetenbp.ser.key
+
