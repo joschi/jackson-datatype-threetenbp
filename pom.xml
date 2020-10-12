@@ -66,6 +66,10 @@
         <threetenbp.version>1.4.5</threetenbp.version>
 
         <argLine>-Duser.language=en -Duser.region=US -Duser.timezone=UTC</argLine>
+
+        <sonar.projectKey>joschi_jackson-datatype-threetenbp</sonar.projectKey>
+        <sonar.organization>joschi</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <dependencies>
@@ -197,6 +201,11 @@
                         <phase>site-deploy</phase>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.7.0.1746</version>
             </plugin>
         </plugins>
     </build>

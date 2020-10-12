@@ -9,16 +9,30 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
         java-version: ${{ matrix.java }}
-    - uses: actions/cache@v2.1.2
+    - name: Cache SonarCloud packages
+      uses: actions/cache@v1
+      if: matrix.java == '11'
       with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
-    - name: Build with Maven
-      run: ./mvnw -V -B -ntp package
-
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+    - name: Cache Maven packages
+      uses: actions/cache@v1
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    - name: Build
+      run: ./mvnw -V -B -ntp install
+    - name: Analyze with SonarCloud
+      if: matrix.java == '11'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: ./mvnw -V -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
