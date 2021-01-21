@@ -207,6 +207,11 @@
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.7.0.1746</version>
             </plugin>
+            <plugin>
+                <groupId>org.moditect</groupId>
+                <artifactId>moditect-maven-plugin</artifactId>
+                <version>${version.plugin.moditect}</version>
+            </plugin>
         </plugins>
     </build>
     <reporting>
