@@ -30,12 +30,11 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
 
     /**
      * Setting that indicates the {@link JsonFormat.Shape} specified for this deserializer
-     * as a {@link JsonFormat.Shape} annotation on property or class, or due to per-type
-     * "config override", or from global settings:
+     * as a {@link com.fasterxml.jackson.annotation.JsonFormat.Shape} annotation on
+     * property or class, or due to per-type "config override", or from global settings:
      * If Shape is NUMBER_INT, the input value is considered to be epoch days. If not a
      * NUMBER_INT, and the deserializer was not specified with the leniency setting of true,
      * then an exception will be thrown.
-     * @see [jackson-modules-java8#58] for more info
      *
      * @since 2.11
      */
@@ -104,51 +103,68 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
             BeanProperty property) throws JsonMappingException
     {
         JsonFormat.Value format = findFormatOverrides(ctxt, property, handledType());
+        return (format == null) ? this : _withFormatOverrides(ctxt, property, format);
+    }
+
+    /**
+     * @param ctxt Active deserialization context
+     * @param property (optional) Property on which this deserializer is used, or {@code null}
+     *     for root value
+     * @param formatOverrides Format overrides to use (non-null)
+     *
+     * @return Either this deserializer as is, or newly constructed variant if created
+     *    for different configuration
+     *
+     * @since 2.12.1
+     */
+    protected ThreeTenDateTimeDeserializerBase<?> _withFormatOverrides(DeserializationContext ctxt,
+            BeanProperty property, JsonFormat.Value formatOverrides)
+    {
         ThreeTenDateTimeDeserializerBase<?> deser = this;
-        if (format != null) {
-            // 17-Aug-2019, tatu: For 2.10 let's start considering leniency/strictness too
-            if (format.hasLenient()) {
-                Boolean leniency = format.getLenient();
-                if (leniency != null) {
-                    deser = deser.withLeniency(leniency);
-                }
-            }
-            if (format.hasPattern()) {
-                final String pattern = format.getPattern();
-                final Locale locale = format.hasLocale() ? format.getLocale() : ctxt.getLocale();
-                DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
-                if (acceptCaseInsensitiveValues(ctxt, format)) {
-                    builder.parseCaseInsensitive();
-                }
-                builder.appendPattern(pattern);
-                DateTimeFormatter df;
-                if (locale == null) {
-                    df = builder.toFormatter();
-                } else {
-                    df = builder.toFormatter(locale);
-                }
 
-                // [#148]: allow strict parsing
-                if (!deser.isLenient()) {
-                    df = df.withResolverStyle(ResolverStyle.STRICT);
-                }
-
-                // [#69]: For instant serializers/deserializers we need to configure the formatter with
-                //a time zone picked up from JsonFormat annotation, otherwise serialization might not work
-                if (format.hasTimeZone()) {
-                    df = df.withZone(DateTimeUtils.toZoneId(format.getTimeZone()));
-                }
-                deser = deser.withDateFormat(df);
+        // 17-Aug-2019, tatu: For 2.10 let's start considering leniency/strictness too
+        if (formatOverrides.hasLenient()) {
+            Boolean leniency = formatOverrides.getLenient();
+            if (leniency != null) {
+                deser = deser.withLeniency(leniency);
             }
-            // [#58]: For LocalDate deserializers we need to configure the formatter with
-            //a shape picked up from JsonFormat annotation, to decide if the value is EpochSeconds
-            JsonFormat.Shape shape = format.getShape();
-            if (shape != null && shape != _shape) {
-                deser = deser.withShape(shape);
-            }
-            // any use for TimeZone?
         }
-        return deser;
+        if (formatOverrides.hasPattern()) {
+            final String pattern = formatOverrides.getPattern();
+            final Locale locale = formatOverrides.hasLocale() ? formatOverrides.getLocale() : ctxt.getLocale();
+            DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
+            if (acceptCaseInsensitiveValues(ctxt, formatOverrides)) {
+                builder.parseCaseInsensitive();
+            }
+            builder.appendPattern(pattern);
+            DateTimeFormatter df;
+            if (locale == null) {
+                df = builder.toFormatter();
+            } else {
+                df = builder.toFormatter(locale);
+            }
+
+            // [#148]: allow strict parsing
+            if (!deser.isLenient()) {
+                df = df.withResolverStyle(ResolverStyle.STRICT);
+            }
+
+            // [#69]: For instant serializers/deserializers we need to configure the formatter with
+            //a time zone picked up from JsonFormat annotation, otherwise serialization might not work
+            if (formatOverrides.hasTimeZone()) {
+                df = df.withZone(DateTimeUtils.toZoneId(formatOverrides.getTimeZone()));
+            }
+            deser = deser.withDateFormat(df);
+        }
+        // [#58]: For LocalDate deserializers we need to configure the formatter with
+        //a shape picked up from JsonFormat annotation, to decide if the value is EpochSeconds
+        JsonFormat.Shape shape = formatOverrides.getShape();
+        if (shape != null && shape != _shape) {
+            deser = deser.withShape(shape);
+         }
+        // any use for TimeZone?
+
+         return deser;
     }
 
     private boolean acceptCaseInsensitiveValues(DeserializationContext ctxt, JsonFormat.Value format) 
