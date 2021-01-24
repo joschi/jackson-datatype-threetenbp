@@ -72,24 +72,12 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
     public LocalTime deserialize(JsonParser parser, DeserializationContext context) throws IOException
     {
         if (parser.hasToken(JsonToken.VALUE_STRING)) {
-            String string = parser.getText().trim();
-            if (string.length() == 0) {
-                if (!isLenient()) {
-                    return _failForNotLenient(parser, context, JsonToken.VALUE_STRING);
-                }
-                return null;
-            }
-            DateTimeFormatter format = _formatter;
-            try {
-                if (format == DEFAULT_FORMATTER) {
-                    if (string.contains("T")) {
-                        return LocalTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    }
-                }
-                return LocalTime.parse(string, format);
-            } catch (DateTimeException e) {
-                return _handleDateTimeException(context, e, string);
-            }
+            return _fromString(parser, context, parser.getText());
+        }
+        // 30-Sep-2020, tatu: New! "Scalar from Object" (mostly for XML)
+        if (parser.isExpectedStartObjectToken()) {
+            return _fromString(parser, context,
+                    context.extractScalarFromObject(parser, this, handledType()));
         }
         if (parser.isExpectedStartArrayToken()) {
             JsonToken t = parser.nextToken();
@@ -145,5 +133,28 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
             _throwNoNumericTimestampNeedTimeZone(parser, context);
         }
         return _handleUnexpectedToken(context, parser, "Expected array or string.");
+    }
+
+    protected LocalTime _fromString(JsonParser p, DeserializationContext ctxt,
+            String string0)  throws IOException
+    {
+        String string = string0.trim();
+        if (string.length() == 0) {
+            // 22-Oct-2020, tatu: not sure if we should pass original (to distinguish
+            //   b/w empty and blank); for now don't which will allow blanks to be
+            //   handled like "regular" empty (same as pre-2.12)
+            return _fromEmptyString(p, ctxt, string);
+        }
+        DateTimeFormatter format = _formatter;
+        try {
+            if (format == DEFAULT_FORMATTER) {
+                if (string.contains("T")) {
+                    return LocalTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                }
+            }
+            return LocalTime.parse(string, format);
+        } catch (DateTimeException e) {
+            return _handleDateTimeException(ctxt, e, string);
+        }
     }
 }

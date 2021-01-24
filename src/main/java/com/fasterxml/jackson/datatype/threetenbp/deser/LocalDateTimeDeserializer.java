@@ -17,6 +17,8 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.io.IOException;
+
+import com.fasterxml.jackson.databind.JavaType;
 import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDateTime;
@@ -77,30 +79,12 @@ public class LocalDateTimeDeserializer
     public LocalDateTime deserialize(JsonParser parser, DeserializationContext context) throws IOException
     {
         if (parser.hasTokenId(JsonTokenId.ID_STRING)) {
-            String string = parser.getText().trim();
-            if (string.length() == 0) {
-                if (!isLenient()) {
-                    return _failForNotLenient(parser, context, JsonToken.VALUE_STRING);
-                }
-                return null;
-            }
-
-            try {
-	            if (_formatter == DEFAULT_FORMATTER) {
-	                // JavaScript by default includes time and zone in JSON serialized Dates (UTC/ISO instant format).
-	                if (string.length() > 10 && string.charAt(10) == 'T') {
-	                   if (string.endsWith("Z")) {
-	                       return LocalDateTime.ofInstant(Instant.parse(string), ZoneOffset.UTC);
-	                   } else {
-	                       return LocalDateTime.parse(string, DEFAULT_FORMATTER);
-	                   }
-	                }
-	            }
-
-                return LocalDateTime.parse(string, _formatter);
-            } catch (DateTimeException e) {
-                return _handleDateTimeException(context, e, string);
-            }
+            return _fromString(parser, context, parser.getText());
+        }
+        // 30-Sep-2020, tatu: New! "Scalar from Object" (mostly for XML)
+        if (parser.isExpectedStartObjectToken()) {
+            return _fromString(parser, context,
+                    context.extractScalarFromObject(parser, this, handledType()));
         }
         if (parser.isExpectedStartArrayToken()) {
             JsonToken t = parser.nextToken();
@@ -157,5 +141,43 @@ public class LocalDateTimeDeserializer
             _throwNoNumericTimestampNeedTimeZone(parser, context);
         }
         return _handleUnexpectedToken(context, parser, "Expected array or string.");
+    }
+
+    protected LocalDateTime _fromString(JsonParser p, DeserializationContext ctxt,
+            String string0)  throws IOException
+    {
+        String string = string0.trim();
+        if (string.length() == 0) {
+            // 22-Oct-2020, tatu: not sure if we should pass original (to distinguish
+            //   b/w empty and blank); for now don't which will allow blanks to be
+            //   handled like "regular" empty (same as pre-2.12)
+            return _fromEmptyString(p, ctxt, string);
+        }
+        try {
+            // 21-Oct-2020, tatu: Changed as per [modules-base#94] for 2.12,
+            //    had bad timezone handle change from [modules-base#56]
+            if (_formatter == DEFAULT_FORMATTER) {
+                // ... only allow iff lenient mode enabled since
+                // JavaScript by default includes time and zone in JSON serialized Dates (UTC/ISO instant format).
+                // And if so, do NOT use zoned date parsing as that can easily produce
+                // incorrect answer.
+                if (string.length() > 10 && string.charAt(10) == 'T') {
+                   if (string.endsWith("Z")) {
+                       if (isLenient()) {
+                           return LocalDateTime.parse(string.substring(0, string.length()-1),
+                                   _formatter);
+                       }
+                       JavaType t = getValueType(ctxt);
+                       return (LocalDateTime) ctxt.handleWeirdStringValue(t.getRawClass(),
+                               string,
+"Should not contain offset when 'strict' mode set for property or type (enable 'lenient' handling to allow)"
+                               );
+                   }
+                }
+            }
+           return LocalDateTime.parse(string, _formatter);
+        } catch (DateTimeException e) {
+            return _handleDateTimeException(ctxt, e, string);
+        }
     }
 }

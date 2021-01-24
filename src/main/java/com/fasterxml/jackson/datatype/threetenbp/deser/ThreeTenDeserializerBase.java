@@ -17,6 +17,10 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.io.IOException;
+
+import com.fasterxml.jackson.core.io.NumberInput;
+import com.fasterxml.jackson.databind.cfg.CoercionAction;
+import com.fasterxml.jackson.databind.type.LogicalType;
 import org.threeten.bp.DateTimeException;
 import java.util.Arrays;
 
@@ -41,7 +45,7 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
 
     /**
      * Flag that indicates what leniency setting is enabled for this deserializer (either
-     * due {@link JsonFormat} annotation on property or class, or due to per-type
+     * due {@link com.fasterxml.jackson.annotation.JsonFormat.Shape} annotation on property or class, or due to per-type
      * "config override", or from global settings): leniency/strictness has effect
      * on accepting some non-default input value representations (such as integer values
      * for dates).
@@ -49,6 +53,9 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
      * Note that global default setting is for leniency to be enabled, for Jackson 2.x,
      * and has to be explicitly change to force strict handling: this is to keep backwards
      * compatibility with earlier versions.
+     *<p>
+     * Note that with 2.12 and later coercion settings are moving to {@code CoercionConfig},
+     * instead of simple yes/no leniency setting.
      *
      * @since 2.11
      */
@@ -91,13 +98,54 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
     protected boolean isLenient() {
         return _isLenient;
     }
-    
+
+    /**
+     * Replacement for {@code isLenient()} for specific case of deserialization
+     * from empty or blank String.
+     *
+     * @since 2.12
+     */
+    @SuppressWarnings("unchecked")
+    protected T _fromEmptyString(JsonParser p, DeserializationContext ctxt,
+            String str)
+        throws IOException
+    {
+        final CoercionAction act = _checkFromStringCoercion(ctxt, str);
+        switch (act) { // note: Fail handled above
+        case AsEmpty:
+            return (T) getEmptyValue(ctxt);
+        case TryConvert:
+        case AsNull:
+        default:
+        }
+        // 22-Oct-2020, tatu: Although we should probably just accept this,
+        //   for backwards compatibility let's for now allow override by
+        //   "Strict" checks
+        if (!_isLenient) {
+            return _failForNotLenient(p, ctxt, JsonToken.VALUE_STRING);
+        }
+
+        return null;
+    }
+
+    // Presumably all types here are Date/Time oriented ones?
+    @Override
+    public LogicalType logicalType() { return LogicalType.DateTime; }
+
     @Override
     public Object deserializeWithType(JsonParser parser, DeserializationContext context,
             TypeDeserializer typeDeserializer)
         throws IOException
     {
         return typeDeserializer.deserializeTypedFromAny(parser, context);
+    }
+
+    // @since 2.12
+    protected boolean _isValidTimestampString(String str) {
+        // 30-Sep-2020, tatu: Need to support "numbers as Strings" for data formats
+        //    that only have String values for scalars (CSV, Properties, XML)
+        // NOTE: we do allow negative values, but has to fit in 64-bits:
+        return _isIntNumber(str) && NumberInput.inLongRange(str, (str.charAt(0) == '-'));
     }
 
     protected <BOGUS> BOGUS _reportWrongToken(DeserializationContext context,
@@ -166,7 +214,7 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
 
     @SuppressWarnings("unchecked")
     protected T _failForNotLenient(JsonParser p, DeserializationContext ctxt,
-                                   JsonToken expToken) throws IOException
+            JsonToken expToken) throws IOException
     {
         return (T) ctxt.handleUnexpectedToken(handledType(), expToken, p,
                 "Cannot deserialize instance of %s out of %s token: not allowed because 'strict' mode set for property or type (enable 'lenient' handling to allow)",

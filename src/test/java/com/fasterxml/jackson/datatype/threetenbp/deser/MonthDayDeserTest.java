@@ -92,7 +92,7 @@ public class MonthDayDeserTest extends ModuleTestBase
     {
         MonthDay value = newMapper()
                 .configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
-                .readerFor(MonthDay.class).readValue(aposToQuotes("['--01-01']"));
+                .readerFor(MonthDay.class).readValue(a2q("['--01-01']"));
         notNull(value);
         expect(MonthDay.of(Month.JANUARY, 1), value);
     }
@@ -162,20 +162,33 @@ public class MonthDayDeserTest extends ModuleTestBase
     /**********************************************************
      */
 
-    @Test( expected =  MismatchedInputException.class)
-    public void testStrictDeserializeFromEmptyString() throws Exception {
-
+    // minor changes in 2.12
+    @Test
+    public void testDeserializeFromEmptyString() throws Exception
+    {
         final String key = "monthDay";
-        final ObjectMapper mapper = mapperBuilder().build();
-        // leniency has no effect here because MonthDayDeser passes through to Java API MonthDay.parse method...
-        final ObjectReader objectReader = mapper.readerFor(MAP_TYPE_REF);
+        // First: by default, lenient, so empty String fine
+        final ObjectReader objectReader = MAPPER.readerFor(MAP_TYPE_REF);
 
-        String valueFromNullStr = mapper.writeValueAsString(asMap(key, null));
-        Map<String, MonthDay> actualMapFromNullStr = objectReader.readValue(valueFromNullStr);
+        String doc = MAPPER.writeValueAsString(asMap(key, null));
+        Map<String, MonthDay> actualMapFromNullStr = objectReader.readValue(doc);
         assertNull(actualMapFromNullStr.get(key));
 
-        String valueFromEmptyStr = mapper.writeValueAsString(asMap(key, ""));
-        objectReader.readValue(valueFromEmptyStr);
+        doc = MAPPER.writeValueAsString(asMap(key, ""));
+        assertNotNull(objectReader.readValue(doc));
+
+        // But can make strict:
+        final ObjectMapper strictMapper = mapperBuilder().build();
+        strictMapper.configOverride(MonthDay.class)
+                .setFormat(JsonFormat.Value.forLeniency(false));
+        doc = strictMapper.writeValueAsString(asMap("date", ""));
+        try {
+            strictMapper.readerFor(MAP_TYPE_REF)
+                    .readValue(doc);
+            fail("Should not pass");
+        } catch (MismatchedInputException e) {
+            verifyException(e, "not allowed because 'strict' mode set for");
+        }
     }
 
     private void expectFailure(String aposJson) throws Throwable {
@@ -201,7 +214,7 @@ public class MonthDayDeserTest extends ModuleTestBase
     }
 
     private MonthDay read(final String aposJson) throws IOException {
-        return READER.readValue(aposToQuotes(aposJson));
+        return READER.readValue(a2q(aposJson));
     }
 
     private static void notNull(Object value) {

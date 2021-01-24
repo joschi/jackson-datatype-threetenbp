@@ -29,10 +29,16 @@ public class MonthDayDeserializer extends ThreeTenDateTimeDeserializerBase<Month
         return new MonthDayDeserializer(dtf);
     }
 
-    // !!! TODO: lenient vs strict?
+    /**
+     * Since 2.12
+     */
+    protected MonthDayDeserializer(MonthDayDeserializer base, Boolean leniency) {
+        super(base, leniency);
+    }
+
     @Override
     protected MonthDayDeserializer withLeniency(Boolean leniency) {
-        return this;
+        return new MonthDayDeserializer(this, leniency);
     }
 
     @Override
@@ -42,15 +48,12 @@ public class MonthDayDeserializer extends ThreeTenDateTimeDeserializerBase<Month
     public MonthDay deserialize(JsonParser parser, DeserializationContext context) throws IOException
     {
         if (parser.hasToken(JsonToken.VALUE_STRING)) {
-            String string = parser.getValueAsString().trim();
-            try {
-                if (_formatter == null) {
-                    return MonthDay.parse(string);
-                }
-                return MonthDay.parse(string, _formatter);
-            } catch (DateTimeException e) {
-                return _handleDateTimeException(context, e, string);
-            }
+            return _fromString(parser, context, parser.getText());
+        }
+        // 30-Sep-2020, tatu: New! "Scalar from Object" (mostly for XML)
+        if (parser.isExpectedStartObjectToken()) {
+            return _fromString(parser, context,
+                    context.extractScalarFromObject(parser, this, handledType()));
         }
         if (parser.isExpectedStartArrayToken()) {
             JsonToken t = parser.nextToken();
@@ -87,5 +90,25 @@ public class MonthDayDeserializer extends ThreeTenDateTimeDeserializerBase<Month
         }
         return _handleUnexpectedToken(context, parser,
                 JsonToken.VALUE_STRING, JsonToken.START_ARRAY);
+    }
+
+    protected MonthDay _fromString(JsonParser p, DeserializationContext ctxt,
+            String string0)  throws IOException
+    {
+        String string = string0.trim();
+        if (string.length() == 0) {
+            // 22-Oct-2020, tatu: not sure if we should pass original (to distinguish
+            //   b/w empty and blank); for now don't which will allow blanks to be
+            //   handled like "regular" empty (same as pre-2.12)
+            return _fromEmptyString(p, ctxt, string);
+        }
+        try {
+            if (_formatter == null) {
+                return MonthDay.parse(string);
+            }
+            return MonthDay.parse(string, _formatter);
+        } catch (DateTimeException e) {
+            return _handleDateTimeException(ctxt, e, string);
+        }
     }
 }

@@ -9,9 +9,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import org.threeten.bp.ZoneId;
 
 public class ModuleTestBase
 {
+    protected static final ZoneId UTC = ZoneId.of("UTC");
+
+    protected static final ZoneId Z_CHICAGO = ZoneId.of("America/Chicago");
+    protected static final ZoneId Z_BUDAPEST = ZoneId.of("Europe/Budapest");
+
     public static class NoCheckSubTypeValidator
         extends PolymorphicTypeValidator.Base
     {
@@ -37,11 +43,11 @@ public class ModuleTestBase
                 .addModule(new ThreeTenModule());
     }
     
-    protected String quote(String value) {
+    protected String q(String value) {
         return "\"" + value + "\"";
     }
 
-    protected String aposToQuotes(String json) {
+    protected String a2q(String json) {
         return json.replace("'", "\"");
     }
 

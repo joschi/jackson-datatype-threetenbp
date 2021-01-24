@@ -1,7 +1,10 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.math.BigInteger;
+
+import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import org.threeten.bp.Duration;
+import org.threeten.bp.temporal.ChronoUnit;
 import org.threeten.bp.temporal.TemporalAmount;
 import java.util.Map;
 
@@ -29,15 +32,19 @@ public class DurationDeserTest extends ModuleTestBase
 
     private final TypeReference<Map<String, Duration>> MAP_TYPE_REF = new TypeReference<Map<String, Duration>>() { };
 
+    final static class Wrapper {
+        public Duration value;
+
+        public Wrapper() { }
+        public Wrapper(Duration v) { value = v; }
+    }
+
     @Test
     public void testDeserializationAsFloat01() throws Exception
     {
         Duration value = READER.with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("60.0");
-
-        assertNotNull("The value should not be null.", value);
-        Duration exp = Duration.ofSeconds(60L, 0);
-        assertEquals("The value is not correct.", exp,  value);
+        assertEquals("The value is not correct.", Duration.ofSeconds(60L, 0), value);
     }
 
     @Test
@@ -45,10 +52,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("60.0");
-
-        assertNotNull("The value should not be null.", value);
-        Duration exp = Duration.ofSeconds(60L, 0);
-        assertEquals("The value is not correct.", exp, value);
+        assertEquals("The value is not correct.", Duration.ofSeconds(60L, 0), value);
     }
 
     @Test
@@ -56,7 +60,6 @@ public class DurationDeserTest extends ModuleTestBase
     {
         Duration value = READER.with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("13498.000008374");
-        assertNotNull("The value should not be null.", value);
         assertEquals("The value is not correct.", Duration.ofSeconds(13498L, 8374), value);
     }
 
@@ -65,7 +68,6 @@ public class DurationDeserTest extends ModuleTestBase
     {
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("13498.000008374");
-        assertNotNull("The value should not be null.", value);
         assertEquals("The value is not correct.", Duration.ofSeconds(13498L, 8374), value);
     }
 
@@ -77,7 +79,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         String input = Long.MAX_VALUE + ".999999999";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                              .readValue(input);
         assertEquals(Long.MAX_VALUE, value.getSeconds());
         assertEquals(999999999, value.getNano());
     }
@@ -90,7 +92,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         String input = Long.MIN_VALUE + ".0";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                                .readValue(input);
         assertEquals(Long.MIN_VALUE, value.getSeconds());
         assertEquals(0, value.getNano());
     }
@@ -100,7 +102,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         // Duration can't go this low
         READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(Long.MIN_VALUE + ".1");
+                .readValue(Long.MIN_VALUE + ".1");
     }
 
     /*
@@ -115,7 +117,7 @@ public class DurationDeserTest extends ModuleTestBase
         // Just beyond the upper-bound of Duration.
         String input = new BigInteger(Long.toString(Long.MAX_VALUE)).add(BigInteger.ONE) + ".0";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                              .readValue(input);
         assertEquals(Long.MIN_VALUE, value.getSeconds());  // We've turned a positive number into negative duration!
     }
 
@@ -125,7 +127,7 @@ public class DurationDeserTest extends ModuleTestBase
         // Just beyond the lower-bound of Duration.
         String input = new BigInteger(Long.toString(Long.MIN_VALUE)).subtract(BigInteger.ONE) + ".0";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                .readValue(input);
         assertEquals(Long.MAX_VALUE, value.getSeconds());  // We've turned a negative number into positive duration!
     }
 
@@ -135,7 +137,7 @@ public class DurationDeserTest extends ModuleTestBase
         // Into the positive zone where everything becomes zero.
         String input = "1e64";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                .readValue(input);
         assertEquals(0, value.getSeconds());
     }
 
@@ -145,7 +147,7 @@ public class DurationDeserTest extends ModuleTestBase
         // Into the negative zone where everything becomes zero.
         String input = "-1e64";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                .readValue(input);
         assertEquals(0, value.getSeconds());
     }
 
@@ -158,7 +160,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         String input = "1e10000000";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                .readValue(input);
         assertEquals(0, value.getSeconds());
     }
 
@@ -167,7 +169,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         String input = "-1e10000000";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                .readValue(input);
         assertEquals(0, value.getSeconds());
     }
 
@@ -179,7 +181,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         String input = "1e-10000000";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                .readValue(input);
         assertEquals(0, value.getSeconds());
     }
 
@@ -188,18 +190,16 @@ public class DurationDeserTest extends ModuleTestBase
     {
         String input = "-1e-10000000";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                 .readValue(input);
+                .readValue(input);
         assertEquals(0, value.getSeconds());
     }
-
 
     @Test
     public void testDeserializationAsInt01() throws Exception
     {
         Duration value = READER.with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("60");
-        assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", Duration.ofSeconds(60L, 0),  value);
+        assertEquals("The value is not correct.", Duration.ofSeconds(60L, 0), value);
     }
 
     @Test
@@ -207,9 +207,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("60000");
-
-        assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", Duration.ofSeconds(60L, 0),  value);
+        assertEquals("The value is not correct.", Duration.ofSeconds(60L, 0), value);
     }
 
     @Test
@@ -217,9 +215,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         Duration value = READER.with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("13498");
-
-        assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", Duration.ofSeconds(13498L, 0),  value);
+        assertEquals("The value is not correct.", Duration.ofSeconds(13498L, 0), value);
     }
 
     @Test
@@ -227,8 +223,6 @@ public class DurationDeserTest extends ModuleTestBase
     {
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("13498000");
-
-        assertNotNull("The value should not be null.", value);
         assertEquals("The value is not correct.", Duration.ofSeconds(13498L, 0),  value);
     }
 
@@ -237,9 +231,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         Duration exp = Duration.ofSeconds(60L, 0);
         Duration value = READER.readValue('"' + exp.toString() + '"');
-
-        assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", exp,  value);
+        assertEquals("The value is not correct.", exp, value);
     }
 
     @Test
@@ -247,16 +239,13 @@ public class DurationDeserTest extends ModuleTestBase
     {
         Duration exp = Duration.ofSeconds(13498L, 8374);
         Duration value = READER.readValue('"' + exp.toString() + '"');
-
-        assertNotNull("The value should not be null.", value);
-        assertEquals("The value is not correct.", exp,  value);
+        assertEquals("The value is not correct.", exp, value);
     }
 
     @Test
     public void testDeserializationAsString03() throws Exception
     {
-        Duration value = READER.readValue("\"   \"");
-        assertNull("The value should be null.", value);
+        assertNull("The value should be null.", READER.readValue("\"   \""));
     }
 
     @Test
@@ -271,7 +260,6 @@ public class DurationDeserTest extends ModuleTestBase
         mapper.addMixIn(TemporalAmount.class, MockObjectConfiguration.class);
         TemporalAmount value = mapper.readValue(prefix + "13498.000008374]", TemporalAmount.class);
 
-        assertNotNull("The value should not be null.", value);
         assertTrue("The value should be a Duration.", value instanceof Duration);
         assertEquals("The value is not correct.", duration, value);
     }
@@ -286,7 +274,6 @@ public class DurationDeserTest extends ModuleTestBase
         mapper.addMixIn(TemporalAmount.class, MockObjectConfiguration.class);
         TemporalAmount value = mapper.readValue(prefix + "13498]", TemporalAmount.class);
 
-        assertNotNull("The value should not be null.", value);
         assertTrue("The value should be a Duration.", value instanceof Duration);
         assertEquals("The value is not correct.", Duration.ofSeconds(13498L), value);
     }
@@ -301,7 +288,6 @@ public class DurationDeserTest extends ModuleTestBase
         mapper.addMixIn(TemporalAmount.class, MockObjectConfiguration.class);
         TemporalAmount value = mapper.readValue(prefix + "13498837]", TemporalAmount.class);
 
-        assertNotNull("The value should not be null.", value);
         assertTrue("The value should be a Duration.", value instanceof Duration);
         assertEquals("The value is not correct.", Duration.ofSeconds(13498L, 837000000), value);
     }
@@ -317,7 +303,6 @@ public class DurationDeserTest extends ModuleTestBase
         mapper.addMixIn(TemporalAmount.class, MockObjectConfiguration.class);
         TemporalAmount value = mapper.readValue(prefix + '"' + duration.toString() + "\"]", TemporalAmount.class);
 
-        assertNotNull("The value should not be null.", value);
         assertTrue("The value should be a Duration.", value instanceof Duration);
         assertEquals("The value is not correct.", duration, value);
     }
@@ -329,7 +314,7 @@ public class DurationDeserTest extends ModuleTestBase
 	        READER.readValue("[\"" + exp.toString() + "\"]");
 	        fail("expected JsonMappingException");
         } catch (JsonMappingException e) {
-           // OK
+            verifyException(e, "Cannot deserialize value of type `org.threeten.bp.Duration` from Array value");
         }
     }
     
@@ -341,17 +326,15 @@ public class DurationDeserTest extends ModuleTestBase
             READER.readValue("[]");
             fail("expected MismatchedInputException");
         } catch (MismatchedInputException e) {
-            verifyException(e, "Cannot deserialize instance of");
-            verifyException(e, "org.threeten.bp.Duration");
-            verifyException(e, "out of START_ARRAY");
+            verifyException(e, "Cannot deserialize value of type `org.threeten.bp.Duration` from Array value");
         }
         try {
             newMapper()
                 .configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
-        	        .readerFor(Duration.class).readValue(aposToQuotes("[]"));
+        	        .readerFor(Duration.class).readValue(a2q("[]"));
             fail("expected MismatchedInputException");
         } catch (MismatchedInputException e) {
-            verifyException(e, "Unexpected token (END_ARRAY), expected one of");
+            verifyException(e, "Cannot deserialize value of type `org.threeten.bp.Duration` from Array value");
         }
     }
 
@@ -362,19 +345,17 @@ public class DurationDeserTest extends ModuleTestBase
       			.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
       			.readerFor(Duration.class).readValue("[\"" + exp.toString() + "\"]");
 
-          assertNotNull("The value should not be null.", value);
           assertEquals("The value is not correct.", exp,  value);
     }
    
     @Test
     public void testDeserializationAsEmptyArrayEnabled() throws Throwable
     {
-    	String json="[]";
-    	Duration value= newMapper()
+        Duration value= newMapper()
     			.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
     			.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true)
-    			.readerFor(Duration.class).readValue(aposToQuotes(json));
-    	assertNull(value);
+                .readerFor(Duration.class).readValue("[]");
+        assertNull(value);
     }
 
     /*
@@ -423,5 +404,136 @@ public class DurationDeserTest extends ModuleTestBase
         String dateValAsEmptyStr = "";
         String valueFromEmptyStr = mapper.writeValueAsString(asMap(key, dateValAsEmptyStr));
         objectReader.readValue(valueFromEmptyStr);
+    }
+
+    /*
+    /**********************************************************
+    /* Tests for custom patterns (modules-java8#184)
+    /**********************************************************
+     */
+
+    @Test
+    public void shouldDeserializeInNanos_whenNanosUnitAsPattern_andValueIsInteger() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("NANOS");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+        Wrapper wrapper = reader.readValue(wrapperPayload(25), Wrapper.class);
+        assertEquals(Duration.ofNanos(25),  wrapper.value);
+    }
+
+    @Test
+    public void shouldDeserializeInMicros_whenMicrosUnitAsPattern_andValueIsInteger() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("MICROS");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        Wrapper wrapper = reader.readValue(wrapperPayload(25), Wrapper.class);
+
+        assertEquals(Duration.of(25, ChronoUnit.MICROS),  wrapper.value);
+    }
+
+    @Test
+    public void shouldDeserializeInMillis_whenMillisUnitAsPattern_andValueIsInteger() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("MILLIS");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        Wrapper wrapper = reader.readValue(wrapperPayload(25), Wrapper.class);
+
+        assertEquals(Duration.ofMillis(25),  wrapper.value);
+    }
+
+    @Test
+    public void shouldDeserializeInSeconds_whenSecondsUnitAsPattern_andValueIsInteger() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("SECONDS");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        Wrapper wrapper = reader.readValue(wrapperPayload(25), Wrapper.class);
+
+        assertEquals(Duration.ofSeconds(25),  wrapper.value);
+    }
+
+    @Test
+    public void shouldDeserializeInMinutes_whenMinutesUnitAsPattern_andValueIsInteger() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("MINUTES");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        Wrapper wrapper = reader.readValue(wrapperPayload(25), Wrapper.class);
+
+        assertEquals(Duration.ofMinutes(25),  wrapper.value);
+    }
+
+    @Test
+    public void shouldDeserializeInHours_whenHoursUnitAsPattern_andValueIsInteger() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("HOURS");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        Wrapper wrapper = reader.readValue(wrapperPayload(25), Wrapper.class);
+
+        assertEquals(Duration.ofHours(25),  wrapper.value);
+    }
+
+    @Test
+    public void shouldDeserializeInHalfDays_whenHalfDaysUnitAsPattern_andValueIsInteger() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("HALF_DAYS");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        Wrapper wrapper = reader.readValue(wrapperPayload(25), Wrapper.class);
+
+        assertEquals(Duration.of(25, ChronoUnit.HALF_DAYS),  wrapper.value);
+    }
+
+    @Test
+    public void shouldDeserializeInDays_whenDaysUnitAsPattern_andValueIsInteger() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("DAYS");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        Wrapper wrapper = reader.readValue(wrapperPayload(25), Wrapper.class);
+
+        assertEquals(Duration.ofDays(25),  wrapper.value);
+    }
+
+    @Test
+    public void shouldIgnoreUnitPattern_whenValueIsFloat() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("MINUTES");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        Wrapper wrapper = reader.readValue(wrapperPayload(25.5), Wrapper.class);
+
+        assertEquals(Duration.parse("PT25.5S"),  wrapper.value);
+    }
+
+    @Test
+    public void shouldIgnoreUnitPattern_whenValueIsString() throws Exception {
+        ObjectMapper mapper = _mapperForPatternOverride("MINUTES");
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        Wrapper wrapper = reader.readValue("{\"value\":\"PT25S\"}", Wrapper.class);
+
+        assertEquals(Duration.parse("PT25S"),  wrapper.value);
+    }
+
+    @Test
+    public void shouldFailForInvalidPattern() throws Exception {
+        ObjectMapper mapper = newMapper();
+        mapper.configOverride(Duration.class)
+                .setFormat(JsonFormat.Value.forPattern("Nanos"));
+        ObjectReader reader = mapper.readerFor(MAP_TYPE_REF);
+
+        try {
+            /*Wrapper wrapper =*/ reader.readValue(wrapperPayload(25), Wrapper.class);
+            fail("Should not allow invalid 'pattern'");
+        } catch (InvalidDefinitionException e) {
+            verifyException(e, "Bad 'pattern' definition (\"Nanos\")");
+            verifyException(e, "expected one of [");
+        }
+    }
+
+    private String wrapperPayload(Number number) {
+        return "{\"value\":" + number + "}";
+    }
+
+    private ObjectMapper _mapperForPatternOverride(String patternStr) {
+        ObjectMapper mapper = newMapper();
+        mapper.configOverride(Duration.class)
+            .setFormat(JsonFormat.Value.forPattern(patternStr));
+        return mapper;
     }
 }

@@ -17,6 +17,10 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.io.IOException;
+
+import com.fasterxml.jackson.core.util.VersionUtil;
+import com.fasterxml.jackson.databind.cfg.CoercionAction;
+import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Period;
 import org.threeten.bp.ZoneId;
@@ -95,40 +99,42 @@ public class ThreeTenStringParsableDeserializer
     }
 
     @Override
-    public Object deserialize(JsonParser p, DeserializationContext context) throws IOException
+    public JsonDeserializer<?> createContextual(DeserializationContext ctxt,
+            BeanProperty property) throws JsonMappingException {
+        JsonFormat.Value format = findFormatOverrides(ctxt, property, handledType());
+        ThreeTenStringParsableDeserializer deser = this;
+        if (format != null) {
+            if (format.hasLenient()) {
+                Boolean leniency = format.getLenient();
+                if (leniency != null) {
+                    deser = this.withLeniency(leniency);
+                }
+            }
+        }
+        return deser;
+    }
+
+    @Override
+    public Object deserialize(JsonParser p, DeserializationContext ctxt) throws IOException
     {
-        String string = p.getValueAsString();
-        if (string != null) {
-            string = string.trim();
-            if (string.length() == 0) {
-                if (!isLenient()) {
-                    return _failForNotLenient(p, context, JsonToken.VALUE_STRING);
-                }
-                return null;
-            }
-            try {
-                switch (_typeSelector) {
-                case TYPE_PERIOD:
-                    return Period.parse(string);
-                case TYPE_ZONE_ID:
-                    return ZoneId.of(string);
-                case TYPE_ZONE_OFFSET:
-                    return ZoneOffset.of(string);
-                }
-            } catch (DateTimeException e) {
-                return _handleDateTimeException(context, e, string);
-            }
+        if (p.hasToken(JsonToken.VALUE_STRING)) {
+            return _fromString(p, ctxt, p.getText());
+        }
+        // 30-Sep-2020, tatu: New! "Scalar from Object" (mostly for XML)
+        if (p.isExpectedStartObjectToken()) {
+            return _fromString(p, ctxt,
+                    ctxt.extractScalarFromObject(p, this, handledType()));
         }
         if (p.hasToken(JsonToken.VALUE_EMBEDDED_OBJECT)) {
             // 20-Apr-2016, tatu: Related to [databind#1208], can try supporting embedded
             //    values quite easily
             return p.getEmbeddedObject();
         }
-        if (p.hasToken(JsonToken.START_ARRAY)){
-            return _deserializeFromArray(p, context);
+        if (p.isExpectedStartArrayToken()) {
+            return _deserializeFromArray(p, ctxt);
         }
-        
-        throw context.wrongTokenException(p, handledType(), JsonToken.VALUE_STRING, null);
+
+        throw ctxt.wrongTokenException(p, handledType(), JsonToken.VALUE_STRING, null);
     }
 
     @Override
@@ -145,20 +151,42 @@ public class ThreeTenStringParsableDeserializer
         return deserializer.deserializeTypedFromAny(parser, context);
     }
 
-    @Override
-    public JsonDeserializer<?> createContextual(DeserializationContext ctxt,
-                                                BeanProperty property) throws JsonMappingException
+    protected Object _fromString(JsonParser p, DeserializationContext ctxt,
+            String string)  throws IOException
     {
-        JsonFormat.Value format = findFormatOverrides(ctxt, property, handledType());
-        ThreeTenStringParsableDeserializer deser = this;
-        if (format != null) {
-            if (format.hasLenient()) {
-                Boolean leniency = format.getLenient();
-                if (leniency != null) {
-                    deser = this.withLeniency(leniency);
-                }
+        string = string.trim();
+        if (string.length() == 0) {
+            CoercionAction act = ctxt.findCoercionAction(logicalType(), _valueClass,
+                    CoercionInputShape.EmptyString);
+            if (act == CoercionAction.Fail) {
+                ctxt.reportInputMismatch(this,
+"Cannot coerce empty String (\"\") to %s (but could if enabling coercion using `CoercionConfig`)",
+_coercedTypeDesc());
             }
+            // 21-Jun-2020, tatu: As of 2.12, leniency considered legacy setting,
+            //    but still supported.
+            if (!isLenient()) {
+                return _failForNotLenient(p, ctxt, JsonToken.VALUE_STRING);
+            }
+            if (act == CoercionAction.AsEmpty) {
+                return getEmptyValue(ctxt);
+            }
+            // None of the types has specific null value
+            return null;
         }
-        return deser;
+        try {
+            switch (_typeSelector) {
+            case TYPE_PERIOD:
+                return Period.parse(string);
+            case TYPE_ZONE_ID:
+                return ZoneId.of(string);
+            case TYPE_ZONE_OFFSET:
+                return ZoneOffset.of(string);
+            }
+        } catch (DateTimeException e) {
+            return _handleDateTimeException(ctxt, e, string);
+        }
+        VersionUtil.throwInternal();
+        return null;
     }
 }

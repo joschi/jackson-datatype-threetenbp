@@ -2,6 +2,7 @@ package com.fasterxml.jackson.datatype.threetenbp.ser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.threetenbp.ser.ZonedDateTimeSerializer;
 import org.junit.Test;
@@ -9,10 +10,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
@@ -28,13 +31,17 @@ public class TestZonedDateTimeSerializationWithCustomFormatter {
     @Test
     public void testSerialization() throws Exception {
         ZonedDateTime zonedDateTime = ZonedDateTime.now();
-        assertThat(serializeWith(zonedDateTime, formatter), containsString(zonedDateTime.format(formatter)));
+        assertThat(serializeWith(zonedDateTime, formatter),
+                containsString(zonedDateTime.format(formatter.withZone(ZoneOffset.UTC))));
     }
 
     private String serializeWith(ZonedDateTime zonedDateTime, DateTimeFormatter f) throws Exception {
-        ObjectMapper mapper = new ObjectMapper().registerModule(new SimpleModule().addSerializer(
-                new ZonedDateTimeSerializer(f)));
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        ObjectMapper mapper = JsonMapper.builder()
+                .addModule(new SimpleModule().addSerializer(
+                        new ZonedDateTimeSerializer(f)))
+                .defaultTimeZone(TimeZone.getTimeZone("UTC"))
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build();
         return mapper.writeValueAsString(zonedDateTime);
     }
 

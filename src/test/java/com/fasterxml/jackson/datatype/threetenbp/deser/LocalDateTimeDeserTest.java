@@ -33,6 +33,8 @@ import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 import org.junit.Test;
 
 import java.io.IOException;
+
+import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.Month;
@@ -51,6 +53,14 @@ public class LocalDateTimeDeserTest
 {
     private final static ObjectMapper MAPPER = newMapper();
     private final static ObjectReader READER = MAPPER.readerFor(LocalDateTime.class);
+
+    private final static ObjectMapper STRICT_MAPPER;
+    static {
+        STRICT_MAPPER = newMapper();
+        STRICT_MAPPER.configOverride(LocalDateTime.class)
+            .setFormat(JsonFormat.Value.forLeniency(false));
+    }
+
     private final TypeReference<Map<String, LocalDateTime>> MAP_TYPE_REF = new TypeReference<Map<String, LocalDateTime>>() { };
 
     final static class StrictWrapper {
@@ -145,19 +155,19 @@ public class LocalDateTimeDeserTest
     public void testDeserializationAsString01() throws Exception
     {
         LocalDateTime exp = LocalDateTime.of(1986, Month.JANUARY, 17, 15, 43);
-        LocalDateTime value = READER.readValue(quote(exp.toString()));
+        LocalDateTime value = READER.readValue(q(exp.toString()));
         assertEquals("The value is not correct.", exp, value);
 
         assertEquals("The value is not correct.",
                 LocalDateTime.of(2000, Month.JANUARY, 1, 12, 0),
-                READER.readValue(quote("2000-01-01T12:00")));
+                READER.readValue(q("2000-01-01T12:00")));
     }
 
     @Test
     public void testDeserializationAsString02() throws Exception
     {
         LocalDateTime time = LocalDateTime.of(2013, Month.AUGUST, 21, 9, 22, 57);
-        LocalDateTime value = MAPPER.readValue('"' + time.toString() + '"', LocalDateTime.class);
+        LocalDateTime value = MAPPER.readValue(q(time.toString()), LocalDateTime.class);
         assertEquals("The value is not correct.", time, value);
     }
 
@@ -165,23 +175,56 @@ public class LocalDateTimeDeserTest
     public void testDeserializationAsString03() throws Exception
     {
         LocalDateTime time = LocalDateTime.of(2005, Month.NOVEMBER, 5, 22, 31, 5, 829837);
-        LocalDateTime value = MAPPER.readValue('"' + time.toString() + '"', LocalDateTime.class);
+        LocalDateTime value = MAPPER.readValue(q(time.toString()), LocalDateTime.class);
         assertEquals("The value is not correct.", time, value);
     }
 
+    /*
+    /**********************************************************
+    /* Tests for deserializing from textual representation,
+    /* fail cases, leniency checking
+    /**********************************************************
+     */
+
+    // [modules-java#94]: "Z" offset MAY be allowed, requires leniency
     @Test
-    public void testDeserializationAsString04() throws Exception
+    public void testAllowZuluIfLenient() throws Exception
     {
-        Instant instant = Instant.now();
-        LocalDateTime value = MAPPER.readValue('"' + instant.toString() + '"', LocalDateTime.class);
-        assertEquals("The value is not correct.", LocalDateTime.ofInstant(instant, ZoneOffset.UTC), value);
+        final LocalDateTime EXP = LocalDateTime.of(2020, Month.OCTOBER, 22, 4, 16, 20, 504000000);
+        final String input = q("2020-10-22T04:16:20.504Z");
+        final ObjectReader r = MAPPER.readerFor(LocalDateTime.class);
+
+        // First, defaults:
+        assertEquals("The value is not correct.", EXP, r.readValue(input));
+
+        // but ensure that global timezone setting doesn't matter
+        LocalDateTime value = r.with(DateTimeUtils.toTimeZone(Z_CHICAGO))
+                .readValue(input);
+        assertEquals("The value is not correct.", EXP, value);
+
+        value = r.with(DateTimeUtils.toTimeZone(Z_BUDAPEST))
+                .readValue(input);
+        assertEquals("The value is not correct.", EXP, value);
+    }
+
+    // [modules-java#94]: "Z" offset not allowed if strict mode
+    @Test
+    public void testFailOnZuluIfStrict() throws Exception
+    {
+        try {
+            STRICT_MAPPER.readValue(q("2020-10-22T00:16:20.504Z"), LocalDateTime.class);
+            fail("Should not pass");
+        } catch (InvalidFormatException e) {
+            verifyException(e, "Cannot deserialize value of type ");
+            verifyException(e, "Should not contain offset when 'strict' mode");
+        }
     }
 
     @Test
     public void testBadDeserializationAsString01() throws Throwable
     {
         try {
-            READER.readValue(quote("notalocaldatetime"));
+            READER.readValue(q("notalocaldatetime"));
             fail("expected fail");
         } catch (InvalidFormatException e) {
             verifyException(e, "Cannot deserialize value of type");
@@ -189,12 +232,11 @@ public class LocalDateTimeDeserTest
         }
     }
 
-        /*
+    /*
     /**********************************************************
     /* Tests for empty string handling
-     */
     /**********************************************************
-     */
+    */
 
     @Test
     public void testLenientDeserializeFromEmptyString() throws Exception {
@@ -221,20 +263,17 @@ public class LocalDateTimeDeserTest
     public void testStrictDeserializeFromEmptyString() throws Exception {
 
         final String key = "datetime";
-        final ObjectMapper mapper = mapperBuilder().build();
-        mapper.configOverride(LocalDateTime.class)
-            .setFormat(JsonFormat.Value.forLeniency(false));
-        final ObjectReader objectReader = mapper.readerFor(MAP_TYPE_REF);
+        final ObjectReader objectReader = STRICT_MAPPER.readerFor(MAP_TYPE_REF);
         final String dateValAsNullStr = null;
 
         // even with strict, null value should be deserialized without throwing an exception
-        String valueFromNullStr = mapper.writeValueAsString(asMap(key, dateValAsNullStr));
+        String valueFromNullStr = STRICT_MAPPER.writeValueAsString(asMap(key, dateValAsNullStr));
         Map<String, LocalDateTime> actualMapFromNullStr = objectReader.readValue(valueFromNullStr);
         assertNull(actualMapFromNullStr.get(key));
 
         String dateValAsEmptyStr = "";
         // TODO: nothing stops us from writing an empty string, maybe there should be a check there too?
-        String valueFromEmptyStr = mapper.writeValueAsString(asMap("date", dateValAsEmptyStr));
+        String valueFromEmptyStr = STRICT_MAPPER.writeValueAsString(asMap("date", dateValAsEmptyStr));
         // with strict, deserializing an empty string is not permitted
         objectReader.readValue(valueFromEmptyStr);
     }
@@ -351,7 +390,7 @@ public class LocalDateTimeDeserTest
             }
         };
         ObjectMapper handledMapper = mapperBuilder().addHandler(handler).build();
-        assertEquals(now, handledMapper.readValue(quote("now"), LocalDateTime.class));
+        assertEquals(now, handledMapper.readValue(q("now"), LocalDateTime.class));
     }
 
     @Test
@@ -478,31 +517,31 @@ public class LocalDateTimeDeserTest
     @Test(expected = InvalidFormatException.class)
     public void testStrictCustomFormatInvalidDate() throws Exception
     {
-        StrictWrapper w = MAPPER.readValue("{\"value\":\"2019-11-31 15:45\"}", StrictWrapper.class);
+        /*StrictWrapper w =*/ MAPPER.readValue("{\"value\":\"2019-11-31 15:45\"}", StrictWrapper.class);
     }
 
     @Test(expected = InvalidFormatException.class)
     public void testStrictCustomFormatInvalidTime() throws Exception
     {
-        StrictWrapper w = MAPPER.readValue("{\"value\":\"2019-11-30 25:45\"}", StrictWrapper.class);
+        /*StrictWrapper w =*/ MAPPER.readValue("{\"value\":\"2019-11-30 25:45\"}", StrictWrapper.class);
     }
 
     @Test(expected = InvalidFormatException.class)
     public void testStrictCustomFormatInvalidDateAndTime() throws Exception
     {
-        StrictWrapper w = MAPPER.readValue("{\"value\":\"2019-11-31 25:45\"}", StrictWrapper.class);
+        /*StrictWrapper w =*/ MAPPER.readValue("{\"value\":\"2019-11-31 25:45\"}", StrictWrapper.class);
     }
 
 
     private void expectSuccess(ObjectReader reader, Object exp, String json) throws IOException {
-        final LocalDateTime value = reader.readValue(aposToQuotes(json));
+        final LocalDateTime value = reader.readValue(a2q(json));
         assertNotNull("The value should not be null.", value);
         assertEquals("The value is not correct.", exp,  value);
     }
 
     private void expectFailure(ObjectReader reader, String json) throws Throwable {
         try {
-            reader.readValue(aposToQuotes(json));
+            reader.readValue(a2q(json));
             fail("expected DateTimeParseException");
         } catch (JsonProcessingException e) {
             if (e.getCause() == null) {
