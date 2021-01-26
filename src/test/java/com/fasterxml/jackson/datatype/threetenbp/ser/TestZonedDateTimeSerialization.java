@@ -14,12 +14,16 @@
  * limitations under the license.
  */
 
-package com.fasterxml.jackson.datatype.threetenbp;
+package com.fasterxml.jackson.datatype.threetenbp.ser;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
+import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
+import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
+import org.junit.Assert;
 import org.threeten.bp.Instant;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
@@ -151,7 +155,7 @@ public class TestZonedDateTimeSerialization
                 .with(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .with(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .writeValueAsString(date);
-        assertEquals("The value is not correct.", DecimalUtils.toDecimal(date.toEpochSecond(), date.getNano()), value);
+        Assert.assertEquals("The value is not correct.", DecimalUtils.toDecimal(date.toEpochSecond(), date.getNano()), value);
     }
 
     @Test
@@ -819,7 +823,7 @@ public class TestZonedDateTimeSerialization
         ObjectMapper m = newMapper()
                 .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
         String json = m.writeValueAsString(input);
-        assertEquals(aposToQuotes("{'value':'1970_01_01 00:00:00(+0000)'}"), json);
+        assertEquals(a2q("{'value':'1970_01_01 00:00:00(+0000)'}"), json);
 
         Wrapper result = m.readValue(json, Wrapper.class);
         // looks like timezone gets converted (is that correct or not?); verify just offsets for now
@@ -833,7 +837,7 @@ public class TestZonedDateTimeSerialization
         final WrapperNumeric input = new WrapperNumeric(inputValue);
         ObjectMapper m = newMapper();
         String json = m.writeValueAsString(input);
-        assertEquals(aposToQuotes("{'value':'19700101000000'}"), json);
+        assertEquals(a2q("{'value':'19700101000000'}"), json);
 
         WrapperNumeric result = m.readValue(json, WrapperNumeric.class);
         assertEquals(input.value.toInstant(), result.value.toInstant());

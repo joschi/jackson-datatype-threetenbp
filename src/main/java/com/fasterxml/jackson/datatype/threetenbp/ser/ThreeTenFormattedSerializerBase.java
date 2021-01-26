@@ -63,7 +63,7 @@ abstract class ThreeTenFormattedSerializerBase<T>
     /**
      * Specific format to use, if not default format: non null value
      * also indicates that serialization is to be done as JSON String,
-     * not numeric timestamp, unless {@link #_useTimestamp} is true.
+     * not numeric timestamp, unless {@code #_useTimestamp} is true.
      */
     protected final DateTimeFormatter _formatter;
 
@@ -146,18 +146,7 @@ abstract class ThreeTenFormattedSerializerBase<T>
 
             // If not, do we have a pattern?
             if (format.hasPattern()) {
-                final String pattern = format.getPattern();
-                final Locale locale = format.hasLocale() ? format.getLocale() : prov.getLocale();
-                if (locale == null) {
-                    dtf = DateTimeFormatter.ofPattern(pattern);
-                } else {
-                    dtf = DateTimeFormatter.ofPattern(pattern, locale);
-                }
-                //Issue #69: For instant serializers/deserializers we need to configure the formatter with
-                //a time zone picked up from JsonFormat annotation, otherwise serialization might not work
-                if (format.hasTimeZone()) {
-                    dtf = dtf.withZone(DateTimeUtils.toZoneId(format.getTimeZone()));
-                }
+                dtf = _useDateTimeFormatter(prov, format);
             }
             ThreeTenFormattedSerializerBase<?> ser = this;
             if ((shape != _shape) || (useTimestamp != _useTimestamp) || (dtf != _formatter)) {
@@ -266,5 +255,23 @@ abstract class ThreeTenFormattedSerializerBase<T>
         }
         return (provider != null)
                 && provider.isEnabled(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+    }
+
+    // modules-java8#189: to be overridden by other formatters using this as base class
+    protected DateTimeFormatter _useDateTimeFormatter(SerializerProvider prov, JsonFormat.Value format) {
+        DateTimeFormatter dtf;
+        final String pattern = format.getPattern();
+        final Locale locale = format.hasLocale() ? format.getLocale() : prov.getLocale();
+        if (locale == null) {
+            dtf = DateTimeFormatter.ofPattern(pattern);
+        } else {
+            dtf = DateTimeFormatter.ofPattern(pattern, locale);
+        }
+        //Issue #69: For instant serializers/deserializers we need to configure the formatter with
+        //a time zone picked up from JsonFormat annotation, otherwise serialization might not work
+        if (format.hasTimeZone()) {
+            dtf = dtf.withZone(DateTimeUtils.toZoneId(format.getTimeZone()));
+        }
+        return dtf;
     }
 }

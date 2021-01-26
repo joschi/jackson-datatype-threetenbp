@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
 import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
+import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.Temporal;
 
@@ -36,7 +37,8 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNumberFormatVisitor
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
 
 /**
- * Base class for serializers used for {@link org.threeten.bp.Instant}.
+ * Base class for serializers used for {@link org.threeten.bp.Instant} and
+ * other {@link Temporal} subtypes.
  */
 @SuppressWarnings("serial")
 public abstract class InstantSerializerBase<T extends Temporal>
@@ -97,16 +99,7 @@ public abstract class InstantSerializerBase<T extends Temporal>
             generator.writeNumber(getEpochMillis.applyAsLong(value));
             return;
         }
-        String str;
-        
-        if (_formatter != null) {
-            str = _formatter.format(value);;
-        } else if (defaultFormat != null) {
-            str = defaultFormat.format(value);;
-        } else {
-            str = value.toString();
-        }
-        generator.writeString(str);
+        generator.writeString(formatValue(value, provider));
     }
 
     // Overridden to ensure that our timestamp handling is as expected
@@ -136,5 +129,24 @@ public abstract class InstantSerializerBase<T extends Temporal>
             return JsonToken.VALUE_NUMBER_INT;
         }
         return JsonToken.VALUE_STRING;
+    }
+
+    // @since 2.12
+    protected String formatValue(T value, SerializerProvider provider)
+    {
+        DateTimeFormatter formatter = (_formatter != null) ? _formatter : defaultFormat;
+        if (formatter != null) {
+            if (formatter.getZone() == null) { // timezone set if annotated on property
+                // 19-Oct-2020, tatu: As per [modules-java#188], only override with explicitly
+                //     set timezone, to minimize change from pre-2.12. May need to further
+                //     improve in future to maybe introduce more configuration.
+                if (provider.getConfig().hasExplicitTimeZone()) {
+                    formatter = formatter.withZone(DateTimeUtils.toZoneId(provider.getTimeZone()));
+                }
+            }
+            return formatter.format(value);
+        }
+
+        return value.toString();
     }
 }

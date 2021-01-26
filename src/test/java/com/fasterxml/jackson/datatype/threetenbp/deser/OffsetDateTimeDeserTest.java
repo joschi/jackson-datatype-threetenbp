@@ -29,7 +29,6 @@ public class OffsetDateTimeDeserTest
 {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
     private final TypeReference<Map<String, OffsetDateTime>> MAP_TYPE_REF = new TypeReference<Map<String, OffsetDateTime>>() { };
-    private static final ZoneId UTC = ZoneId.of("UTC");
 
     private static final ZoneId Z1 = ZoneId.of("America/Chicago");
 
@@ -591,7 +590,7 @@ public class OffsetDateTimeDeserTest
         final Wrapper input = new Wrapper(inputValue);
         final ObjectMapper m = newMapper();
         String json = m.writeValueAsString(input);
-        assertEquals(aposToQuotes("{'value':'1970_01_01T00:00:00+0000'}"), json);
+        assertEquals(a2q("{'value':'1970_01_01T00:00:00+0000'}"), json);
 
         Wrapper result = m.readValue(json, Wrapper.class);
         assertEquals(input.value, result.value);
@@ -647,7 +646,6 @@ public class OffsetDateTimeDeserTest
                 .setFormat(JsonFormat.Value.forLeniency(false));
 
         final ObjectReader objectReader = mapper.readerFor(MAP_TYPE_REF);
-        final String dateValAsNullStr = null;
 
         String valueFromNullStr = mapper.writeValueAsString(asMap(key, null));
         Map<String, OffsetDateTime> actualMapFromNullStr = objectReader.readValue(valueFromNullStr);
@@ -655,6 +653,45 @@ public class OffsetDateTimeDeserTest
 
         String valueFromEmptyStr = mapper.writeValueAsString(asMap(key, ""));
         objectReader.readValue(valueFromEmptyStr);
+    }
+
+    // [module-java8#166]
+    @Test
+    public void testDeserializationNoAdjustIfMIN() throws Exception
+    {
+        OffsetDateTime date = OffsetDateTime.MIN;
+        ObjectMapper m = newMapper()
+                .configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, true)
+                .setTimeZone(DateTimeUtils.toTimeZone(Z1))
+                .addMixIn(Temporal.class, MockObjectConfiguration.class);
+        Temporal value = m.readValue(
+                "[\"" + OffsetDateTime.class.getName() + "\",\"" + FORMATTER.format(date) + "\"]", Temporal.class
+        );
+
+        assertNotNull("The value should not be null.", value);
+        assertTrue("The value should be an OffsetDateTime.", value instanceof OffsetDateTime);
+        OffsetDateTime actualValue = (OffsetDateTime) value;
+        assertIsEqual(date, actualValue);
+        assertEquals(date.getOffset(),actualValue.getOffset());
+    }
+
+    @Test
+    public void testDeserializationNoAdjustIfMAX() throws Exception
+    {
+        OffsetDateTime date = OffsetDateTime.MAX;
+        ObjectMapper m = newMapper()
+                .configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, true)
+                .setTimeZone(DateTimeUtils.toTimeZone(Z1))
+                .addMixIn(Temporal.class, MockObjectConfiguration.class);
+        Temporal value = m.readValue(
+                "[\"" + OffsetDateTime.class.getName() + "\",\"" + FORMATTER.format(date) + "\"]", Temporal.class
+        );
+
+        assertNotNull("The value should not be null.", value);
+        assertTrue("The value should be an OffsetDateTime.", value instanceof OffsetDateTime);
+        OffsetDateTime actualValue = (OffsetDateTime) value;
+        assertIsEqual(date, actualValue);
+        assertEquals(date.getOffset(),actualValue.getOffset());
     }
 
     private static void assertIsEqual(OffsetDateTime expected, OffsetDateTime actual)
