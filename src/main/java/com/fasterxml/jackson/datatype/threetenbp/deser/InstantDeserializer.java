@@ -41,6 +41,8 @@ import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.Temporal;
 import org.threeten.bp.temporal.TemporalAccessor;
+
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -242,25 +244,17 @@ public class InstantDeserializer<T extends Temporal>
     protected InstantDeserializer<T> withShape(JsonFormat.Shape shape) { return this; }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public JsonDeserializer<T> createContextual(DeserializationContext ctxt,
-            BeanProperty property) throws JsonMappingException
+    @Override // @since 2.12.1
+    protected ThreeTenDateTimeDeserializerBase<?> _withFormatOverrides(DeserializationContext ctxt,
+            BeanProperty property, JsonFormat.Value formatOverrides)
     {
-        InstantDeserializer<T> deserializer =
-                (InstantDeserializer<T>)super.createContextual(ctxt, property);
-        if (deserializer != this) {
-            JsonFormat.Value val = findFormatOverrides(ctxt, property, handledType());
-            if (val != null) {
-                deserializer = new InstantDeserializer<>(deserializer, val.getFeature(JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE));
-                if (val.hasLenient()) {
-                    Boolean leniency = val.getLenient();
-                    if (leniency != null) {
-                        deserializer = deserializer.withLeniency(leniency);
-                    }
-                }
-            }
+        InstantDeserializer<T> deser = (InstantDeserializer<T>) super._withFormatOverrides(ctxt,
+                property, formatOverrides);
+        Boolean B = formatOverrides.getFeature(JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+        if (!Objects.equals(B, deser._adjustToContextTZOverride)) {
+            return new InstantDeserializer<T>(deser, B);
         }
-        return deserializer;
+        return deser;
     }
 
     @SuppressWarnings("unchecked")
@@ -273,10 +267,8 @@ public class InstantDeserializer<T extends Temporal>
         {
             case JsonTokenId.ID_NUMBER_FLOAT:
                 return _fromDecimal(context, parser.getDecimalValue());
-
             case JsonTokenId.ID_NUMBER_INT:
                 return _fromLong(context, parser.getLongValue());
-
             case JsonTokenId.ID_STRING:
                 return _fromString(parser, context, parser.getText());
             // 30-Sep-2020, tatu: New! "Scalar from Object" (mostly for XML)
@@ -405,7 +397,7 @@ public class InstantDeserializer<T extends Temporal>
         public final long value;
         public final ZoneId zoneId;
 
-        private FromIntegerArguments(long value, ZoneId zoneId)
+        FromIntegerArguments(long value, ZoneId zoneId)
         {
             this.value = value;
             this.zoneId = zoneId;
@@ -418,7 +410,7 @@ public class InstantDeserializer<T extends Temporal>
         public final int fraction;
         public final ZoneId zoneId;
 
-        private FromDecimalArguments(long integer, int fraction, ZoneId zoneId)
+        FromDecimalArguments(long integer, int fraction, ZoneId zoneId)
         {
             this.integer = integer;
             this.fraction = fraction;
