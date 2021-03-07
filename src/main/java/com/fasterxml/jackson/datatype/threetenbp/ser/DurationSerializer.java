@@ -66,7 +66,7 @@ public class DurationSerializer extends ThreeTenFormattedSerializerBase<Duration
      */
     private DurationUnitConverter _durationUnitConverter;
 
-    private DurationSerializer() {
+    protected DurationSerializer() { // was private before 2.12
         super(Duration.class);
     }
 

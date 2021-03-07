@@ -40,7 +40,7 @@ public class LocalTimeDeserializer extends ThreeTenDateTimeDeserializerBase<Loca
 
     public static final LocalTimeDeserializer INSTANCE = new LocalTimeDeserializer();
 
-    private LocalTimeDeserializer() {
+    protected LocalTimeDeserializer() { // was private before 2.12
         this(DEFAULT_FORMATTER);
     }
 
