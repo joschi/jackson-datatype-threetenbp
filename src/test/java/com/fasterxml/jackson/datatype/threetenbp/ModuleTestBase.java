@@ -18,7 +18,7 @@ public class ModuleTestBase
 
     protected static final ZoneId Z_CHICAGO = ZoneId.of("America/Chicago");
     protected static final ZoneId Z_BUDAPEST = ZoneId.of("Europe/Budapest");
-
+    
     public static class NoCheckSubTypeValidator
         extends PolymorphicTypeValidator.Base
     {

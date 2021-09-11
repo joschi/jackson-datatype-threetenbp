@@ -17,10 +17,6 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.io.IOException;
-
-import com.fasterxml.jackson.core.util.VersionUtil;
-import com.fasterxml.jackson.databind.cfg.CoercionAction;
-import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Period;
 import org.threeten.bp.ZoneId;
@@ -30,10 +26,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonParser;
 
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.util.VersionUtil;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.cfg.CoercionAction;
+import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 
@@ -100,7 +99,8 @@ public class ThreeTenStringParsableDeserializer
 
     @Override
     public JsonDeserializer<?> createContextual(DeserializationContext ctxt,
-            BeanProperty property) throws JsonMappingException {
+            BeanProperty property) throws JsonMappingException
+    {
         JsonFormat.Value format = findFormatOverrides(ctxt, property, handledType());
         ThreeTenStringParsableDeserializer deser = this;
         if (format != null) {
@@ -133,7 +133,7 @@ public class ThreeTenStringParsableDeserializer
         if (p.isExpectedStartArrayToken()) {
             return _deserializeFromArray(p, ctxt);
         }
-
+        
         throw ctxt.wrongTokenException(p, handledType(), JsonToken.VALUE_STRING, null);
     }
 

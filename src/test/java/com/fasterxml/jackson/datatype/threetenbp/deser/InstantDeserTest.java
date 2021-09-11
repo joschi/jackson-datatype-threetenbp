@@ -5,6 +5,7 @@ import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.ChronoUnit;
 import org.threeten.bp.temporal.Temporal;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
 import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
+import static com.fasterxml.jackson.datatype.threetenbp.deser.InstantDeserializer.ISO8601_COLONLESS_OFFSET_REGEX;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertNull;
 
@@ -521,5 +523,41 @@ public class InstantDeserTest extends ModuleTestBase
 
         String valueFromEmptyStr = mapper.writeValueAsString(asMap(key, ""));
         objectReader.readValue(valueFromEmptyStr);
+    }
+    
+    /*
+    /************************************************************************
+    /* Tests for InstantDeserializer.ISO8601_COLONLESS_OFFSET_REGEX
+    /************************************************************************
+    */
+    @Test
+    public void testISO8601ColonlessRegexFindsOffset() {
+        Matcher matcher = ISO8601_COLONLESS_OFFSET_REGEX.matcher("2000-01-01T12:00+0100");
+
+        assertTrue("Matcher finds +0100 as an colonless offset", matcher.find());
+        assertEquals("Matcher groups +0100 as an colonless offset", matcher.group(), "+0100");
+    }
+
+    @Test
+    public void testISO8601ColonlessRegexFindsOffsetWithTZ() {
+        Matcher matcher = ISO8601_COLONLESS_OFFSET_REGEX.matcher("2000-01-01T12:00+0100[Europe/Paris]");
+
+        assertTrue("Matcher finds +0100 as an colonless offset", matcher.find());
+        assertEquals("Matcher groups +0100 as an colonless offset", matcher.group(), "+0100");
+    }
+
+    @Test
+    public void testISO8601ColonlessRegexDoesNotAffectNegativeYears() {
+        Matcher matcher = ISO8601_COLONLESS_OFFSET_REGEX.matcher("-2000-01-01T12:00+01:00[Europe/Paris]");
+
+        assertFalse("Matcher does not find -2000 (years) as an offset without colon", matcher.find());
+    }
+
+    @Test
+    public void testISO8601ColonlessRegexDoesNotAffectNegativeYearsWithColonless() {
+        Matcher matcher = ISO8601_COLONLESS_OFFSET_REGEX.matcher("-2000-01-01T12:00+0100[Europe/Paris]");
+
+        assertTrue("Matcher finds +0100 as an colonless offset", matcher.find());
+        assertEquals("Matcher groups +0100 as an colonless offset", matcher.group(), "+0100");
     }
 }

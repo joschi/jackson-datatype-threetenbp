@@ -16,6 +16,8 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -23,7 +25,6 @@ import com.fasterxml.jackson.core.StreamReadCapability;
 import com.fasterxml.jackson.core.io.NumberInput;
 import com.fasterxml.jackson.databind.DeserializationContext;
 
-import java.io.IOException;
 import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Year;
 import org.threeten.bp.format.DateTimeFormatter;

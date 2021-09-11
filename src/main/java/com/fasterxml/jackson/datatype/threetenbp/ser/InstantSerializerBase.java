@@ -16,18 +16,22 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_CONTEXT_TIME_ZONE;
+
 import java.io.IOException;
 
-import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
-import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
 import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.Temporal;
+import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
+import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonParser.NumberType;
+
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -45,7 +49,7 @@ public abstract class InstantSerializerBase<T extends Temporal>
     extends ThreeTenFormattedSerializerBase<T>
 {
     private final DateTimeFormatter defaultFormat;
-    
+
     private final ToLongFunction<T> getEpochMillis;
 
     private final ToLongFunction<T> getEpochSeconds;
@@ -99,6 +103,7 @@ public abstract class InstantSerializerBase<T extends Temporal>
             generator.writeNumber(getEpochMillis.applyAsLong(value));
             return;
         }
+
         generator.writeString(formatValue(value, provider));
     }
 
@@ -137,10 +142,9 @@ public abstract class InstantSerializerBase<T extends Temporal>
         DateTimeFormatter formatter = (_formatter != null) ? _formatter : defaultFormat;
         if (formatter != null) {
             if (formatter.getZone() == null) { // timezone set if annotated on property
-                // 19-Oct-2020, tatu: As per [modules-java#188], only override with explicitly
-                //     set timezone, to minimize change from pre-2.12. May need to further
-                //     improve in future to maybe introduce more configuration.
-                if (provider.getConfig().hasExplicitTimeZone()) {
+                // If the user specified to use the context TimeZone explicitly, and the formatter provided doesn't contain a TZ
+                // Then we use the TZ specified in the objectMapper
+                if (provider.getConfig().hasExplicitTimeZone() && provider.isEnabled(WRITE_DATES_WITH_CONTEXT_TIME_ZONE)) {
                     formatter = formatter.withZone(DateTimeUtils.toZoneId(provider.getTimeZone()));
                 }
             }

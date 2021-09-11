@@ -72,7 +72,7 @@ public class InstantSerializer extends InstantSerializerBase<Instant>
 
     @Override
     protected ThreeTenFormattedSerializerBase<Instant> withFormat(Boolean useTimestamp,
-                                                                  DateTimeFormatter formatter, JsonFormat.Shape shape) {
+            DateTimeFormatter formatter, JsonFormat.Shape shape) {
         return new InstantSerializer(this, useTimestamp, formatter);
     }
 

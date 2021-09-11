@@ -1,22 +1,21 @@
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.threetenbp.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.threetenbp.ser.LocalDateTimeSerializer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import org.threeten.bp.LocalDateTime;
-import org.threeten.bp.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
 
 @RunWith(Parameterized.class)
 public class TestLocalDateTimeSerializationWithCustomFormatter {

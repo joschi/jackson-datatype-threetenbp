@@ -31,11 +31,10 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrappe
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonIntegerFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
+import com.fasterxml.jackson.datatype.threetenbp.util.DurationUnitConverter;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-
-import com.fasterxml.jackson.datatype.threetenbp.util.DurationUnitConverter;
 import org.threeten.bp.Duration;
 import org.threeten.bp.format.DateTimeFormatter;
 

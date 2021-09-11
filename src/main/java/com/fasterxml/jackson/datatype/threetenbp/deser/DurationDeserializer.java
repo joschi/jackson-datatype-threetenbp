@@ -43,7 +43,8 @@ import java.math.BigDecimal;
  * @author Nick Williams
  * @since 2.2
  */
-public class DurationDeserializer extends ThreeTenDeserializerBase<Duration> implements ContextualDeserializer
+public class DurationDeserializer extends ThreeTenDeserializerBase<Duration>
+    implements ContextualDeserializer
 {
     private static final long serialVersionUID = 1L;
 

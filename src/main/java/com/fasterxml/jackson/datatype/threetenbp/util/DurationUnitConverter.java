@@ -1,13 +1,12 @@
 package com.fasterxml.jackson.datatype.threetenbp.util;
 
-import com.fasterxml.jackson.datatype.threetenbp.function.Function;
 import org.threeten.bp.Duration;
 import org.threeten.bp.temporal.ChronoUnit;
 import org.threeten.bp.temporal.TemporalUnit;
-
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import com.fasterxml.jackson.datatype.threetenbp.function.Function;
 
 import static com.fasterxml.jackson.datatype.threetenbp.util.DurationUnitConverter.DurationSerialization.deserializer;
 

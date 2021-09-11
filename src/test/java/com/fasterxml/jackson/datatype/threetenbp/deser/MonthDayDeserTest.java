@@ -1,8 +1,17 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
+import java.io.IOException;
+import org.threeten.bp.Month;
+import org.threeten.bp.MonthDay;
+import org.threeten.bp.format.DateTimeParseException;
+import org.threeten.bp.temporal.TemporalAccessor;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,15 +21,7 @@ import com.fasterxml.jackson.datatype.threetenbp.ThreeTenModule;
 import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
-import com.fasterxml.jackson.datatype.threetenbp.ThreeTenModule;
 import org.junit.Test;
-
-import java.io.IOException;
-import org.threeten.bp.Month;
-import org.threeten.bp.MonthDay;
-import org.threeten.bp.format.DateTimeParseException;
-import org.threeten.bp.temporal.TemporalAccessor;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -167,6 +168,7 @@ public class MonthDayDeserTest extends ModuleTestBase
     public void testDeserializeFromEmptyString() throws Exception
     {
         final String key = "monthDay";
+
         // First: by default, lenient, so empty String fine
         final ObjectReader objectReader = MAPPER.readerFor(MAP_TYPE_REF);
 

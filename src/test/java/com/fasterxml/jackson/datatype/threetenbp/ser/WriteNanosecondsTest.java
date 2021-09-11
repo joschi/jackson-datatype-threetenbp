@@ -15,8 +15,8 @@ import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.ZonedDateTime;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
 
 public class WriteNanosecondsTest extends ModuleTestBase {
     public static final ZoneId UTC = ZoneId.of("UTC");

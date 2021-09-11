@@ -1,8 +1,6 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.math.BigInteger;
-
-import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import org.threeten.bp.Duration;
 import org.threeten.bp.temporal.ChronoUnit;
 import org.threeten.bp.temporal.TemporalAmount;
@@ -10,21 +8,20 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DurationDeserTest extends ModuleTestBase
 {
@@ -38,6 +35,7 @@ public class DurationDeserTest extends ModuleTestBase
         public Wrapper() { }
         public Wrapper(Duration v) { value = v; }
     }
+
 
     @Test
     public void testDeserializationAsFloat01() throws Exception
@@ -79,7 +77,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         String input = Long.MAX_VALUE + ".999999999";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                              .readValue(input);
+                                 .readValue(input);
         assertEquals(Long.MAX_VALUE, value.getSeconds());
         assertEquals(999999999, value.getNano());
     }
@@ -92,7 +90,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         String input = Long.MIN_VALUE + ".0";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                                .readValue(input);
+                                 .readValue(input);
         assertEquals(Long.MIN_VALUE, value.getSeconds());
         assertEquals(0, value.getNano());
     }
@@ -102,7 +100,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         // Duration can't go this low
         READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                .readValue(Long.MIN_VALUE + ".1");
+                                 .readValue(Long.MIN_VALUE + ".1");
     }
 
     /*
@@ -117,7 +115,7 @@ public class DurationDeserTest extends ModuleTestBase
         // Just beyond the upper-bound of Duration.
         String input = new BigInteger(Long.toString(Long.MAX_VALUE)).add(BigInteger.ONE) + ".0";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                              .readValue(input);
+                                 .readValue(input);
         assertEquals(Long.MIN_VALUE, value.getSeconds());  // We've turned a positive number into negative duration!
     }
 
@@ -127,7 +125,7 @@ public class DurationDeserTest extends ModuleTestBase
         // Just beyond the lower-bound of Duration.
         String input = new BigInteger(Long.toString(Long.MIN_VALUE)).subtract(BigInteger.ONE) + ".0";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                .readValue(input);
+                                 .readValue(input);
         assertEquals(Long.MAX_VALUE, value.getSeconds());  // We've turned a negative number into positive duration!
     }
 
@@ -160,7 +158,7 @@ public class DurationDeserTest extends ModuleTestBase
     {
         String input = "1e10000000";
         Duration value = READER.without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
-                .readValue(input);
+                                 .readValue(input);
         assertEquals(0, value.getSeconds());
     }
 
@@ -354,7 +352,7 @@ public class DurationDeserTest extends ModuleTestBase
         Duration value= newMapper()
     			.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true)
     			.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true)
-                .readerFor(Duration.class).readValue("[]");
+    			.readerFor(Duration.class).readValue("[]");
         assertNull(value);
     }
 

@@ -161,10 +161,10 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
         JsonFormat.Shape shape = formatOverrides.getShape();
         if (shape != null && shape != _shape) {
             deser = deser.withShape(shape);
-         }
+        }
         // any use for TimeZone?
 
-         return deser;
+        return deser;
     }
 
     private boolean acceptCaseInsensitiveValues(DeserializationContext ctxt, JsonFormat.Value format) 

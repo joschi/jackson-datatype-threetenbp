@@ -65,6 +65,33 @@ public class LocalDateDeserTest extends ModuleTestBase
         public StrictWrapper(LocalDate v) { value = v; }
     }
 
+    final static class StrictWrapperWithYearOfEra {
+        @JsonFormat(pattern="yyyy-MM-dd G",
+                lenient = OptBoolean.FALSE)
+        public LocalDate value;
+
+        public StrictWrapperWithYearOfEra() { }
+        public StrictWrapperWithYearOfEra(LocalDate v) { value = v; }
+    }
+
+    final static class StrictWrapperWithYearWithoutEra {
+        @JsonFormat(pattern="uuuu-MM-dd",
+                lenient = OptBoolean.FALSE)
+        public LocalDate value;
+
+        public StrictWrapperWithYearWithoutEra() { }
+        public StrictWrapperWithYearWithoutEra(LocalDate v) { value = v; }
+    }
+
+    static class StrictWrapperWithFormat {
+        @JsonFormat(pattern="yyyy-MM-dd",
+                lenient = OptBoolean.FALSE)
+        public LocalDate value;
+
+        public StrictWrapperWithFormat() { }
+        public StrictWrapperWithFormat(LocalDate v) { value = v; }
+    }
+
     /*
     /**********************************************************
     /* Deserialization from Int array representation
@@ -306,6 +333,21 @@ public class LocalDateDeserTest extends ModuleTestBase
         assertEquals(28, date.getDayOfMonth());
     }
 
+    @Test
+    public void testStrictCustomFormat() throws Exception
+    {
+        try {
+            /*StrictWrapperWithFormat w = */ MAPPER.readValue(
+                "{\"value\":\"2019-11-30\"}",
+                StrictWrapperWithFormat.class);
+            fail("Should not pass");
+        } catch (InvalidFormatException e) {
+            // 25-Mar-2021, tatu: Really bad exception message we got... but
+            //   it is what it is
+            verifyException(e, "Cannot deserialize value of type `org.threeten.bp.LocalDate` from String");
+            verifyException(e, "\"2019-11-30\"");
+        }
+    }
 
     /*
     /**********************************************************
@@ -315,9 +357,49 @@ public class LocalDateDeserTest extends ModuleTestBase
 
     // for [modules-java8#148]
     @Test(expected = InvalidFormatException.class)
-    public void testStrictCustomFormat() throws Exception
+    public void testStrictCustomFormatForInvalidFormat() throws Exception
     {
-        /*StrictWrapper w =*/ MAPPER.readValue("{\"value\":\"2019-11-31\"}", StrictWrapper.class);
+        /*StrictWrapper w =*/ MAPPER.readValue("{\"value\":\"2019-11-30\"}", StrictWrapper.class);
+    }
+
+    @Test(expected = InvalidFormatException.class)
+    public void testStrictCustomFormatForInvalidFormatWithEra() throws Exception
+    {
+        /*StrictWrapperWithYearOfEra w =*/ MAPPER.readValue("{\"value\":\"2019-11-30\"}", StrictWrapperWithYearOfEra.class);
+    }
+
+    @Test(expected = InvalidFormatException.class)
+    public void testStrictCustomFormatForInvalidDateWithEra() throws Exception
+    {
+        /*StrictWrapperWithYearOfEra w =*/ MAPPER.readValue("{\"value\":\"2019-11-31 AD\"}", StrictWrapperWithYearOfEra.class);
+    }
+
+    @Test
+    public void testStrictCustomFormatForValidDateWithEra() throws Exception
+    {
+        StrictWrapperWithYearOfEra w = MAPPER.readValue("{\"value\":\"2019-11-30 AD\"}", StrictWrapperWithYearOfEra.class);
+
+        assertEquals(w.value, LocalDate.of(2019, 11, 30));
+    }
+
+    @Test(expected = InvalidFormatException.class)
+    public void testStrictCustomFormatForInvalidFormatWithoutEra() throws Exception
+    {
+        /*StrictWrapperWithYearWithoutEra w =*/ MAPPER.readValue("{\"value\":\"2019-11-30 AD\"}", StrictWrapperWithYearWithoutEra.class);
+    }
+
+    @Test(expected = InvalidFormatException.class)
+    public void testStrictCustomFormatForInvalidDateWithoutEra() throws Exception
+    {
+        /*StrictWrapperWithYearWithoutEra w =*/ MAPPER.readValue("{\"value\":\"2019-11-31\"}", StrictWrapperWithYearWithoutEra.class);
+    }
+
+    @Test
+    public void testStrictCustomFormatForValidDateWithoutEra() throws Exception
+    {
+        StrictWrapperWithYearWithoutEra w = MAPPER.readValue("{\"value\":\"2019-11-30\"}", StrictWrapperWithYearWithoutEra.class);
+
+        assertEquals(w.value, LocalDate.of(2019, 11, 30));
     }
 
     /*
@@ -344,7 +426,9 @@ public class LocalDateDeserTest extends ModuleTestBase
     @Test
     public void testDeserializationCaseInsensitiveEnabled() throws Throwable
     {
-        ObjectMapper mapper = newMapper().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES, true);
+        ObjectMapper mapper = mapperBuilder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES)
+                .build();
         mapper.configOverride(LocalDate.class).setFormat(JsonFormat.Value.forPattern("dd-MMM-yyyy"));
         ObjectReader reader = mapper.readerFor(LocalDate.class);
         String[] jsons = new String[] {"'01-Jan-2000'","'01-JAN-2000'", "'01-jan-2000'"};
@@ -356,7 +440,9 @@ public class LocalDateDeserTest extends ModuleTestBase
     @Test
     public void testDeserializationCaseInsensitiveDisabled() throws Throwable
     {
-        ObjectMapper mapper = newMapper().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES, false);
+        ObjectMapper mapper = mapperBuilder()
+                .disable(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES)
+                .build();
         mapper.configOverride(LocalDate.class).setFormat(JsonFormat.Value.forPattern("dd-MMM-yyyy"));
         ObjectReader reader = mapper.readerFor(LocalDate.class);
         expectSuccess(reader, LocalDate.of(2000, Month.JANUARY, 1), "'01-Jan-2000'");
@@ -365,7 +451,9 @@ public class LocalDateDeserTest extends ModuleTestBase
     @Test
     public void testDeserializationCaseInsensitiveDisabled_InvalidDate() throws Throwable
     {
-        ObjectMapper mapper = newMapper().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES, false);
+        ObjectMapper mapper = mapperBuilder()
+                .disable(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES)
+                .build();
         mapper.configOverride(LocalDate.class).setFormat(JsonFormat.Value.forPattern("dd-MMM-yyyy"));
         ObjectReader reader = mapper.readerFor(LocalDate.class);
         String[] jsons = new String[] {"'01-JAN-2000'", "'01-jan-2000'"};

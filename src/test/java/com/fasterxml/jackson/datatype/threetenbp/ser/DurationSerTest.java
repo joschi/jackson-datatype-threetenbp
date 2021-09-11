@@ -46,7 +46,7 @@ public class DurationSerTest extends ModuleTestBase
                 .writeValueAsString(duration);
         assertEquals("The value is not correct.", "13498.000008374", value);
     }
-    
+
     // [modules-java8#165]
     @Test
     public void testSerializationAsTimestampNanoseconds03() throws Exception
@@ -63,7 +63,7 @@ public class DurationSerTest extends ModuleTestBase
         value = w.writeValueAsString(Duration.ofMillis(-1L));
         assertEquals("The value is not correct.", "-0.001000000", value);
     }
-
+    
     @Test
     public void testSerializationAsTimestampMilliseconds01() throws Exception
     {
