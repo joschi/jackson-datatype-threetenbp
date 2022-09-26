@@ -63,7 +63,7 @@
         <packageVersion.package>com.fasterxml.jackson.datatype.threetenbp</packageVersion.package>
         <!-- Configuration properties for the OSGi maven-bundle-plugin -->
         <osgi.export>com.fasterxml.jackson.datatype.threetenbp.*;version=${project.version}</osgi.export>
-        <threetenbp.version>1.6.1</threetenbp.version>
+        <threetenbp.version>1.6.2</threetenbp.version>
 
         <argLine>-Duser.language=en -Duser.region=US -Duser.timezone=UTC</argLine>
 
