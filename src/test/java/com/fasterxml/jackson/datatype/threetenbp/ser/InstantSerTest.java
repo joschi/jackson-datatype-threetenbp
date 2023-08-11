@@ -16,20 +16,22 @@
 
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
 import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
-import org.junit.Test;
-
 import org.threeten.bp.Instant;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.Temporal;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
 
 public class InstantSerTest extends ModuleTestBase
 {
@@ -171,5 +173,15 @@ public class InstantSerTest extends ModuleTestBase
                 "[\"" + Instant.class.getName() + "\",\"" + FORMATTER.format(date) + "\"]", value);
     }
 
+    static class Pojo1 {
+        @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
+        public Instant t1 = Instant.parse("2022-04-27T12:00:00Z");
+        public Instant t2 = t1;
+    }
 
+    @Test
+    public void testShapeInt() throws JsonProcessingException {
+        String json1 = newMapper().writeValueAsString(new Pojo1());
+        assertEquals("{\"t1\":1651060800000,\"t2\":1651060800.000000000}", json1);
+    }
 }

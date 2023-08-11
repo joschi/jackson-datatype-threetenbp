@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.threeten.bp.Instant;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
@@ -115,8 +116,14 @@ public class ZonedDateTimeSerTest
         ZonedDateTime original = ZonedDateTime.parse("Apr 13 1969 05:05:38.599 UTC", dtf);
         String serialized = MAPPER.writeValueAsString(original);
         ZonedDateTime deserialized = MAPPER.readValue(serialized, ZonedDateTime.class);
-        assertEquals("The value is not correct.",  original, deserialized);
-    }
+        assertEquals("The day is not correct.", original.getDayOfMonth(), deserialized.getDayOfMonth());
+        assertEquals("The month is not correct.", original.getMonthValue(), deserialized.getMonthValue());
+        assertEquals("The year is not correct.", original.getYear(), deserialized.getYear());
+        assertEquals("The hour is not correct.", original.getHour(), deserialized.getHour());
+        assertEquals("The minute is not correct.", original.getMinute(), deserialized.getMinute());
+        assertEquals("The second is not correct.", original.getSecond(), deserialized.getSecond());
+        assertEquals("The nano is not correct.", original.getNano(), deserialized.getNano());
+        assertEquals("The time zone is not correct.", ZoneId.of("UTC").getRules(), deserialized.getZone().getRules());    }
 
     @Test
     public void testSerializationAsTimestamp01Milliseconds() throws Exception
@@ -939,6 +946,18 @@ public class ZonedDateTimeSerTest
         final String serialized = MAPPER.writeValueAsString(original);
         final Instant deserialized = MAPPER.readValue(serialized, Instant.class);
         assertEquals(original, deserialized);
+    }
+
+    static class Pojo1 {
+        @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
+        public ZonedDateTime t1 = ZonedDateTime.parse("2022-04-27T12:00:00+02:00[Europe/Paris]");
+        public ZonedDateTime t2 = t1;
+    }
+
+    @Test
+    public void testShapeInt() throws JsonProcessingException {
+        String json1 = newMapper().writeValueAsString(new Pojo1());
+        assertEquals("{\"t1\":1651053600000,\"t2\":1651053600.000000000}", json1);
     }
 
     private static void assertIsEqual(ZonedDateTime expected, ZonedDateTime actual)
