@@ -26,7 +26,9 @@ public class ZonedDateTimeSerializer extends InstantSerializerBase<ZonedDateTime
     protected final Boolean _writeZoneId;
     
     protected ZonedDateTimeSerializer() {
-        // ISO_ZONED_DATE_TIME is not the ISO format, it is an extension of it
+        // ISO_ZONED_DATE_TIME is an extended version of ISO compliant format
+        // ISO_OFFSET_DATE_TIME with additional information :Zone Id
+        // (This is not part of the ISO-8601 standard)
         this(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 
@@ -56,14 +58,24 @@ public class ZonedDateTimeSerializer extends InstantSerializerBase<ZonedDateTime
 
     protected ZonedDateTimeSerializer(ZonedDateTimeSerializer base,
             Boolean useTimestamp, DateTimeFormatter formatter, Boolean writeZoneId) {
-        this(base, useTimestamp, null, formatter, writeZoneId);
+        this(base, useTimestamp, base._useNanoseconds, formatter, base._shape, writeZoneId);
     }
 
+    @Deprecated // since 2.14
     protected ZonedDateTimeSerializer(ZonedDateTimeSerializer base,
             Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter formatter,
             Boolean writeZoneId) {
-        super(base, useTimestamp, useNanoseconds, formatter);
-        _writeZoneId = writeZoneId;
+        this(base, useTimestamp, useNanoseconds, formatter, base._shape, writeZoneId);
+    }
+
+    /**
+     * @since 2.14
+     */
+     protected ZonedDateTimeSerializer(ZonedDateTimeSerializer base,
+             Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter formatter,
+             JsonFormat.Shape shape, Boolean writeZoneId) {
+         super(base, useTimestamp, useNanoseconds, formatter, shape);
+         _writeZoneId = writeZoneId;
     }
 
     @Override
@@ -71,7 +83,8 @@ public class ZonedDateTimeSerializer extends InstantSerializerBase<ZonedDateTime
         Boolean useTimestamp,
         DateTimeFormatter formatter,
         JsonFormat.Shape shape) {
-        return new ZonedDateTimeSerializer(this, useTimestamp, formatter, _writeZoneId);
+        return new ZonedDateTimeSerializer(this, useTimestamp, _useNanoseconds, formatter,
+            shape, _writeZoneId);
     }
 
     @Override
