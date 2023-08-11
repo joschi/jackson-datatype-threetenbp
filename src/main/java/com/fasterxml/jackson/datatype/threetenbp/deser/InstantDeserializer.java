@@ -57,13 +57,6 @@ public class InstantDeserializer<T extends Temporal>
     private static final long serialVersionUID = 1L;
 
     /**
-     * Constants used to check if the time offset is zero. See [jackson-modules-java8#18]
-     *
-     * @since 2.9.0
-     */
-    private static final Pattern ISO8601_UTC_ZERO_OFFSET_SUFFIX_REGEX = Pattern.compile("\\+00:?(00)?$");
-
-    /**
      * Constants used to check if ISO 8601 time string is colonless. See [jackson-modules-java8#131]
      *
      * @since 2.13
@@ -288,7 +281,7 @@ public class InstantDeserializer<T extends Temporal>
                 return (T) parser.getEmbeddedObject();
 
             case JsonTokenId.ID_START_ARRAY:
-            	return _deserializeFromArray(parser, context);
+                return _deserializeFromArray(parser, context);
         }
         return _handleUnexpectedToken(context, parser, JsonToken.VALUE_STRING,
                 JsonToken.VALUE_NUMBER_INT, JsonToken.VALUE_NUMBER_FLOAT);
@@ -398,15 +391,42 @@ public class InstantDeserializer<T extends Temporal>
     private ZoneId getZone(DeserializationContext context)
     {
         // Instants are always in UTC, so don't waste compute cycles
-        return (_valueClass == Instant.class) ? null : DateTimeUtils.toZoneId(context.getTimeZone());
+        // Normalizing the zone to prevent discrepancies.
+        // See https://github.com/FasterXML/jackson-modules-java8/pull/267 for details
+        return (_valueClass == Instant.class) ? null : DateTimeUtils.toZoneId(context.getTimeZone()).normalized();
     }
 
     private String replaceZeroOffsetAsZIfNecessary(String text)
     {
         if (replaceZeroOffsetAsZ) {
-            return ISO8601_UTC_ZERO_OFFSET_SUFFIX_REGEX.matcher(text).replaceFirst("Z");
+            return replaceZeroOffsetAsZ(text);
         }
 
+        return text;
+    }
+
+    private static String replaceZeroOffsetAsZ(String text)
+    {
+        int plusIndex = text.lastIndexOf('+');
+        if (plusIndex < 0) {
+            return text;
+        }
+        int maybeOffsetIndex = plusIndex + 1;
+        int remaining = text.length() - maybeOffsetIndex;
+        switch (remaining) {
+            case 2:
+                return text.regionMatches(maybeOffsetIndex, "00", 0, remaining)
+                        ? text.substring(0, plusIndex) + 'Z'
+                        : text;
+            case 4:
+                return text.regionMatches(maybeOffsetIndex, "0000", 0, remaining)
+                        ? text.substring(0, plusIndex) + 'Z'
+                        : text;
+            case 5:
+                return text.regionMatches(maybeOffsetIndex, "00:00", 0, remaining)
+                        ? text.substring(0, plusIndex) + 'Z'
+                        : text;
+        }
         return text;
     }
 
