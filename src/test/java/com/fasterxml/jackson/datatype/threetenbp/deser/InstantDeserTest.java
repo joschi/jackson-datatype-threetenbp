@@ -1,5 +1,6 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
+import org.junit.Ignore;
 import org.threeten.bp.*;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.ChronoUnit;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 import static com.fasterxml.jackson.datatype.threetenbp.deser.InstantDeserializer.ISO8601_COLONLESS_OFFSET_REGEX;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assume.assumeTrue;
 
 public class InstantDeserTest extends ModuleTestBase
 {
@@ -388,9 +390,9 @@ public class InstantDeserTest extends ModuleTestBase
     {
         //Test date is pushed one year after start of the epoch just to avoid possible issues with UTC-X TZs which could
         //push the instant before tha start of the epoch
-        final Instant instant = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.of("UTC")).plusYears(1).toInstant();
+        final Instant instant = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneOffset.UTC).plusYears(1).toInstant();
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(CUSTOM_PATTERN);
-        final String valueInUTC = formatter.withZone(ZoneId.of("UTC")).format(instant);
+        final String valueInUTC = formatter.withZone(ZoneOffset.UTC).format(instant);
 
         final WrapperWithCustomPattern input = new WrapperWithCustomPattern(instant);
         String json = MAPPER.writeValueAsString(input);
@@ -434,8 +436,44 @@ public class InstantDeserTest extends ModuleTestBase
         assertEquals("The value is not correct.", date, result);
     }
 
+    @Test
+    @Ignore("Currently not implemented in ThreeTenBP - https://bugs.openjdk.org/browse/JDK-8166138")
+    public void testDeserializationFromStringWithZeroZoneOffset04() throws Exception {
+        assumeInstantCanParseOffsets();
+        Instant date = Instant.now();
+        String json = formatWithZeroZoneOffset(date, "+00:30");
+        Instant result = READER.readValue(json);
+        assertNotEquals("The value is not correct.", date, result);
+    }
+
+    @Test
+    @Ignore("Currently not implemented in ThreeTenBP - https://bugs.openjdk.org/browse/JDK-8166138")
+    public void testDeserializationFromStringWithZeroZoneOffset05() throws Exception {
+        assumeInstantCanParseOffsets();
+        Instant date = Instant.now();
+        String json = formatWithZeroZoneOffset(date, "+01:30");
+        Instant result = READER.readValue(json);
+        assertNotEquals("The value is not correct.", date, result);
+    }
+
+    @Test
+    @Ignore("Currently not implemented in ThreeTenBP - https://bugs.openjdk.org/browse/JDK-8166138")
+    public void testDeserializationFromStringWithZeroZoneOffset06() throws Exception {
+        assumeInstantCanParseOffsets();
+        Instant date = Instant.now();
+        String json = formatWithZeroZoneOffset(date, "-00:00");
+        Instant result = READER.readValue(json);
+        assertEquals("The value is not correct.", date, result);
+    }
+
     private String formatWithZeroZoneOffset(Instant date, String offset){
         return '"' + FORMATTER.format(date).replaceFirst("Z$", offset) + '"';
+    }
+
+    private static void assumeInstantCanParseOffsets() {
+        // DateTimeFormatter.ISO_INSTANT didn't handle offsets until JDK 12+.
+        // This was added by https://bugs.openjdk.org/browse/JDK-8166138
+        assumeTrue(System.getProperty("java.specification.version").compareTo("12") > 0);
     }
 
     /*

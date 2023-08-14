@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonIntegerFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNumberFormatVisitor;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
 
 /**
@@ -128,6 +129,7 @@ public abstract class InstantSerializerBase<T extends Temporal>
             JsonIntegerFormatVisitor v2 = visitor.expectIntegerFormat(typeHint);
             if (v2 != null) {
                 v2.numberType(NumberType.LONG);
+                v2.format(JsonValueFormat.UTC_MILLISEC);
             }
         }
     }
