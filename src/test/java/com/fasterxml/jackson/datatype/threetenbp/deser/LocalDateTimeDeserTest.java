@@ -87,6 +87,26 @@ public class LocalDateTimeDeserTest
         public StrictWrapperWithYearWithoutEra(LocalDateTime v) { value = v; }
     }
 
+    static class WrapperWithReadTimestampsAsNanosDisabled {
+        @JsonFormat(
+            without=Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
+        )
+        public LocalDateTime value;
+
+        public WrapperWithReadTimestampsAsNanosDisabled() { }
+        public WrapperWithReadTimestampsAsNanosDisabled(LocalDateTime v) { value = v; }
+    }
+
+    static class WrapperWithReadTimestampsAsNanosEnabled {
+        @JsonFormat(
+            with=Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
+        )
+        public LocalDateTime value;
+
+        public WrapperWithReadTimestampsAsNanosEnabled() { }
+        public WrapperWithReadTimestampsAsNanosEnabled(LocalDateTime v) { value = v; }
+    }
+
     /*
     /**********************************************************
     /* Tests for deserializing from int array
@@ -158,6 +178,36 @@ public class LocalDateTimeDeserTest
         LocalDateTime value = r.readValue("[2005,11,5,22,31,5,829]");
         LocalDateTime time = LocalDateTime.of(2005, Month.NOVEMBER, 5, 22, 31, 5, 829000000);
         assertEquals("The value is not correct.", time, value);
+    }
+
+    @Test
+    public void testDeserializationAsTimestamp05Nanoseconds() throws Exception
+    {
+        ObjectReader r = MAPPER.readerFor(WrapperWithReadTimestampsAsNanosEnabled.class);
+        WrapperWithReadTimestampsAsNanosEnabled actual =
+            r.readValue(a2q("{'value':[2013,8,21,9,22,0,57]}"));
+        LocalDateTime time = LocalDateTime.of(2013, Month.AUGUST, 21, 9, 22, 0, 57);
+        assertEquals("The value is not correct.", time, actual.value);
+    }
+
+    @Test
+    public void testDeserializationAsTimestamp05Milliseconds01() throws Exception
+    {
+        ObjectReader r = MAPPER.readerFor(WrapperWithReadTimestampsAsNanosDisabled.class);
+        WrapperWithReadTimestampsAsNanosDisabled actual =
+            r.readValue(a2q("{'value':[2013,8,21,9,22,0,57]}"));
+        LocalDateTime time = LocalDateTime.of(2013, Month.AUGUST, 21, 9, 22, 0, 57000000);
+        assertEquals("The value is not correct.", time, actual.value);
+    }
+
+    @Test
+    public void testDeserializationAsTimestamp05Milliseconds02() throws Exception
+    {
+        ObjectReader r = MAPPER.readerFor(WrapperWithReadTimestampsAsNanosDisabled.class);
+        WrapperWithReadTimestampsAsNanosDisabled actual =
+            r.readValue(a2q("{'value':[2013,8,21,9,22,0,4257]}"));
+        LocalDateTime time = LocalDateTime.of(2013, Month.AUGUST, 21, 9, 22, 0, 4257);
+        assertEquals("The value is not correct.", time, actual.value);
     }
 
     /*
@@ -391,7 +441,7 @@ public class LocalDateTimeDeserTest
     @Test
     public void testDateTimeExceptionIsHandled() throws Throwable
     {
-        final LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
         DeserializationProblemHandler handler = new DeserializationProblemHandler() {
             @Override
             public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType,
@@ -492,7 +542,9 @@ public class LocalDateTimeDeserTest
     @Test
     public void testDeserializationCaseInsensitiveEnabled() throws Throwable
     {
-        ObjectMapper mapper = newMapper().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES, true);
+        ObjectMapper mapper = mapperBuilder()
+                .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES, true)
+                .build();
         mapper.configOverride(LocalDateTime.class).setFormat(JsonFormat.Value.forPattern("dd-MMM-yyyy HH:mm"));
         ObjectReader reader = mapper.readerFor(LocalDateTime.class);
         String[] jsons = new String[] {"'01-Jan-2000 13:45'","'01-JAN-2000 13:45'", "'01-jan-2000 13:45'"};
@@ -504,7 +556,9 @@ public class LocalDateTimeDeserTest
     @Test
     public void testDeserializationCaseInsensitiveDisabled() throws Throwable
     {
-        ObjectMapper mapper = newMapper().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES, false);
+        ObjectMapper mapper = mapperBuilder()
+                .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES, false)
+                .build();
         mapper.configOverride(LocalDateTime.class).setFormat(JsonFormat.Value.forPattern("dd-MMM-yyyy HH:mm"));
         ObjectReader reader = mapper.readerFor(LocalDateTime.class);
         expectSuccess(reader, LocalDateTime.of(2000, Month.JANUARY, 1, 13, 45), "'01-Jan-2000 13:45'");
@@ -513,7 +567,9 @@ public class LocalDateTimeDeserTest
     @Test
     public void testDeserializationCaseInsensitiveDisabled_InvalidDate() throws Throwable
     {
-        ObjectMapper mapper = newMapper().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES, false);
+        ObjectMapper mapper = mapperBuilder()
+                .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES, false)
+                .build();
         mapper.configOverride(LocalDateTime.class).setFormat(JsonFormat.Value.forPattern("dd-MMM-yyyy"));
         ObjectReader reader = mapper.readerFor(LocalDateTime.class);
         String[] jsons = new String[] {"'01-JAN-2000'", "'01-jan-2000'"};
@@ -598,6 +654,29 @@ public class LocalDateTimeDeserTest
                 StrictWrapperWithYearWithoutEra.class);
 
         assertEquals(w.value, LocalDateTime.of(2019, 11, 30, 20, 45));
+    }
+
+    // [datatype-jsr310#124] Issue serializing and deserializing LocalDateTime.MAX and LocalDateTime.MIN
+    @Test
+    public void testDeserializationOfLocalDateTimeMax() throws Exception
+    {
+        ObjectMapper enabledMapper = mapperBuilder()
+                .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).build();
+        _testLocalDateTimeRoundTrip(enabledMapper, LocalDateTime.MAX);
+        _testLocalDateTimeRoundTrip(enabledMapper, LocalDateTime.MIN);
+
+        ObjectMapper disabledMapper = mapperBuilder()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).build();
+        _testLocalDateTimeRoundTrip(disabledMapper, LocalDateTime.MAX);
+        _testLocalDateTimeRoundTrip(disabledMapper, LocalDateTime.MIN);
+    }
+
+    private void _testLocalDateTimeRoundTrip(ObjectMapper mapper, LocalDateTime localDateTime)
+        throws Exception
+    {
+        String ser = mapper.writeValueAsString(localDateTime);
+        LocalDateTime result = mapper.readValue(ser, LocalDateTime.class);
+        assertEquals(localDateTime, result);
     }
 
     private void expectSuccess(ObjectReader reader, Object exp, String json) throws IOException {

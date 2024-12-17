@@ -16,7 +16,7 @@
 
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import org.threeten.bp.*;
+import com.fasterxml.jackson.datatype.threetenbp.ser.ZonedDateTimeSerializer;
 
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationConfig;
@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.deser.ValueInstantiator;
 import com.fasterxml.jackson.databind.deser.ValueInstantiators;
 import com.fasterxml.jackson.databind.deser.std.StdValueInstantiator;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
-import com.fasterxml.jackson.databind.introspect.AnnotatedClassResolver;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -51,8 +50,21 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.OffsetTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.YearMonthSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.YearSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.ZoneIdSerializer;
-import com.fasterxml.jackson.datatype.threetenbp.ser.ZonedDateTimeSerializer;
 import com.fasterxml.jackson.datatype.threetenbp.ser.key.ZonedDateTimeKeySerializer;
+import org.threeten.bp.Duration;
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.LocalTime;
+import org.threeten.bp.MonthDay;
+import org.threeten.bp.OffsetDateTime;
+import org.threeten.bp.OffsetTime;
+import org.threeten.bp.Period;
+import org.threeten.bp.Year;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZoneOffset;
+import org.threeten.bp.ZonedDateTime;
 
 /**
  * Class that registers capability of serializing {@code org.threeten.bp} objects with the Jackson core.
@@ -61,12 +73,12 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.key.ZonedDateTimeKeySeriali
  * ObjectMapper mapper = new ObjectMapper();
  * mapper.registerModule(new ThreeTenModule());
  * </pre>
- *<p>
+ * <p>
  * Note that as of 2.x, if auto-registering modules, this package will register
  * legacy version, {@link ThreeTenModule}, and NOT this module. 3.x will change the default.
  * Legacy version has the same functionality, but slightly different default configuration:
  * see {@link com.fasterxml.jackson.datatype.threetenbp.ThreeTenModule} for details.
- *<p>
+ * <p>
  * Most {@code org.threeten.bp} types are serialized as numbers (integers or decimals as appropriate) if the
  * {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DATES_AS_TIMESTAMPS} feature is enabled
  * (or, for {@link Duration}, {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DURATIONS_AS_TIMESTAMPS}),
@@ -99,18 +111,13 @@ import com.fasterxml.jackson.datatype.threetenbp.ser.key.ZonedDateTimeKeySeriali
  *
  * @author Nick Williams
  * @author Zoltan Kiss
- *
- * @since 2.6
- *
  * @see com.fasterxml.jackson.datatype.threetenbp.ser.key.ThreeTenNullKeySerializer
+ * @since 2.6
  */
-@SuppressWarnings("javadoc")
-public final class ThreeTenModule extends SimpleModule
-{
+public final class ThreeTenModule extends SimpleModule {
     private static final long serialVersionUID = 1L;
 
-    public ThreeTenModule()
-    {
+    public ThreeTenModule() {
         super(PackageVersion.VERSION);
 
         // First deserializers
@@ -152,10 +159,11 @@ public final class ThreeTenModule extends SimpleModule
          *  But this is configurable.
          */
         addSerializer(ZonedDateTime.class, ZonedDateTimeSerializer.INSTANCE);
-        
+
         // since 2.11: need to override Type Id handling
         // (actual concrete type is `ZoneRegion`, but that's not visible)
         addSerializer(ZoneId.class, new ZoneIdSerializer());
+
         addSerializer(ZoneOffset.class, new ToStringSerializer(ZoneOffset.class));
 
         // key serializers
@@ -184,15 +192,13 @@ public final class ThreeTenModule extends SimpleModule
         context.addValueInstantiators(new ValueInstantiators.Base() {
             @Override
             public ValueInstantiator findValueInstantiator(DeserializationConfig config,
-                    BeanDescription beanDesc, ValueInstantiator defaultInstantiator)
-            {
+                                                           BeanDescription beanDesc, ValueInstantiator defaultInstantiator) {
                 JavaType type = beanDesc.getType();
                 Class<?> raw = type.getRawClass();
-
                 // 15-May-2015, tatu: In theory not safe, but in practice we do need to do "fuzzy" matching
-                // because we will (for now) be getting a subtype, but in future may want to downgrade
-                // to the common base type. Even more, serializer may purposefully force use of base type.
-                // So... in practice it really should always work, in the end. :)
+                //    because we will (for now) be getting a subtype, but in future may want to downgrade
+                //    to the common base type. Even more, serializer may purposefully force use of base type.
+                //    So... in practice it really should always work, in the end. :)
                 if (ZoneId.class.isAssignableFrom(raw)) {
                     // let's assume we should be getting "empty" StdValueInstantiator here:
                     if (defaultInstantiator instanceof StdValueInstantiator) {
@@ -204,8 +210,7 @@ public final class ThreeTenModule extends SimpleModule
                         } else {
                             // we don't need Annotations, so constructing directly is fine here
                             // even if it's not generally recommended
-                            ac = AnnotatedClassResolver.resolve(config,
-                                    config.constructType(ZoneId.class), config);
+                            ac = AnnotatedClass.construct(config.constructType(ZoneId.class), config);
                         }
                         if (!inst.canCreateFromString()) {
                             AnnotatedMethod factory = _findFactory(ac, "of", String.class);
@@ -214,7 +219,7 @@ public final class ThreeTenModule extends SimpleModule
                             }
                             // otherwise... should we indicate an error?
                         }
-                        // return ZoneIdInstantiator.construct(config, beanDesc, defaultInstantiator);
+                        //return ZoneIdInstantiator.construct(config, beanDesc, defaultInstantiator);
                     }
                 }
                 return defaultInstantiator;
@@ -222,12 +227,11 @@ public final class ThreeTenModule extends SimpleModule
         });
     }
 
-    protected AnnotatedMethod _findFactory(AnnotatedClass cls, String name, Class<?>... argTypes)
-    {
+    protected AnnotatedMethod _findFactory(AnnotatedClass cls, String name, Class<?>... argTypes) {
         final int argCount = argTypes.length;
         for (AnnotatedMethod method : cls.getFactoryMethods()) {
             if (!name.equals(method.getName())
-                    || (method.getParameterCount() != argCount)) {
+                || (method.getParameterCount() != argCount)) {
                 continue;
             }
             for (int i = 0; i < argCount; ++i) {

@@ -69,7 +69,7 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
     }
 
     protected ThreeTenDeserializerBase(Class<T> supportedType,
-                                     Boolean leniency) {
+                                       Boolean leniency) {
         super(supportedType);
         _isLenient = !Boolean.FALSE.equals(leniency);
     }
@@ -121,16 +121,16 @@ abstract class ThreeTenDeserializerBase<T> extends StdScalarDeserializer<T>
         //   for backwards compatibility let's for now allow override by
         //   "Strict" checks
         if (!_isLenient) {
-            return _failForNotLenient(p, ctxt, JsonToken.VALUE_STRING);
+            return _failForNotLenient(p, ctxt, JsonToken.VALUE_STRING);            
         }
-
+        
         return null;
     }
 
     // Presumably all types here are Date/Time oriented ones?
     @Override
     public LogicalType logicalType() { return LogicalType.DateTime; }
-
+    
     @Override
     public Object deserializeWithType(JsonParser parser, DeserializationContext context,
             TypeDeserializer typeDeserializer)

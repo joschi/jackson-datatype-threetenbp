@@ -44,7 +44,7 @@ public class ModuleTestBase
                 .defaultLocale(Locale.ENGLISH)
                 .addModule(new ThreeTenModule());
     }
-    
+
     protected String q(String value) {
         return "\"" + value + "\"";
     }

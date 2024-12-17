@@ -59,7 +59,7 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
      * @since 2.10
      */
     protected ThreeTenDateTimeDeserializerBase(ThreeTenDateTimeDeserializerBase<T> base,
-            DateTimeFormatter f) {
+                                               DateTimeFormatter f) {
         super(base);
         _formatter = f;
         _shape = base._shape;
@@ -69,7 +69,7 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
      * @since 2.10
      */
     protected ThreeTenDateTimeDeserializerBase(ThreeTenDateTimeDeserializerBase<T> base,
-            Boolean leniency) {
+                                               Boolean leniency) {
         super(base, leniency);
         _formatter = base._formatter;
         _shape = base._shape;
@@ -79,9 +79,21 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
      * @since 2.11
      */
     protected ThreeTenDateTimeDeserializerBase(ThreeTenDateTimeDeserializerBase<T> base,
-            Shape shape) {
+                                               Shape shape) {
         super(base);
         _formatter = base._formatter;
+        _shape = shape;
+    }
+
+    /**
+     * @since 2.16
+     */
+    protected ThreeTenDateTimeDeserializerBase(ThreeTenDateTimeDeserializerBase<T> base,
+                                               Boolean leniency,
+                                               DateTimeFormatter formatter,
+                                               JsonFormat.Shape shape) {
+        super(base, leniency);
+        _formatter = formatter;
         _shape = shape;
     }
 
@@ -94,9 +106,14 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
     protected abstract ThreeTenDateTimeDeserializerBase<T> withLeniency(Boolean leniency);
 
     /**
+     * The default implementation returns this, because shape is more likely applicable in case of the serialization,
+     * usage during deserialization could cover only very specific cases.
+     *
      * @since 2.11
      */
-    protected abstract ThreeTenDateTimeDeserializerBase<T> withShape(Shape shape);
+    protected ThreeTenDateTimeDeserializerBase<T> withShape(Shape shape) {
+        return this;
+    }
 
     @Override
     public JsonDeserializer<?> createContextual(DeserializationContext ctxt,
@@ -118,7 +135,7 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
      * @since 2.12.1
      */
     protected ThreeTenDateTimeDeserializerBase<?> _withFormatOverrides(DeserializationContext ctxt,
-            BeanProperty property, JsonFormat.Value formatOverrides)
+                                                                       BeanProperty property, JsonFormat.Value formatOverrides)
     {
         ThreeTenDateTimeDeserializerBase<?> deser = this;
 
@@ -166,7 +183,7 @@ public abstract class ThreeTenDateTimeDeserializerBase<T>
 
         return deser;
     }
-
+    
     private boolean acceptCaseInsensitiveValues(DeserializationContext ctxt, JsonFormat.Value format) 
     {
         Boolean enabled = format.getFeature(Feature.ACCEPT_CASE_INSENSITIVE_VALUES);

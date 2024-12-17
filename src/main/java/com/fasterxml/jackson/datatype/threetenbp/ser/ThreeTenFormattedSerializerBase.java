@@ -82,7 +82,7 @@ abstract class ThreeTenFormattedSerializerBase<T>
     }
 
     protected ThreeTenFormattedSerializerBase(Class<T> supportedType,
-            DateTimeFormatter formatter) {
+                                              DateTimeFormatter formatter) {
         super(supportedType);
         _useTimestamp = null;
         _useNanoseconds = null;
@@ -91,14 +91,14 @@ abstract class ThreeTenFormattedSerializerBase<T>
     }
     
     protected ThreeTenFormattedSerializerBase(ThreeTenFormattedSerializerBase<?> base,
-            Boolean useTimestamp, DateTimeFormatter dtf, JsonFormat.Shape shape)
+                                              Boolean useTimestamp, DateTimeFormatter dtf, JsonFormat.Shape shape)
     {
         this(base, useTimestamp, null, dtf, shape);
     }
 
     protected ThreeTenFormattedSerializerBase(ThreeTenFormattedSerializerBase<?> base,
-            Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter dtf,
-            JsonFormat.Shape shape)
+                                              Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter dtf,
+                                              JsonFormat.Shape shape)
     {
         super(base.handledType());
         _useTimestamp = useTimestamp;
@@ -108,7 +108,7 @@ abstract class ThreeTenFormattedSerializerBase<T>
     }
 
     protected abstract ThreeTenFormattedSerializerBase<?> withFormat(Boolean useTimestamp,
-            DateTimeFormatter dtf, JsonFormat.Shape shape);
+                                                                     DateTimeFormatter dtf, JsonFormat.Shape shape);
 
     /**
      * @since 2.8
@@ -123,7 +123,7 @@ abstract class ThreeTenFormattedSerializerBase<T>
      * @since 2.9.5
      */
     protected ThreeTenFormattedSerializerBase<?> withFeatures(Boolean writeZoneId,
-            Boolean writeNanoseconds) {
+                                                              Boolean writeNanoseconds) {
         return this;
     }
 
@@ -162,6 +162,10 @@ abstract class ThreeTenFormattedSerializerBase<T>
         return this;
     }
 
+    /**
+     * @deprecated Since 2.15
+     */
+    @Deprecated
     @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
     {
@@ -202,7 +206,7 @@ abstract class ThreeTenFormattedSerializerBase<T>
         }
         return t;
     }
-    
+
     /**
      * Overridable method that determines {@link SerializationFeature} that is used as
      * the global default in determining if date/time value serialized should use numeric

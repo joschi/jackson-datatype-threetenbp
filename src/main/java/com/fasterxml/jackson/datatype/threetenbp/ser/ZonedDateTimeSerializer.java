@@ -52,7 +52,7 @@ public class ZonedDateTimeSerializer extends InstantSerializerBase<ZonedDateTime
                         return dt.getNano();
                     }
                 },
-                formatter);
+              formatter);
         _writeZoneId = null;
     }
 
@@ -71,11 +71,11 @@ public class ZonedDateTimeSerializer extends InstantSerializerBase<ZonedDateTime
     /**
      * @since 2.14
      */
-     protected ZonedDateTimeSerializer(ZonedDateTimeSerializer base,
-             Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter formatter,
-             JsonFormat.Shape shape, Boolean writeZoneId) {
-         super(base, useTimestamp, useNanoseconds, formatter, shape);
-         _writeZoneId = writeZoneId;
+    protected ZonedDateTimeSerializer(ZonedDateTimeSerializer base,
+            Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter formatter,
+            JsonFormat.Shape shape, Boolean writeZoneId) {
+        super(base, useTimestamp, useNanoseconds, formatter, shape);
+        _writeZoneId = writeZoneId;
     }
 
     @Override

@@ -50,13 +50,13 @@ public class OffsetDateTimeSerializer extends InstantSerializerBase<OffsetDateTi
      * @since 2.14
      */
     public OffsetDateTimeSerializer(OffsetDateTimeSerializer base, Boolean useTimestamp,
-        DateTimeFormatter formatter, JsonFormat.Shape shape) {
+            DateTimeFormatter formatter, JsonFormat.Shape shape) {
         super(base, useTimestamp, base._useNanoseconds, formatter, shape);
     }
 
     @Override
     protected ThreeTenFormattedSerializerBase<?> withFormat(Boolean useTimestamp,
-        DateTimeFormatter formatter, JsonFormat.Shape shape)
+                                                            DateTimeFormatter formatter, JsonFormat.Shape shape)
     {
         return new OffsetDateTimeSerializer(this, useTimestamp, formatter, shape);
     }

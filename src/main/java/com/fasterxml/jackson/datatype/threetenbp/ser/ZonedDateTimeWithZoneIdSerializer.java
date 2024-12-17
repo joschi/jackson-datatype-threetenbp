@@ -11,7 +11,7 @@ import org.threeten.bp.format.DateTimeFormatter;
 /**
  * @since 2.6
  *
- * @deprecated Since 2.8
+ * @deprecated Since 2.8 only used by deprecated {@link ThreeTenModule}
  */
 @Deprecated
 public class ZonedDateTimeWithZoneIdSerializer extends InstantSerializerBase<ZonedDateTime>
@@ -56,8 +56,8 @@ public class ZonedDateTimeWithZoneIdSerializer extends InstantSerializerBase<Zon
 
     @Override
     protected ThreeTenFormattedSerializerBase<?> withFormat(Boolean useTimestamp,
-        DateTimeFormatter formatter,
-        JsonFormat.Shape shape) {
+                                                            DateTimeFormatter formatter,
+                                                            JsonFormat.Shape shape) {
         return new ZonedDateTimeWithZoneIdSerializer(this, useTimestamp, formatter);
     }
 

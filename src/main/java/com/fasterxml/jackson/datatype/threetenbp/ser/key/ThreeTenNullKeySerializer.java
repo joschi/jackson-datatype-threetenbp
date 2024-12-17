@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * This class is to be used in case {@code null} keys are needed to be serialized in a {@link Map} with ThreeTen temporal keys. By default the
+ * This class is to be used in case {@code null} keys are needed to be serialized in a {@link Map} with Java 8 temporal keys. By default the
  * {@code null} key is not supported by jackson, the serializer needs to be registered manually.
  *
  * @author Zoltan Kiss
