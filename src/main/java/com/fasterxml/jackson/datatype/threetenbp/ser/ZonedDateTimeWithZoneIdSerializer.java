@@ -11,7 +11,7 @@ import org.threeten.bp.format.DateTimeFormatter;
 /**
  * @since 2.6
  *
- * @deprecated Since 2.8 only used by deprecated {@link ThreeTenModule}
+ * @deprecated Since 2.8 only used by deprecated {@link com.fasterxml.jackson.datatype.threetenbp.ThreeTenModule}
  */
 @Deprecated
 public class ZonedDateTimeWithZoneIdSerializer extends InstantSerializerBase<ZonedDateTime>

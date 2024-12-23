@@ -52,7 +52,7 @@ import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.ZonedDateTime;
 
 /**
- * Class that registers capability of serializing {@code java.time} objects with the Jackson core.
+ * Class that registers capability of serializing {@code org.threeten.bp} objects with the Jackson core.
  *
  * <pre>
  * ObjectMapper mapper = new ObjectMapper();
@@ -64,13 +64,13 @@ import org.threeten.bp.ZonedDateTime;
  * Legacy version has the same functionality, but slightly different default configuration:
  * see {@link ThreeTenModule} for details.
  *<p>
- * Most {@code java.time} types are serialized as numbers (integers or decimals as appropriate) if the
+ * Most {@code org.threeten.bp} types are serialized as numbers (integers or decimals as appropriate) if the
  * {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DATES_AS_TIMESTAMPS} feature is enabled
  * (or, for {@link Duration}, {@link com.fasterxml.jackson.databind.SerializationFeature#WRITE_DURATIONS_AS_TIMESTAMPS}),
  * and otherwise are serialized in standard
  * <a href="http://en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO-8601</a> string representation.
  * ISO-8601 specifies formats for representing offset dates and times, zoned dates and times,
- * local dates and times, periods, durations, zones, and more. All {@code java.time} types
+ * local dates and times, periods, durations, zones, and more. All {@code org.threeten.bp} types
  * have built-in translation to and from ISO-8601 formats.
  * <p>
  * Granularity of timestamps is controlled through the companion features
