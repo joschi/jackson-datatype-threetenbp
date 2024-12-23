@@ -37,7 +37,7 @@ import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Duration;
 
 /**
- * Deserializer for Java 8 temporal {@link Duration}s.
+ * Deserializer for ThreeTen temporal {@link Duration}s.
  *
  * @author Nick Williams
  * @since 2.2

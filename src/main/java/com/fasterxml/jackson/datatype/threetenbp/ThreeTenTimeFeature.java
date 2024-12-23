@@ -3,7 +3,7 @@ package com.fasterxml.jackson.datatype.threetenbp;
 import com.fasterxml.jackson.core.util.JacksonFeature;
 
 /**
- * Configurable on/off features for Java 8 Date/Time module ({@link ThreeTenTimeModule}).
+ * Configurable on/off features for ThreeTen module ({@link ThreeTenTimeModule}).
  *
  * @since 2.16
  */
@@ -11,7 +11,7 @@ public enum ThreeTenTimeFeature implements JacksonFeature
 {
     /**
      * Feature that determines whether {@link org.threeten.bp.ZoneId} is normalized
-     * (via call to {@code org.threeten.bp.ZoneIdd#normalized()}) when deserializing
+     * (via call to {@code org.threeten.bp.ZoneId#normalized()}) when deserializing
      * types like {@link org.threeten.bp.ZonedDateTime}.
      *<p>
      * Default setting is enabled, for backwards-compatibility with
