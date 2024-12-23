@@ -82,7 +82,7 @@ public class ZonedDateTimeDeserTest extends ModuleTestBase
         //   behavior with and without `ThreeTenTimeFeature.NORMALIZE_DESERIALIZED_ZONE_ID`
         assertEquals("The value is not correct.",
                 ZonedDateTime.of(2000, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC),
-                READER_NON_NORMALIZED_ZONEID.readValue(q("2000-01-01T12:00Z"));
+                READER_NON_NORMALIZED_ZONEID.readValue(q("2000-01-01T12:00Z")));
     }
 
     @Test
