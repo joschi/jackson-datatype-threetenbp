@@ -18,6 +18,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
+import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZoneOffset;
@@ -25,6 +26,7 @@ import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.format.DateTimeParseException;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -81,7 +83,7 @@ public class ZonedDateTimeDeserTest extends ModuleTestBase
         // 11-Nov-2023, tatu: Not sure this is great test but... does show diff
         //   behavior with and without `ThreeTenTimeFeature.NORMALIZE_DESERIALIZED_ZONE_ID`
         assertEquals("The value is not correct.",
-                ZonedDateTime.of(2000, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC),
+                ZonedDateTime.of(2000, 1, 1, 12, 0, 0, 0, DateTimeUtils.toZoneId(TimeZone.getTimeZone("UTC"))),
                 READER_NON_NORMALIZED_ZONEID.readValue(q("2000-01-01T12:00Z")));
     }
 
