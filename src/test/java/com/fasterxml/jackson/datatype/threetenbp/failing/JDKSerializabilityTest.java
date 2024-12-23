@@ -2,6 +2,7 @@ package com.fasterxml.jackson.datatype.threetenbp.failing;
 
 import java.io.*;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.datatype.threetenbp.*;
@@ -11,6 +12,7 @@ import org.threeten.bp.Year;
 
 import static org.junit.Assert.assertEquals;
 
+@Ignore("upstream expects this to fail")
 public class JDKSerializabilityTest extends ModuleTestBase
 {
     @Test

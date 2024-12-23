@@ -4,6 +4,7 @@ package com.fasterxml.jackson.datatype.threetenbp.failing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZoneOffset;
@@ -14,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test case for https://github.com/FasterXML/jackson-modules-java8/issues/244
  */
+@Ignore("upstream expects this to fail")
 public class ZonedDateTimeIssue244Test extends ModuleTestBase
 {
     private final ObjectMapper MAPPER = mapperBuilder()

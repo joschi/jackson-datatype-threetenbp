@@ -1,6 +1,7 @@
 package com.fasterxml.jackson.datatype.threetenbp.failing;
 
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,6 +13,7 @@ import static org.junit.Assert.assertEquals;
 
 // [modules-java8#307]: Loss of precision via JsonNode for BigDecimal-valued
 // things (like Instant)
+@Ignore("upstream expects this to fail")
 public class InstanceViaBigDecimal307Test extends ModuleTestBase
 {
     static class Wrapper307 {

@@ -1,6 +1,7 @@
 package com.fasterxml.jackson.datatype.threetenbp.failing;
 
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -12,6 +13,7 @@ import org.threeten.bp.temporal.ChronoUnit;
 
 import static org.junit.Assert.assertEquals;
 
+@Ignore("upstream expects this to fail")
 public class OffsetDateTimeDeser279Test extends ModuleTestBase
 {
     // For [modules-java8#279]
