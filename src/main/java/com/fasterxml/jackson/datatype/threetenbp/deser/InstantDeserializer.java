@@ -125,7 +125,7 @@ public class InstantDeserializer<T extends Temporal>
             new Function<FromDecimalArguments, OffsetDateTime>() {
                 @Override
                 public OffsetDateTime apply(FromDecimalArguments a) {
-                    return OffsetDateTime.ofInstant(Instant.ofEpochSecond(a.integer, a.fraction), a.zoneId);
+                    return decimalToOffsetDateTime(a);
                 }
             },
             new BiFunction<OffsetDateTime, ZoneId, OffsetDateTime>() {
