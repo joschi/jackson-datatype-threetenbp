@@ -8,8 +8,8 @@
     <!-- do_not_remove: published-with-gradle-metadata -->
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.fasterxml.jackson.module</groupId>
-        <artifactId>jackson-modules-java8</artifactId>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-base</artifactId>
         <version>2.18.2</version>
     </parent>
     <groupId>com.github.joschi.jackson</groupId>
@@ -218,8 +218,10 @@
                     <showDeprecation>true</showDeprecation>
                     <showWarnings>true</showWarnings>
                     <compilerArgs>
-                        <Xmaxerrs>10000</Xmaxerrs>
-                        <Xmaxwarns>10000</Xmaxwarns>
+                        <arg>-Xmaxerrs</arg>
+                        <arg>10000</arg>
+                        <arg>-Xmaxwarns</arg>
+                        <arg>10000</arg>
                         <Xlint/>
                     </compilerArgs>
                 </configuration>
