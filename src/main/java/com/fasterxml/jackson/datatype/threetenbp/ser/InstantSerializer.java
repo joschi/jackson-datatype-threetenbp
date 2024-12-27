@@ -63,7 +63,7 @@ public class InstantSerializer extends InstantSerializerBase<Instant>
     @Deprecated // since 2.14
     protected InstantSerializer(InstantSerializer base,
             Boolean useTimestamp, DateTimeFormatter formatter) {
-        this(base, useTimestamp, null, formatter);
+        this(base, useTimestamp, base._useNanoseconds, formatter);
     }
 
     /**
