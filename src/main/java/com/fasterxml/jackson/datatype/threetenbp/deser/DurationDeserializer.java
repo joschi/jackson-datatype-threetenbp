@@ -19,6 +19,7 @@ package com.fasterxml.jackson.datatype.threetenbp.deser;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -31,7 +32,6 @@ import com.fasterxml.jackson.core.io.NumberInput;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
-import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
 import com.fasterxml.jackson.datatype.threetenbp.util.DurationUnitConverter;
 import org.threeten.bp.DateTimeException;
 import org.threeten.bp.Duration;

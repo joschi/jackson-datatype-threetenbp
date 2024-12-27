@@ -17,9 +17,10 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
 import java.math.BigDecimal;
+import java.util.function.BiFunction;
+
 import org.threeten.bp.Instant;
 import com.fasterxml.jackson.core.io.NumberInput;
-import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
 
 /**
  * Utilities to aid in the translation of decimal types to/from multiple parts.

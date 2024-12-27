@@ -31,8 +31,6 @@ import com.fasterxml.jackson.datatype.threetenbp.ThreeTenTimeFeature;
 import java.io.IOException;
 import java.math.BigDecimal;
 
-import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
-import com.fasterxml.jackson.datatype.threetenbp.function.Function;
 import org.threeten.bp.DateTimeException;
 import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.Instant;
@@ -43,6 +41,8 @@ import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.Temporal;
 import org.threeten.bp.temporal.TemporalAccessor;
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,24 +84,9 @@ public class InstantDeserializer<T extends Temporal>
 
     public static final InstantDeserializer<Instant> INSTANT = new InstantDeserializer<>(
             Instant.class, DateTimeFormatter.ISO_INSTANT,
-            new Function<TemporalAccessor, Instant>() {
-                @Override
-                public Instant apply(TemporalAccessor temporalAccessor) {
-                    return Instant.from(temporalAccessor);
-                }
-            },
-            new Function<FromIntegerArguments, Instant>() {
-                @Override
-                public Instant apply(FromIntegerArguments a) {
-                    return Instant.ofEpochMilli(a.value);
-                }
-            },
-            new Function<FromDecimalArguments, Instant>() {
-                @Override
-                public Instant apply(FromDecimalArguments a) {
-                    return Instant.ofEpochSecond(a.integer, a.fraction);
-                }
-            },
+            Instant::from,
+            a -> Instant.ofEpochMilli(a.value),
+            a -> Instant.ofEpochSecond(a.integer, a.fraction),
             null,
             true, // yes, replace zero offset with Z
             DEFAULT_NORMALIZE_ZONE_ID,
@@ -110,60 +95,24 @@ public class InstantDeserializer<T extends Temporal>
 
     public static final InstantDeserializer<OffsetDateTime> OFFSET_DATE_TIME = new InstantDeserializer<>(
             OffsetDateTime.class, DateTimeFormatter.ISO_OFFSET_DATE_TIME,
-            new Function<TemporalAccessor, OffsetDateTime>() {
-                @Override
-                public OffsetDateTime apply(TemporalAccessor temporalAccessor) {
-                    return OffsetDateTime.from(temporalAccessor);
-                }
-            },
-            new Function<FromIntegerArguments, OffsetDateTime>() {
-                @Override
-                public OffsetDateTime apply(FromIntegerArguments a) {
-                    return OffsetDateTime.ofInstant(Instant.ofEpochMilli(a.value), a.zoneId);
-                }
-            },
-            new Function<FromDecimalArguments, OffsetDateTime>() {
-                @Override
-                public OffsetDateTime apply(FromDecimalArguments a) {
-                    return decimalToOffsetDateTime(a);
-                }
-            },
-            new BiFunction<OffsetDateTime, ZoneId, OffsetDateTime>() {
-                @Override
-                public OffsetDateTime apply(OffsetDateTime d, ZoneId z) {
-                    return (d.isEqual(OffsetDateTime.MIN) || d.isEqual(OffsetDateTime.MAX) ? d : d.withOffsetSameInstant(z.getRules().getOffset(d.toLocalDateTime())));
-                }
-            },
-            true // yes, replace zero offset with Z
+            OffsetDateTime::from,
+            a -> OffsetDateTime.ofInstant(Instant.ofEpochMilli(a.value), a.zoneId),
+            InstantDeserializer::decimalToOffsetDateTime,
+            (d, z) -> (d.isEqual(OffsetDateTime.MIN) || d.isEqual(OffsetDateTime.MAX) ? d : d.withOffsetSameInstant(z.getRules().getOffset(d.toLocalDateTime()))),
+            true, // yes, replace zero offset with Z
+            DEFAULT_NORMALIZE_ZONE_ID,
+            DEFAULT_ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS
     );
 
     public static final InstantDeserializer<ZonedDateTime> ZONED_DATE_TIME = new InstantDeserializer<>(
             ZonedDateTime.class, DateTimeFormatter.ISO_ZONED_DATE_TIME,
-            new Function<TemporalAccessor, ZonedDateTime>() {
-                @Override
-                public ZonedDateTime apply(TemporalAccessor temporalAccessor) {
-                    return ZonedDateTime.from(temporalAccessor);
-                }
-            },
-            new Function<FromIntegerArguments, ZonedDateTime>() {
-                @Override
-                public ZonedDateTime apply(FromIntegerArguments a) {
-                    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(a.value), a.zoneId);
-                }
-            },
-            new Function<FromDecimalArguments, ZonedDateTime>() {
-                @Override
-                public ZonedDateTime apply(FromDecimalArguments a) {
-                    return ZonedDateTime.ofInstant(Instant.ofEpochSecond(a.integer, a.fraction), a.zoneId);
-                }
-            },
-            new BiFunction<ZonedDateTime, ZoneId, ZonedDateTime>() {
-                @Override
-                public ZonedDateTime apply(ZonedDateTime zonedDateTime, ZoneId zoneId) {
-                    return zonedDateTime.withZoneSameInstant(zoneId);
-                }
-            },
-            false // keep zero offset and Z separate since zones explicitly supported
+            ZonedDateTime::from,
+            a -> ZonedDateTime.ofInstant(Instant.ofEpochMilli(a.value), a.zoneId),
+            a -> ZonedDateTime.ofInstant(Instant.ofEpochSecond(a.integer, a.fraction), a.zoneId),
+            ZonedDateTime::withZoneSameInstant,
+            false, // keep zero offset and Z separate since zones explicitly supported
+            DEFAULT_NORMALIZE_ZONE_ID,
+            DEFAULT_ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS
     );
 
     protected final Function<FromIntegerArguments, T> fromMilliseconds;
@@ -237,12 +186,7 @@ public class InstantDeserializer<T extends Temporal>
         this.parsedToValue = parsedToValue;
         this.fromMilliseconds = fromMilliseconds;
         this.fromNanoseconds = fromNanoseconds;
-        this.adjust = adjust == null ? new BiFunction<T, ZoneId, T>() {
-            @Override
-            public T apply(T d, ZoneId z) {
-                return d;
-            }
-        } : adjust;
+        this.adjust = adjust == null ? ((d, z) -> d) : adjust;
         this.replaceZeroOffsetAsZ = replaceZeroOffsetAsZ;
         this._adjustToContextTZOverride = null;
         this._readTimestampsAsNanosOverride = null;
@@ -526,12 +470,7 @@ public class InstantDeserializer<T extends Temporal>
     protected T _fromDecimal(DeserializationContext context, BigDecimal value)
     {
         FromDecimalArguments args =
-            DecimalUtils.extractSecondsAndNanos(value, new BiFunction<Long, Integer, FromDecimalArguments>() {
-                @Override
-                public FromDecimalArguments apply(Long s, Integer ns) {
-                    return new FromDecimalArguments(s, ns, getZone(context));
-                }
-            });
+            DecimalUtils.extractSecondsAndNanos(value, (s, ns) -> new FromDecimalArguments(s, ns, getZone(context)));
         return fromNanoseconds.apply(args);
     }
 

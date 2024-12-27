@@ -3,8 +3,6 @@ package com.fasterxml.jackson.datatype.threetenbp.ser;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.IOException;
 
-import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
-import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
 import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 
@@ -33,25 +31,8 @@ public class ZonedDateTimeSerializer extends InstantSerializerBase<ZonedDateTime
     }
 
     public ZonedDateTimeSerializer(DateTimeFormatter formatter) {
-        super(ZonedDateTime.class,
-                new ToLongFunction<ZonedDateTime>() {
-                    @Override
-                    public long applyAsLong(ZonedDateTime dt) {
-                        return dt.toInstant().toEpochMilli();
-                    }
-                },
-                new ToLongFunction<ZonedDateTime>() {
-                    @Override
-                    public long applyAsLong(ZonedDateTime dt) {
-                        return dt.toEpochSecond();
-                    }
-                },
-                new ToIntFunction<ZonedDateTime>() {
-                    @Override
-                    public int applyAsInt(ZonedDateTime dt) {
-                        return dt.getNano();
-                    }
-                },
+        super(ZonedDateTime.class, dt -> dt.toInstant().toEpochMilli(),
+              ZonedDateTime::toEpochSecond, ZonedDateTime::getNano,
               formatter);
         _writeZoneId = null;
     }
