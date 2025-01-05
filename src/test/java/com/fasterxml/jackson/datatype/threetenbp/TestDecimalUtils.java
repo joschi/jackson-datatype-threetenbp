@@ -89,7 +89,7 @@ public class TestDecimalUtils extends ModuleTestBase
 
     private void checkExtractSecondsAndNanos(final long expectedSeconds, final int expectedNanos, BigDecimal decimal)
     {
-        DecimalUtils.extractSecondsAndNanos(decimal, (BiFunction<Long, Integer, Void>) (s, ns) -> {
+        DecimalUtils.extractSecondsAndNanos(decimal,  (Long s, Integer ns) -> {
             assertEquals("The second part is not correct.", expectedSeconds, s.longValue());
             assertEquals("The nanosecond part is not correct.", expectedNanos, ns.intValue());
             return null;
