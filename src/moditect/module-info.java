@@ -20,5 +20,5 @@ module com.fasterxml.jackson.datatype.threetenbp {
     opens com.fasterxml.jackson.datatype.threetenbp.ser.key;
 
     provides com.fasterxml.jackson.databind.Module with
-        com.fasterxml.jackson.datatype.threetenbp.ThreeTenModule;
+        com.fasterxml.jackson.datatype.threetenbp.ThreeTenTimeModule;
 }
