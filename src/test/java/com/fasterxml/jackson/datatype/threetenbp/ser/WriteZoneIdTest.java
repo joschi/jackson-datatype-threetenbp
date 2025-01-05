@@ -1,5 +1,6 @@
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
+import com.fasterxml.jackson.datatype.threetenbp.ThreeTenTimeModule;
 import org.threeten.bp.Instant;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
@@ -56,7 +57,7 @@ public class WriteZoneIdTest extends ModuleTestBase
         ZoneId id = ZoneId.of("America/Denver");
         ObjectMapper mapper = mapperBuilder()
                 .addMixIn(ZoneId.class, MockObjectConfiguration.class)
-                .addModule(new ThreeTenModule())
+                .addModule(new ThreeTenTimeModule())
                 .build();
         String value = mapper.writeValueAsString(id);
         assertEquals("The value is not correct.", "[\"org.threeten.bp.ZoneId\",\"America/Denver\"]", value);

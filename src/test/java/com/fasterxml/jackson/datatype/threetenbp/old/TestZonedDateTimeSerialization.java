@@ -14,31 +14,26 @@
  * limitations under the license.
  */
 
-package com.fasterxml.jackson.datatype.threetenbp.ser;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.threeten.bp.Instant;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZoneOffset;
-import org.threeten.bp.ZonedDateTime;
-import org.threeten.bp.temporal.ChronoField;
-import org.threeten.bp.temporal.ChronoUnit;
-import org.threeten.bp.temporal.Temporal;
-import java.util.TimeZone;
+package com.fasterxml.jackson.datatype.threetenbp.old;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
-
-import com.fasterxml.jackson.datatype.threetenbp.MockObjectConfiguration;
-import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import  org.threeten.bp.Instant;
+import  org.threeten.bp.ZoneId;
+import  org.threeten.bp.ZoneOffset;
+import  org.threeten.bp.ZonedDateTime;
+import  org.threeten.bp.temporal.ChronoField;
+import  org.threeten.bp.temporal.ChronoUnit;
+import  org.threeten.bp.temporal.Temporal;
+import java.util.TimeZone;
+
+import static org.junit.Assert.*;
 
 public class TestZonedDateTimeSerialization extends ModuleTestBase {
     private static final ZoneId Z1 = ZoneId.of("America/Chicago");

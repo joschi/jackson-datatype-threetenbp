@@ -42,7 +42,7 @@ public class ModuleTestBase
     protected static JsonMapper.Builder mapperBuilder() {
         return JsonMapper.builder()
                 .defaultLocale(Locale.ENGLISH)
-                .addModule(new ThreeTenModule());
+                .addModule(new ThreeTenTimeModule());
     }
 
     protected String q(String value) {
