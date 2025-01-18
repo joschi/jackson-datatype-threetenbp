@@ -2,6 +2,7 @@ package com.fasterxml.jackson.datatype.threetenbp.deser.key;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,8 +42,6 @@ public class ZonedDateTimeKeyDeserializerTest
     
     @Test
     public void ZonedDateTime_with_place_name_can_be_deserialized() throws Exception {
-        assumeFalse(System.getProperty("java.version").startsWith("1.8"));
-
         Map<ZonedDateTime, String> map = MAPPER.readValue(getMap("2015-07-24T12:23:34.184Z[Europe/London]"),
                 MAP_TYPE_REF);
         Map.Entry<ZonedDateTime, String> entry = map.entrySet().iterator().next();
@@ -50,8 +49,10 @@ public class ZonedDateTimeKeyDeserializerTest
     }
 
     @Test
+    @Ignore("ThreeTen fixed this issue in https://github.com/ThreeTen/threetenbp/pull/77")
     public void ZonedDateTime_with_place_name_can_be_deserialized_Java_8() throws Exception {
         // Java 8 parses this format incorrectly due to https://bugs.openjdk.org/browse/JDK-8066982
+        // Edit: This is not an issue with ThreeTen, because it is fixed there.
         assumeTrue(System.getProperty("java.version").startsWith("1.8"));
 
         Map<ZonedDateTime, String> map = MAPPER.readValue(getMap("2015-07-24T12:23:34.184Z[Europe/London]"),
