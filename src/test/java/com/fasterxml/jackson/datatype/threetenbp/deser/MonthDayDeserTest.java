@@ -1,6 +1,8 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import java.io.IOException;
+
+import com.fasterxml.jackson.datatype.threetenbp.ThreeTenTimeModule;
 import org.threeten.bp.Month;
 import org.threeten.bp.MonthDay;
 import org.threeten.bp.format.DateTimeParseException;
@@ -126,7 +128,7 @@ public class MonthDayDeserTest extends ModuleTestBase
     public void testDeserializationWithTypeInfo01() throws Exception
     {
         final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new ThreeTenModule());
+            .registerModule(new ThreeTenTimeModule());
         mapper.addMixIn(TemporalAccessor.class, MockObjectConfiguration.class);
                
         MonthDay monthDay = MonthDay.of(Month.NOVEMBER, 5);

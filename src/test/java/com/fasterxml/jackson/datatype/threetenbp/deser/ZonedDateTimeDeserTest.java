@@ -1,6 +1,7 @@
 package com.fasterxml.jackson.datatype.threetenbp.deser;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -8,17 +9,24 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.threetenbp.ThreeTenTimeFeature;
+import com.fasterxml.jackson.datatype.threetenbp.ThreeTenTimeModule;
 import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
 import org.junit.Test;
 
 import java.io.IOException;
+
+import org.threeten.bp.DateTimeUtils;
+import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.format.DateTimeParseException;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -27,6 +35,12 @@ import static org.junit.Assert.fail;
 public class ZonedDateTimeDeserTest extends ModuleTestBase
 {
     private final ObjectReader READER = newMapper().readerFor(ZonedDateTime.class);
+
+    private final ObjectReader READER_NON_NORMALIZED_ZONEID = JsonMapper.builder()
+            .addModule(new ThreeTenTimeModule().disable(ThreeTenTimeFeature.NORMALIZE_DESERIALIZED_ZONE_ID))
+            .build()
+            .readerFor(ZonedDateTime.class);
+    
     private final TypeReference<Map<String, ZonedDateTime>> MAP_TYPE_REF = new TypeReference<Map<String, ZonedDateTime>>() { };
 
     static class WrapperWithFeatures {
@@ -34,12 +48,67 @@ public class ZonedDateTimeDeserTest extends ModuleTestBase
         public ZonedDateTime value;
     }
 
+    static class WrapperWithReadTimestampsAsNanosDisabled {
+        @JsonFormat(
+            without=Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
+        )
+        public ZonedDateTime value;
+
+        public WrapperWithReadTimestampsAsNanosDisabled() { }
+        public WrapperWithReadTimestampsAsNanosDisabled(ZonedDateTime v) { value = v; }
+    }
+
+    static class WrapperWithReadTimestampsAsNanosEnabled {
+        @JsonFormat(
+            with=Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
+        )
+        public ZonedDateTime value;
+
+        public WrapperWithReadTimestampsAsNanosEnabled() { }
+        public WrapperWithReadTimestampsAsNanosEnabled(ZonedDateTime v) { value = v; }
+    }
+
     @Test
-    public void testDeserializationAsString01() throws Exception
+    public void testDeserFromString() throws Exception
     {
         assertEquals("The value is not correct.",
                 ZonedDateTime.of(2000, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC),
                 READER.readValue(q("2000-01-01T12:00Z")));
+    }
+
+    // [modules-java#281]
+    @Test
+    public void testDeserFromStringNoZoneIdNormalization() throws Exception
+    {
+        // 11-Nov-2023, tatu: Not sure this is great test but... does show diff
+        //   behavior with and without `ThreeTenTimeFeature.NORMALIZE_DESERIALIZED_ZONE_ID`
+        assertEquals("The value is not correct.",
+                ZonedDateTime.of(2000, 1, 1, 12, 0, 0, 0, DateTimeUtils.toZoneId(TimeZone.getTimeZone("UTC"))),
+                READER_NON_NORMALIZED_ZONEID.readValue(q("2000-01-01T12:00Z")));
+    }
+
+    @Test
+    public void testDeserializationAsInt01() throws Exception
+    {
+        ObjectReader reader = newMapper().readerFor(WrapperWithReadTimestampsAsNanosDisabled.class);
+        ZonedDateTime date = ZonedDateTime.of(
+            LocalDateTime.ofEpochSecond(1, 1000000, ZoneOffset.UTC),
+            ZoneOffset.UTC);
+        WrapperWithReadTimestampsAsNanosDisabled actual =
+            reader.readValue(a2q("{'value':1001}"));
+        assertEquals("The value is not correct.", date, actual.value);
+    }
+
+    @Test
+    public void testDeserializationAsInt02() throws Exception
+    {
+        ObjectReader reader = newMapper().readerFor(WrapperWithReadTimestampsAsNanosEnabled.class);
+        ZonedDateTime date = ZonedDateTime.of(
+            LocalDateTime.ofEpochSecond(1, 0, ZoneOffset.UTC),
+            ZoneOffset.UTC);
+        WrapperWithReadTimestampsAsNanosEnabled actual =
+            reader.readValue(a2q("{'value':1}"));
+        assertEquals("The value is not correct.", date, actual.value);
     }
 
     @Test

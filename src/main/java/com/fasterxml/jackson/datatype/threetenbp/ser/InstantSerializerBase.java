@@ -19,12 +19,12 @@ package com.fasterxml.jackson.datatype.threetenbp.ser;
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_CONTEXT_TIME_ZONE;
 
 import java.io.IOException;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.Temporal;
-import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
-import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -45,7 +45,6 @@ import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
  * Base class for serializers used for {@link org.threeten.bp.Instant} and
  * other {@link Temporal} subtypes.
  */
-@SuppressWarnings("serial")
 public abstract class InstantSerializerBase<T extends Temporal>
     extends ThreeTenFormattedSerializerBase<T>
 {
@@ -77,15 +76,16 @@ public abstract class InstantSerializerBase<T extends Temporal>
     }
 
     protected InstantSerializerBase(InstantSerializerBase<T> base,
-            Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter dtf) {
+            Boolean useTimestamp, Boolean useNanoseconds, DateTimeFormatter dtf)
+    {
         this(base, useTimestamp, useNanoseconds, dtf, base._shape);
     }
 
     /**
      * @since 2.14
      */
-     protected InstantSerializerBase(InstantSerializerBase<T> base, Boolean useTimestamp,
-             Boolean useNanoseconds, DateTimeFormatter dtf, JsonFormat.Shape shape) {
+    protected InstantSerializerBase(InstantSerializerBase<T> base, Boolean useTimestamp,
+            Boolean useNanoseconds, DateTimeFormatter dtf, JsonFormat.Shape shape) {
         super(base, useTimestamp, useNanoseconds, dtf, shape);
         defaultFormat = base.defaultFormat;
         getEpochMillis = base.getEpochMillis;

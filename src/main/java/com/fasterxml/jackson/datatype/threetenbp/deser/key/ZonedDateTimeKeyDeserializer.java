@@ -17,9 +17,9 @@ public class ZonedDateTimeKeyDeserializer extends ThreeTenKeyDeserializer {
 
     @Override
     protected ZonedDateTime deserialize(String key, DeserializationContext ctxt) throws IOException {
-        // not serializing timezone data yet
         try {
-            return ZonedDateTime.parse(key, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            // Not supplying a formatter allows the use of all supported formats
+            return ZonedDateTime.parse(key);
         } catch (DateTimeException e) {
             return _handleDateTimeException(ctxt, ZonedDateTime.class, e, key);
         }

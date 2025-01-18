@@ -17,8 +17,6 @@
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
-import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
 import org.threeten.bp.Instant;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.ZonedDateTime;
@@ -37,25 +35,7 @@ public class InstantSerializer extends InstantSerializerBase<Instant>
     public static final InstantSerializer INSTANCE = new InstantSerializer();
 
     protected InstantSerializer() {
-        super(Instant.class,
-                new ToLongFunction<Instant>() {
-                    @Override
-                    public long applyAsLong(Instant instant) {
-                        return instant.toEpochMilli();
-                    }
-                },
-                new ToLongFunction<Instant>() {
-                    @Override
-                    public long applyAsLong(Instant instant) {
-                        return instant.getEpochSecond();
-                    }
-                },
-                new ToIntFunction<Instant>() {
-                    @Override
-                    public int applyAsInt(Instant instant) {
-                        return instant.getNano();
-                    }
-                },
+        super(Instant.class, Instant::toEpochMilli, Instant::getEpochSecond, Instant::getNano,
                 // null -> use 'value.toString()', default format
                 null);
     }
@@ -63,12 +43,12 @@ public class InstantSerializer extends InstantSerializerBase<Instant>
     @Deprecated // since 2.14
     protected InstantSerializer(InstantSerializer base,
             Boolean useTimestamp, DateTimeFormatter formatter) {
-        this(base, useTimestamp, null, formatter);
+        this(base, useTimestamp, base._useNanoseconds, formatter);
     }
 
     /**
-     +     * @since 2.14
-     +     */
+     * @since 2.14
+     */
     protected InstantSerializer(InstantSerializer base, Boolean useTimestamp,
             DateTimeFormatter formatter, JsonFormat.Shape shape) {
         super(base, useTimestamp, base._useNanoseconds, formatter, shape);
@@ -81,7 +61,7 @@ public class InstantSerializer extends InstantSerializerBase<Instant>
 
     @Override
     protected ThreeTenFormattedSerializerBase<Instant> withFormat(Boolean useTimestamp,
-            DateTimeFormatter formatter, JsonFormat.Shape shape) {
+                                                                  DateTimeFormatter formatter, JsonFormat.Shape shape) {
         return new InstantSerializer(this, useTimestamp, formatter, shape);
     }
 

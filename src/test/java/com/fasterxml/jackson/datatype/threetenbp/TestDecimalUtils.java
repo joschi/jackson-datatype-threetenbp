@@ -1,9 +1,9 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
-import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.util.function.BiFunction;
 
 import static org.junit.Assert.*;
 
@@ -89,13 +89,10 @@ public class TestDecimalUtils extends ModuleTestBase
 
     private void checkExtractSecondsAndNanos(final long expectedSeconds, final int expectedNanos, BigDecimal decimal)
     {
-        DecimalUtils.extractSecondsAndNanos(decimal, new BiFunction<Long, Integer, Void>() {
-            @Override
-            public Void apply(Long s, Integer ns) {
-                assertEquals("The second part is not correct.", expectedSeconds, s.longValue());
-                assertEquals("The nanosecond part is not correct.", expectedNanos, ns.intValue());
-                return null;
-            }
+        DecimalUtils.extractSecondsAndNanos(decimal,  (Long s, Integer ns) -> {
+            assertEquals("The second part is not correct.", expectedSeconds, s.longValue());
+            assertEquals("The nanosecond part is not correct.", expectedNanos, ns.intValue());
+            return null;
         });
     }
 

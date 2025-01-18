@@ -152,13 +152,13 @@ public class OffsetDateTimeSerTest
         // pattern="yyyy_MM_dd'T'HH:mm:ssZ"
         assertEquals(a2q("{'value':'2022_04_27T12:00:00+0200'}"),
                 MAPPER.writeValueAsString(input));
-
+ 
         ObjectMapper m = mapperBuilder().withConfigOverride(OffsetDateTime.class,
                 cfg -> cfg.setFormat(JsonFormat.Value.forPattern("yyyy.MM.dd'x'HH:mm:ss")))
             .build();
         assertEquals(a2q("'2022.04.27x12:00:00'"), m.writeValueAsString(t1));
     }
-
+    
     @Test
     public void testSerializationAsStringWithMapperTimeZone01() throws Exception
     {

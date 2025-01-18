@@ -8,9 +8,10 @@ import org.threeten.bp.temporal.Temporal;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import org.junit.Test;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import org.junit.Test;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -23,7 +24,6 @@ import com.fasterxml.jackson.datatype.threetenbp.ModuleTestBase;
 
 import static com.fasterxml.jackson.datatype.threetenbp.deser.InstantDeserializer.ISO8601_COLONLESS_OFFSET_REGEX;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assume.assumeTrue;
 
 public class InstantDeserTest extends ModuleTestBase
@@ -61,6 +61,26 @@ public class InstantDeserTest extends ModuleTestBase
         }
     }
 
+    static class WrapperWithReadTimestampsAsNanosDisabled {
+        @JsonFormat(
+            without=JsonFormat.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
+        )
+        public Instant value;
+
+        public WrapperWithReadTimestampsAsNanosDisabled() { }
+        public WrapperWithReadTimestampsAsNanosDisabled(Instant v) { value = v; }
+    }
+
+    static class WrapperWithReadTimestampsAsNanosEnabled {
+        @JsonFormat(
+            with=JsonFormat.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS
+        )
+        public Instant value;
+
+        public WrapperWithReadTimestampsAsNanosEnabled() { }
+        public WrapperWithReadTimestampsAsNanosEnabled(Instant v) { value = v; }
+    }
+
     private final ObjectMapper MAPPER = newMapper();
     private final ObjectReader READER = MAPPER.readerFor(Instant.class);
 
@@ -72,13 +92,13 @@ public class InstantDeserTest extends ModuleTestBase
     
     @Test
     public void testDeserializationAsFloat01() throws Exception {
-        assertEquals("The value is not correct.", Instant.ofEpochSecond(0L),
+        assertEquals(Instant.ofEpochSecond(0L),
                 READER.readValue("0.000000000"));
     }
 
     @Test
     public void testDeserializationAsFloat02() throws Exception {
-        assertEquals("The value is not correct.", Instant.ofEpochSecond(123456789L, 183917322),
+        assertEquals(Instant.ofEpochSecond(123456789L, 183917322),
                 READER.readValue("123456789.183917322"));
     }
 
@@ -88,7 +108,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant date = Instant.now();
         Instant value = READER.readValue(
                 DecimalUtils.toDecimal(date.getEpochSecond(), date.getNano()));
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     /**
@@ -211,7 +231,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant value = READER
                 .with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("0");
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     @Test
@@ -222,7 +242,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant value = READER
                 .with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue(String.valueOf(ts));
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     @Test
@@ -234,7 +254,20 @@ public class InstantDeserTest extends ModuleTestBase
         Instant value = READER
                 .with(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue(Long.toString(date.getEpochSecond()));
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
+    }
+
+    @Test
+    public void testDeserializationAsInt04Nanoseconds() throws Exception
+    {
+        ObjectReader reader = MAPPER.readerFor(WrapperWithReadTimestampsAsNanosEnabled.class);
+        Instant date = Instant.now();
+        date = date.minus(date.getNano(), ChronoUnit.NANOS);
+        WrapperWithReadTimestampsAsNanosEnabled expected =
+            new WrapperWithReadTimestampsAsNanosEnabled(date);
+        WrapperWithReadTimestampsAsNanosEnabled actual = reader.readValue(
+            a2q("{'value':" + date.getEpochSecond() + "}"));
+        assertEquals(expected.value, actual.value);
     }
 
     /*
@@ -250,7 +283,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant value = READER
                 .without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("0");
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     @Test
@@ -260,7 +293,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant value = READER
                 .without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue("123456789422");
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     @Test
@@ -272,7 +305,20 @@ public class InstantDeserTest extends ModuleTestBase
         Instant value = READER
                 .without(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
                 .readValue(Long.toString(date.toEpochMilli()));
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
+    }
+
+    @Test
+    public void testDeserializationAsInt04Milliseconds() throws Exception
+    {
+        ObjectReader reader = MAPPER.readerFor(WrapperWithReadTimestampsAsNanosDisabled.class);
+        Instant date = Instant.now();
+        date = date.minus(date.getNano(), ChronoUnit.NANOS);
+        WrapperWithReadTimestampsAsNanosDisabled expected =
+            new WrapperWithReadTimestampsAsNanosDisabled(date);
+        WrapperWithReadTimestampsAsNanosDisabled actual = reader.readValue(
+            a2q("{'value':" + date.toEpochMilli() + "}"));
+        assertEquals(expected.value, actual.value);
     }
 
     /*
@@ -286,7 +332,7 @@ public class InstantDeserTest extends ModuleTestBase
     {
         Instant date = Instant.ofEpochSecond(0L);
         Instant value = READER.readValue('"' + FORMATTER.format(date) + '"');
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     @Test
@@ -294,7 +340,7 @@ public class InstantDeserTest extends ModuleTestBase
     {
         Instant date = Instant.ofEpochSecond(123456789L, 183917322);
         Instant value = READER.readValue('"' + FORMATTER.format(date) + '"');
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     @Test
@@ -303,7 +349,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant date = Instant.now();
 
         Instant value = READER.readValue('"' + FORMATTER.format(date) + '"');
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     /*
@@ -322,7 +368,7 @@ public class InstantDeserTest extends ModuleTestBase
                 "[\"" + Instant.class.getName() + "\",123456789.183917322]", Temporal.class
                 );
         assertTrue("The value should be an Instant.", value instanceof Instant);
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     @Test
@@ -336,7 +382,7 @@ public class InstantDeserTest extends ModuleTestBase
                 "[\"" + Instant.class.getName() + "\",123456789]", Temporal.class
                 );
         assertTrue("The value should be an Instant.", value instanceof Instant);
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     @Test
@@ -351,7 +397,7 @@ public class InstantDeserTest extends ModuleTestBase
                 );
 
         assertTrue("The value should be an Instant.", value instanceof Instant);
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     @Test
@@ -364,7 +410,7 @@ public class InstantDeserTest extends ModuleTestBase
                 "[\"" + Instant.class.getName() + "\",\"" + FORMATTER.format(date) + "\"]", Temporal.class
                 );
         assertTrue("The value should be an Instant.", value instanceof Instant);
-        assertEquals("The value is not correct.", date, value);
+        assertEquals(date, value);
     }
 
     /*
@@ -417,7 +463,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant date = Instant.now();
         String json = formatWithZeroZoneOffset(date, "+00:00");
         Instant result = READER.readValue(json);
-        assertEquals("The value is not correct.", date, result);
+        assertEquals(date, result);
     }
 
     @Test
@@ -425,7 +471,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant date = Instant.now();
         String json = formatWithZeroZoneOffset(date, "+0000");
         Instant result = READER.readValue(json);
-        assertEquals("The value is not correct.", date, result);
+        assertEquals(date, result);
     }
 
     @Test
@@ -433,7 +479,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant date = Instant.now();
         String json = formatWithZeroZoneOffset(date, "+00");
         Instant result = READER.readValue(json);
-        assertEquals("The value is not correct.", date, result);
+        assertEquals(date, result);
     }
 
     @Test
@@ -443,7 +489,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant date = Instant.now();
         String json = formatWithZeroZoneOffset(date, "+00:30");
         Instant result = READER.readValue(json);
-        assertNotEquals("The value is not correct.", date, result);
+        assertNotEquals(date, result);
     }
 
     @Test
@@ -453,7 +499,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant date = Instant.now();
         String json = formatWithZeroZoneOffset(date, "+01:30");
         Instant result = READER.readValue(json);
-        assertNotEquals("The value is not correct.", date, result);
+        assertNotEquals(date, result);
     }
 
     @Test
@@ -463,7 +509,7 @@ public class InstantDeserTest extends ModuleTestBase
         Instant date = Instant.now();
         String json = formatWithZeroZoneOffset(date, "-00:00");
         Instant result = READER.readValue(json);
-        assertEquals("The value is not correct.", date, result);
+        assertEquals(date, result);
     }
 
     private String formatWithZeroZoneOffset(Instant date, String offset){

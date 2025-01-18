@@ -46,8 +46,8 @@ public class YearMonthDeserTest extends ModuleTestBase
     public void testDeserializationAsArrayDisabled() throws Exception
     {
         try {
-                   read("['2000-01']");
-                   fail("expected JsonMappingException");
+    		    read("['2000-01']");
+    		    fail("expected JsonMappingException");
         } catch (JsonMappingException e) {
            // OK
         } catch (IOException e) {

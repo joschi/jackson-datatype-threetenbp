@@ -17,9 +17,10 @@
 package com.fasterxml.jackson.datatype.threetenbp;
 
 import java.math.BigDecimal;
+import java.util.function.BiFunction;
+
 import org.threeten.bp.Instant;
 import com.fasterxml.jackson.core.io.NumberInput;
-import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
 
 /**
  * Utilities to aid in the translation of decimal types to/from multiple parts.
@@ -93,7 +94,7 @@ public final class DecimalUtils
             }
             return BigDecimal.valueOf(seconds).setScale(9);
         }
-        return NumberInput.parseBigDecimal(toDecimal(seconds, nanoseconds));
+        return NumberInput.parseBigDecimal(toDecimal(seconds, nanoseconds), false);
     }
 
     /**

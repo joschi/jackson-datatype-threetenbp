@@ -1,8 +1,6 @@
 package com.fasterxml.jackson.datatype.threetenbp.ser;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.datatype.threetenbp.function.ToIntFunction;
-import com.fasterxml.jackson.datatype.threetenbp.function.ToLongFunction;
 import org.threeten.bp.ZonedDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 
@@ -11,7 +9,7 @@ import org.threeten.bp.format.DateTimeFormatter;
 /**
  * @since 2.6
  *
- * @deprecated Since 2.8
+ * @deprecated Since 2.8 only used by deprecated {@link com.fasterxml.jackson.datatype.threetenbp.ThreeTenModule}
  */
 @Deprecated
 public class ZonedDateTimeWithZoneIdSerializer extends InstantSerializerBase<ZonedDateTime>
@@ -21,25 +19,8 @@ public class ZonedDateTimeWithZoneIdSerializer extends InstantSerializerBase<Zon
     public static final ZonedDateTimeWithZoneIdSerializer INSTANCE = new ZonedDateTimeWithZoneIdSerializer();
 
     protected ZonedDateTimeWithZoneIdSerializer() {
-        super(ZonedDateTime.class,
-                new ToLongFunction<ZonedDateTime>() {
-                    @Override
-                    public long applyAsLong(ZonedDateTime dt) {
-                        return dt.toInstant().toEpochMilli();
-                    }
-                },
-                new ToLongFunction<ZonedDateTime>() {
-                    @Override
-                    public long applyAsLong(ZonedDateTime dt) {
-                        return dt.toEpochSecond();
-                    }
-                },
-                new ToIntFunction<ZonedDateTime>() {
-                    @Override
-                    public int applyAsInt(ZonedDateTime dt) {
-                        return dt.getNano();
-                    }
-                },
+        super(ZonedDateTime.class, dt -> dt.toInstant().toEpochMilli(),
+                ZonedDateTime::toEpochSecond, ZonedDateTime::getNano,
                 // Serialize in a backwards compatible way: with zone id, using toString method
                 null);
     }
@@ -56,8 +37,8 @@ public class ZonedDateTimeWithZoneIdSerializer extends InstantSerializerBase<Zon
 
     @Override
     protected ThreeTenFormattedSerializerBase<?> withFormat(Boolean useTimestamp,
-        DateTimeFormatter formatter,
-        JsonFormat.Shape shape) {
+                                                            DateTimeFormatter formatter,
+                                                            JsonFormat.Shape shape) {
         return new ZonedDateTimeWithZoneIdSerializer(this, useTimestamp, formatter);
     }
 

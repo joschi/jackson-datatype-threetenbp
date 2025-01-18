@@ -21,16 +21,16 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.core.io.NumberInput;
+import com.fasterxml.jackson.core.util.JacksonFeatureSet;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.datatype.threetenbp.DecimalUtils;
+import com.fasterxml.jackson.datatype.threetenbp.ThreeTenTimeFeature;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 
-import com.fasterxml.jackson.datatype.threetenbp.function.BiFunction;
-import com.fasterxml.jackson.datatype.threetenbp.function.Function;
 import org.threeten.bp.DateTimeException;
 import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.Instant;
@@ -41,6 +41,8 @@ import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.temporal.Temporal;
 import org.threeten.bp.temporal.TemporalAccessor;
 import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,93 +58,61 @@ public class InstantDeserializer<T extends Temporal>
 {
     private static final long serialVersionUID = 1L;
 
+    private final static boolean DEFAULT_NORMALIZE_ZONE_ID = ThreeTenTimeFeature.NORMALIZE_DESERIALIZED_ZONE_ID.enabledByDefault();
+    private final static boolean DEFAULT_ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS
+        = ThreeTenTimeFeature.ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS.enabledByDefault();
+
     /**
-     * Constants used to check if ISO 8601 time string is colonless. See [jackson-modules-java8#131]
+     * Constants used to check if ISO 8601 time string is colon-less. See [jackson-modules-java8#131]
      *
      * @since 2.13
      */
     protected static final Pattern ISO8601_COLONLESS_OFFSET_REGEX = Pattern.compile("[+-][0-9]{4}(?=\\[|$)");
 
+    // @since 2.18.2
+    private static OffsetDateTime decimalToOffsetDateTime(FromDecimalArguments args) {
+        // [jackson-modules-java8#308] Since 2.18.2 : Fix can't deserialize OffsetDateTime.MIN: Invalid value for EpochDay
+        if (args.integer == OffsetDateTime.MIN.toEpochSecond() && args.fraction == OffsetDateTime.MIN.getNano()) {
+            return OffsetDateTime.ofInstant(Instant.ofEpochSecond(OffsetDateTime.MIN.toEpochSecond(), OffsetDateTime.MIN.getNano()), OffsetDateTime.MIN.getOffset());
+        }
+        // [jackson-modules-java8#308] Since 2.18.2 : For OffsetDateTime.MAX case
+        if (args.integer == OffsetDateTime.MAX.toEpochSecond() && args.fraction == OffsetDateTime.MAX.getNano()) {
+            return OffsetDateTime.ofInstant(Instant.ofEpochSecond(OffsetDateTime.MAX.toEpochSecond(), OffsetDateTime.MAX.getNano()), OffsetDateTime.MAX.getOffset());
+        }
+        return OffsetDateTime.ofInstant(Instant.ofEpochSecond(args.integer, args.fraction), args.zoneId);
+    }
+
     public static final InstantDeserializer<Instant> INSTANT = new InstantDeserializer<>(
             Instant.class, DateTimeFormatter.ISO_INSTANT,
-            new Function<TemporalAccessor, Instant>() {
-                @Override
-                public Instant apply(TemporalAccessor temporalAccessor) {
-                    return Instant.from(temporalAccessor);
-                }
-            },
-            new Function<FromIntegerArguments, Instant>() {
-                @Override
-                public Instant apply(FromIntegerArguments a) {
-                    return Instant.ofEpochMilli(a.value);
-                }
-            },
-            new Function<FromDecimalArguments, Instant>() {
-                @Override
-                public Instant apply(FromDecimalArguments a) {
-                    return Instant.ofEpochSecond(a.integer, a.fraction);
-                }
-            },
+            Instant::from,
+            a -> Instant.ofEpochMilli(a.value),
+            a -> Instant.ofEpochSecond(a.integer, a.fraction),
             null,
-            true // yes, replace zero offset with Z
+            true, // yes, replace zero offset with Z
+            DEFAULT_NORMALIZE_ZONE_ID,
+            DEFAULT_ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS
     );
 
     public static final InstantDeserializer<OffsetDateTime> OFFSET_DATE_TIME = new InstantDeserializer<>(
             OffsetDateTime.class, DateTimeFormatter.ISO_OFFSET_DATE_TIME,
-            new Function<TemporalAccessor, OffsetDateTime>() {
-                @Override
-                public OffsetDateTime apply(TemporalAccessor temporalAccessor) {
-                    return OffsetDateTime.from(temporalAccessor);
-                }
-            },
-            new Function<FromIntegerArguments, OffsetDateTime>() {
-                @Override
-                public OffsetDateTime apply(FromIntegerArguments a) {
-                    return OffsetDateTime.ofInstant(Instant.ofEpochMilli(a.value), a.zoneId);
-                }
-            },
-            new Function<FromDecimalArguments, OffsetDateTime>() {
-                @Override
-                public OffsetDateTime apply(FromDecimalArguments a) {
-                    return OffsetDateTime.ofInstant(Instant.ofEpochSecond(a.integer, a.fraction), a.zoneId);
-                }
-            },
-            new BiFunction<OffsetDateTime, ZoneId, OffsetDateTime>() {
-                @Override
-                public OffsetDateTime apply(OffsetDateTime d, ZoneId z) {
-                    return (d.isEqual(OffsetDateTime.MIN) || d.isEqual(OffsetDateTime.MAX) ? d : d.withOffsetSameInstant(z.getRules().getOffset(d.toLocalDateTime())));
-                }
-            },
-            true // yes, replace zero offset with Z
+            OffsetDateTime::from,
+            a -> OffsetDateTime.ofInstant(Instant.ofEpochMilli(a.value), a.zoneId),
+            InstantDeserializer::decimalToOffsetDateTime,
+            (d, z) -> (d.isEqual(OffsetDateTime.MIN) || d.isEqual(OffsetDateTime.MAX) ? d : d.withOffsetSameInstant(z.getRules().getOffset(d.toLocalDateTime()))),
+            true, // yes, replace zero offset with Z
+            DEFAULT_NORMALIZE_ZONE_ID,
+            DEFAULT_ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS
     );
 
     public static final InstantDeserializer<ZonedDateTime> ZONED_DATE_TIME = new InstantDeserializer<>(
             ZonedDateTime.class, DateTimeFormatter.ISO_ZONED_DATE_TIME,
-            new Function<TemporalAccessor, ZonedDateTime>() {
-                @Override
-                public ZonedDateTime apply(TemporalAccessor temporalAccessor) {
-                    return ZonedDateTime.from(temporalAccessor);
-                }
-            },
-            new Function<FromIntegerArguments, ZonedDateTime>() {
-                @Override
-                public ZonedDateTime apply(FromIntegerArguments a) {
-                    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(a.value), a.zoneId);
-                }
-            },
-            new Function<FromDecimalArguments, ZonedDateTime>() {
-                @Override
-                public ZonedDateTime apply(FromDecimalArguments a) {
-                    return ZonedDateTime.ofInstant(Instant.ofEpochSecond(a.integer, a.fraction), a.zoneId);
-                }
-            },
-            new BiFunction<ZonedDateTime, ZoneId, ZonedDateTime>() {
-                @Override
-                public ZonedDateTime apply(ZonedDateTime zonedDateTime, ZoneId zoneId) {
-                    return zonedDateTime.withZoneSameInstant(zoneId);
-                }
-            },
-            false // keep zero offset and Z separate since zones explicitly supported
+            ZonedDateTime::from,
+            a -> ZonedDateTime.ofInstant(Instant.ofEpochMilli(a.value), a.zoneId),
+            a -> ZonedDateTime.ofInstant(Instant.ofEpochSecond(a.integer, a.fraction), a.zoneId),
+            ZonedDateTime::withZoneSameInstant,
+            false, // keep zero offset and Z separate since zones explicitly supported
+            DEFAULT_NORMALIZE_ZONE_ID,
+            DEFAULT_ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS
     );
 
     protected final Function<FromIntegerArguments, T> fromMilliseconds;
@@ -169,26 +139,77 @@ public class InstantDeserializer<T extends Temporal>
      */
     protected final Boolean _adjustToContextTZOverride;
 
+    /**
+     * Flag for <code>JsonFormat.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS</code>
+     *
+     * @since 2.16
+     */
+    protected final Boolean _readTimestampsAsNanosOverride;
+
+    /**
+     * Flag set from
+     * {@link ThreeTenTimeFeature#NORMALIZE_DESERIALIZED_ZONE_ID} to
+     * determine whether {@link ZoneId} is to be normalized during deserialization.
+     *
+     * @since 2.16
+     */
+    protected final boolean _normalizeZoneId;
+
+    /**
+     * Flag set from
+     * {@link ThreeTenTimeFeature#ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS}
+     * to determine whether stringified numbers are interpreted as timestamps
+     * (enabled) nor not (disabled) in addition to a custom pattern ({code DateTimeFormatter}).
+     *<p>
+     * NOTE: stringified timestamps are always allowed with default patterns;
+     * this flag only affects handling of custom patterns.
+     *
+     * @since 2.16
+     */
+    protected final boolean _alwaysAllowStringifiedDateTimestamps;
+
+    /**
+     * @since 2.16
+     */
     protected InstantDeserializer(Class<T> supportedType,
             DateTimeFormatter formatter,
             Function<TemporalAccessor, T> parsedToValue,
             Function<FromIntegerArguments, T> fromMilliseconds,
             Function<FromDecimalArguments, T> fromNanoseconds,
             BiFunction<T, ZoneId, T> adjust,
-            boolean replaceZeroOffsetAsZ)
+            boolean replaceZeroOffsetAsZ,
+            boolean normalizeZoneId,
+            boolean readNumericStringsAsTimestamp
+    )
     {
         super(supportedType, formatter);
         this.parsedToValue = parsedToValue;
         this.fromMilliseconds = fromMilliseconds;
         this.fromNanoseconds = fromNanoseconds;
-        this.adjust = adjust == null ? new BiFunction<T, ZoneId, T>() {
-            @Override
-            public T apply(T d, ZoneId z) {
-                return d;
-            }
-        } : adjust;
+        this.adjust = adjust == null ? ((d, z) -> d) : adjust;
         this.replaceZeroOffsetAsZ = replaceZeroOffsetAsZ;
-        _adjustToContextTZOverride = null;
+        this._adjustToContextTZOverride = null;
+        this._readTimestampsAsNanosOverride = null;
+        _normalizeZoneId = normalizeZoneId;
+        _alwaysAllowStringifiedDateTimestamps = readNumericStringsAsTimestamp;
+    }
+
+    /**
+     * @deprecated Since 2.16, use {@link #InstantDeserializer(Class,DateTimeFormatter,
+     * Function,Function,Function,BiFunction,boolean,boolean,boolean)} instead.
+     */
+    @Deprecated()
+    protected InstantDeserializer(Class<T> supportedType,
+                                  DateTimeFormatter formatter,
+                                  Function<TemporalAccessor, T> parsedToValue,
+                                  Function<FromIntegerArguments, T> fromMilliseconds,
+                                  Function<FromDecimalArguments, T> fromNanoseconds,
+                                  BiFunction<T, ZoneId, T> adjust,
+                                  boolean replaceZeroOffsetAsZ
+    ) {
+        this(supportedType, formatter, parsedToValue, fromMilliseconds, fromNanoseconds,
+                adjust, replaceZeroOffsetAsZ,
+                DEFAULT_NORMALIZE_ZONE_ID, DEFAULT_ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS);
     }
 
     @SuppressWarnings("unchecked")
@@ -201,6 +222,9 @@ public class InstantDeserializer<T extends Temporal>
         adjust = base.adjust;
         replaceZeroOffsetAsZ = (_formatter == DateTimeFormatter.ISO_INSTANT);
         _adjustToContextTZOverride = base._adjustToContextTZOverride;
+        _readTimestampsAsNanosOverride = base._readTimestampsAsNanosOverride;
+        _normalizeZoneId = base._normalizeZoneId;
+        _alwaysAllowStringifiedDateTimestamps = base._alwaysAllowStringifiedDateTimestamps;
     }
 
     @SuppressWarnings("unchecked")
@@ -213,6 +237,9 @@ public class InstantDeserializer<T extends Temporal>
         adjust = base.adjust;
         replaceZeroOffsetAsZ = base.replaceZeroOffsetAsZ;
         _adjustToContextTZOverride = adjustToContextTimezoneOverride;
+        _readTimestampsAsNanosOverride = base._readTimestampsAsNanosOverride;
+        _normalizeZoneId = base._normalizeZoneId;
+        _alwaysAllowStringifiedDateTimestamps = base._alwaysAllowStringifiedDateTimestamps;
     }
 
     @SuppressWarnings("unchecked")
@@ -225,6 +252,51 @@ public class InstantDeserializer<T extends Temporal>
         adjust = base.adjust;
         replaceZeroOffsetAsZ = (_formatter == DateTimeFormatter.ISO_INSTANT);
         _adjustToContextTZOverride = base._adjustToContextTZOverride;
+        _readTimestampsAsNanosOverride = base._readTimestampsAsNanosOverride;
+        _normalizeZoneId = base._normalizeZoneId;
+        _alwaysAllowStringifiedDateTimestamps = base._alwaysAllowStringifiedDateTimestamps;
+    }
+
+    /**
+     * @since 2.16
+     */
+    protected InstantDeserializer(InstantDeserializer<T> base,
+        Boolean leniency,
+        DateTimeFormatter formatter,
+        JsonFormat.Shape shape,
+        Boolean adjustToContextTimezoneOverride,
+        Boolean readTimestampsAsNanosOverride)
+    {
+        super(base, leniency, formatter, shape);
+        parsedToValue = base.parsedToValue;
+        fromMilliseconds = base.fromMilliseconds;
+        fromNanoseconds = base.fromNanoseconds;
+        adjust = base.adjust;
+        replaceZeroOffsetAsZ = base.replaceZeroOffsetAsZ;
+        _adjustToContextTZOverride = adjustToContextTimezoneOverride;
+        _readTimestampsAsNanosOverride = readTimestampsAsNanosOverride;
+        _normalizeZoneId = base._normalizeZoneId;
+        _alwaysAllowStringifiedDateTimestamps = base._alwaysAllowStringifiedDateTimestamps;
+    }
+
+    /**
+     * @since 2.16
+     */
+    @SuppressWarnings("unchecked")
+    protected InstantDeserializer(InstantDeserializer<T> base,
+            JacksonFeatureSet<ThreeTenTimeFeature> features)
+    {
+        super((Class<T>) base.handledType(), base._formatter);
+        parsedToValue = base.parsedToValue;
+        fromMilliseconds = base.fromMilliseconds;
+        fromNanoseconds = base.fromNanoseconds;
+        adjust = base.adjust;
+        replaceZeroOffsetAsZ = base.replaceZeroOffsetAsZ;
+        _adjustToContextTZOverride = base._adjustToContextTZOverride;
+        _readTimestampsAsNanosOverride = base._readTimestampsAsNanosOverride;
+
+        _normalizeZoneId = features.isEnabled(ThreeTenTimeFeature.NORMALIZE_DESERIALIZED_ZONE_ID);
+        _alwaysAllowStringifiedDateTimestamps = features.isEnabled(ThreeTenTimeFeature.ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS);
     }
 
     @Override
@@ -232,27 +304,39 @@ public class InstantDeserializer<T extends Temporal>
         if (dtf == _formatter) {
             return this;
         }
-        return new InstantDeserializer<T>(this, dtf);
+        return new InstantDeserializer<>(this, dtf);
     }
 
     @Override
     protected InstantDeserializer<T> withLeniency(Boolean leniency) {
-        return new InstantDeserializer<T>(this, _formatter, leniency);
+        return new InstantDeserializer<>(this, _formatter, leniency);
     }
 
-    @Override
-    protected InstantDeserializer<T> withShape(JsonFormat.Shape shape) { return this; }
+    // @since 2.16
+    public InstantDeserializer<T> withFeatures(JacksonFeatureSet<ThreeTenTimeFeature> features) {
+        if ((_normalizeZoneId == features.isEnabled(ThreeTenTimeFeature.NORMALIZE_DESERIALIZED_ZONE_ID))
+                && (_alwaysAllowStringifiedDateTimestamps == features.isEnabled(ThreeTenTimeFeature.ALWAYS_ALLOW_STRINGIFIED_DATE_TIMESTAMPS))
+        ) {
+            return this;
+        }
+        return new InstantDeserializer<>(this, features);
+    }
 
     @SuppressWarnings("unchecked")
     @Override // @since 2.12.1
     protected ThreeTenDateTimeDeserializerBase<?> _withFormatOverrides(DeserializationContext ctxt,
-            BeanProperty property, JsonFormat.Value formatOverrides)
+                                                                       BeanProperty property, JsonFormat.Value formatOverrides)
     {
         InstantDeserializer<T> deser = (InstantDeserializer<T>) super._withFormatOverrides(ctxt,
                 property, formatOverrides);
-        Boolean B = formatOverrides.getFeature(JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
-        if (!Objects.equals(B, deser._adjustToContextTZOverride)) {
-            return new InstantDeserializer<T>(deser, B);
+        Boolean adjustToContextTZOverride = formatOverrides.getFeature(
+            JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+        Boolean readTimestampsAsNanosOverride = formatOverrides.getFeature(
+            JsonFormat.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
+        if (!Objects.equals(adjustToContextTZOverride, deser._adjustToContextTZOverride)
+            || !Objects.equals(readTimestampsAsNanosOverride, deser._readTimestampsAsNanosOverride)) {
+            return new InstantDeserializer<>(deser, deser._isLenient, deser._formatter,
+                deser._shape, adjustToContextTZOverride, readTimestampsAsNanosOverride);
         }
         return deser;
     }
@@ -292,6 +376,11 @@ public class InstantDeserializer<T extends Temporal>
                 context.isEnabled(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
     }
 
+    protected boolean shouldReadTimestampsAsNanoseconds(DeserializationContext context) {
+        return (_readTimestampsAsNanosOverride != null) ? _readTimestampsAsNanosOverride :
+            context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
+    }
+
     // Helper method to find Strings of form "all digits" and "digits-comma-digits"
     protected int _countPeriods(String str)
     {
@@ -319,10 +408,12 @@ public class InstantDeserializer<T extends Temporal>
             //   handled like "regular" empty (same as pre-2.12)
             return _fromEmptyString(p, ctxt, string);
         }
-        // only check for other parsing modes if we are using default formatter
-        if (_formatter == DateTimeFormatter.ISO_INSTANT ||
-            _formatter == DateTimeFormatter.ISO_OFFSET_DATE_TIME ||
-            _formatter == DateTimeFormatter.ISO_ZONED_DATE_TIME) {
+        // only check for other parsing modes if we are using default formatter or explicitly asked to
+        if (_alwaysAllowStringifiedDateTimestamps ||
+                _formatter == DateTimeFormatter.ISO_INSTANT ||
+                _formatter == DateTimeFormatter.ISO_OFFSET_DATE_TIME ||
+                _formatter == DateTimeFormatter.ISO_ZONED_DATE_TIME
+            ) {
             // 22-Jan-2016, [datatype-jsr310#16]: Allow quoted numbers too
             int dots = _countPeriods(string);
             if (dots >= 0) { // negative if not simple number
@@ -331,7 +422,7 @@ public class InstantDeserializer<T extends Temporal>
                         return _fromLong(ctxt, NumberInput.parseLong(string));
                     }
                     if (dots == 1) {
-                        return _fromDecimal(ctxt, NumberInput.parseBigDecimal(string));
+                        return _fromDecimal(ctxt, NumberInput.parseBigDecimal(string, false));
                     }
                 } catch (NumberFormatException e) {
                     // fall through to default handling, to get error there
@@ -367,7 +458,7 @@ public class InstantDeserializer<T extends Temporal>
 
     protected T _fromLong(DeserializationContext context, long timestamp)
     {
-        if(context.isEnabled(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)){
+        if(shouldReadTimestampsAsNanoseconds(context)){
             return fromNanoseconds.apply(new FromDecimalArguments(
                     timestamp, 0, this.getZone(context)
             ));
@@ -376,15 +467,10 @@ public class InstantDeserializer<T extends Temporal>
                 timestamp, this.getZone(context)));
     }
 
-    protected T _fromDecimal(final DeserializationContext context, BigDecimal value)
+    protected T _fromDecimal(DeserializationContext context, BigDecimal value)
     {
         FromDecimalArguments args =
-            DecimalUtils.extractSecondsAndNanos(value, new BiFunction<Long, Integer, FromDecimalArguments>() {
-                @Override
-                public FromDecimalArguments apply(Long s, Integer ns) {
-                    return new FromDecimalArguments(s, ns, getZone(context));
-                }
-            });
+            DecimalUtils.extractSecondsAndNanos(value, (s, ns) -> new FromDecimalArguments(s, ns, getZone(context)));
         return fromNanoseconds.apply(args);
     }
 
@@ -393,7 +479,11 @@ public class InstantDeserializer<T extends Temporal>
         // Instants are always in UTC, so don't waste compute cycles
         // Normalizing the zone to prevent discrepancies.
         // See https://github.com/FasterXML/jackson-modules-java8/pull/267 for details
-        return (_valueClass == Instant.class) ? null : DateTimeUtils.toZoneId(context.getTimeZone()).normalized();
+        if (_valueClass == Instant.class) {
+            return null;
+        }
+        ZoneId zoneId =  DateTimeUtils.toZoneId(context.getTimeZone());
+        return _normalizeZoneId ? zoneId.normalized() : zoneId;
     }
 
     private String replaceZeroOffsetAsZIfNecessary(String text)

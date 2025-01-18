@@ -3,10 +3,10 @@ package com.fasterxml.jackson.datatype.threetenbp.util;
 import org.threeten.bp.Duration;
 import org.threeten.bp.temporal.ChronoUnit;
 import org.threeten.bp.temporal.TemporalUnit;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import com.fasterxml.jackson.datatype.threetenbp.function.Function;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.datatype.threetenbp.util.DurationUnitConverter.DurationSerialization.deserializer;
 
@@ -30,13 +30,8 @@ public class DurationUnitConverter {
             this.deserializer = deserializer;
         }
 
-        static Function<Long, Duration> deserializer(final TemporalUnit unit) {
-            return new Function<Long, Duration>() {
-                @Override
-                public Duration apply(Long v) {
-                    return Duration.of(v, unit);
-                }
-            };
+        static Function<Long, Duration> deserializer(TemporalUnit unit) {
+            return v -> Duration.of(v, unit);
         }
     }
 
@@ -44,54 +39,14 @@ public class DurationUnitConverter {
 
     static {
         Map<String, DurationSerialization> units = new LinkedHashMap<>();
-        units.put(ChronoUnit.NANOS.name(), new DurationSerialization(new Function<Duration, Long>() {
-            @Override
-            public Long apply(Duration duration) {
-                return duration.toNanos();
-            }
-        }, deserializer(ChronoUnit.NANOS)));
-        units.put(ChronoUnit.MICROS.name(), new DurationSerialization(new Function<Duration, Long>() {
-            @Override
-            public Long apply(Duration duration) {
-                return duration.toNanos() / 1000;
-            }
-        }, deserializer(ChronoUnit.MICROS)));
-        units.put(ChronoUnit.MILLIS.name(), new DurationSerialization(new Function<Duration, Long>() {
-            @Override
-            public Long apply(Duration duration) {
-                return duration.toMillis();
-            }
-        }, deserializer(ChronoUnit.MILLIS)));
-        units.put(ChronoUnit.SECONDS.name(), new DurationSerialization(new Function<Duration, Long>() {
-            @Override
-            public Long apply(Duration duration) {
-                return duration.getSeconds();
-            }
-        }, deserializer(ChronoUnit.SECONDS)));
-        units.put(ChronoUnit.MINUTES.name(), new DurationSerialization(new Function<Duration, Long>() {
-            @Override
-            public Long apply(Duration duration) {
-                return duration.toMinutes();
-            }
-        }, deserializer(ChronoUnit.MINUTES)));
-        units.put(ChronoUnit.HOURS.name(), new DurationSerialization(new Function<Duration, Long>() {
-            @Override
-            public Long apply(Duration duration) {
-                return duration.toHours();
-            }
-        }, deserializer(ChronoUnit.HOURS)));
-        units.put(ChronoUnit.HALF_DAYS.name(), new DurationSerialization(new Function<Duration, Long>() {
-            @Override
-            public Long apply(Duration duration) {
-                return duration.toHours() / 12;
-            }
-        }, deserializer(ChronoUnit.HALF_DAYS)));
-        units.put(ChronoUnit.DAYS.name(), new DurationSerialization(new Function<Duration, Long>() {
-            @Override
-            public Long apply(Duration duration) {
-                return duration.toDays();
-            }
-        }, deserializer(ChronoUnit.DAYS)));
+        units.put(ChronoUnit.NANOS.name(), new DurationSerialization(Duration::toNanos, deserializer(ChronoUnit.NANOS)));
+        units.put(ChronoUnit.MICROS.name(), new DurationSerialization(d -> d.toNanos() / 1000, deserializer(ChronoUnit.MICROS)));
+        units.put(ChronoUnit.MILLIS.name(), new DurationSerialization(Duration::toMillis, deserializer(ChronoUnit.MILLIS)));
+        units.put(ChronoUnit.SECONDS.name(), new DurationSerialization(Duration::getSeconds, deserializer(ChronoUnit.SECONDS)));
+        units.put(ChronoUnit.MINUTES.name(), new DurationSerialization(Duration::toMinutes, deserializer(ChronoUnit.MINUTES)));
+        units.put(ChronoUnit.HOURS.name(), new DurationSerialization(Duration::toHours, deserializer(ChronoUnit.HOURS)));
+        units.put(ChronoUnit.HALF_DAYS.name(), new DurationSerialization(d -> d.toHours() / 12, deserializer(ChronoUnit.HALF_DAYS)));
+        units.put(ChronoUnit.DAYS.name(), new DurationSerialization(Duration::toDays, deserializer(ChronoUnit.DAYS)));
         UNITS = units;
     }
 
@@ -115,16 +70,9 @@ public class DurationUnitConverter {
      * double-quoted values separated by comma
      */
     public static String descForAllowed() {
-        StringBuilder sb = new StringBuilder("\"");
-        Iterator<String> iterator = UNITS.keySet().iterator();
-        while (iterator.hasNext()) {
-            sb.append(iterator.next());
-            if (iterator.hasNext()) {
-                sb.append("\", \"");
-            }
-        }
-
-        return sb.append("\"").toString();
+        return "\"" + UNITS.keySet().stream()
+                .collect(Collectors.joining("\", \""))
+                + "\"";
     }
 
     public static DurationUnitConverter from(String unit) {
